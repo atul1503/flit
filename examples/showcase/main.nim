@@ -80,6 +80,32 @@ proc divider(): Widget =
       child = coloredBox(color = currentTheme().colorScheme.outline)),
     padding = edgeInsetsSymmetric(0, 8))
 
+# Horizontal progress bar via Row + Expanded with integer flex weights, so
+# the filled portion grows proportionally to `progress` (0..1) regardless
+# of the parent's width. Avoids needing widthFactor to know the parent
+# size at construction time.
+proc progressBar(progress: float32, height: float32 = 24.0'f32): Widget =
+  let scheme = currentTheme().colorScheme
+  let p = clamp(progress, 0.0'f32, 1.0'f32)
+  let filled = int(p * 1000.0'f32)
+  let empty  = max(1, 1000 - filled)
+  var children: seq[Widget] = @[]
+  if filled > 0:
+    children.add(expanded(
+      decoratedBox(
+        decoration = boxDecoration(color = scheme.primary, borderRadius = height / 2)),
+      flex = filled))
+  children.add(expanded(
+    coloredBox(color = colorTransparent),
+    flex = empty))
+  sizedBox(height = height,
+    child = decoratedBox(
+      decoration = boxDecoration(color = scheme.primaryContainer.withOpacity(0.3),
+        borderRadius = height / 2,
+        border = Border(color: scheme.outline, width: 1)),
+      child = row(mainAxisSize = msMax, crossAxisAlignment = caStretch,
+                  children = children)))
+
 # Tap-able tab pill rendered manually so we can demo Decoration + Gesture.
 proc tabPill(s: ShowcaseState, t: Tab): Widget =
   let active = s.tab == t
@@ -295,19 +321,31 @@ proc styleTab(s: ShowcaseState): Widget =
       ]),
       divider(),
       heading("EdgeInsets"),
-      body("Same content, four padding strategies: all, symmetric, only, LTRB."),
+      body("Each card has the same 60x40 inner square; the surrounding padding shows the inset shape."),
       sizedBox(height = 8),
-      row(mainAxisAlignment = maSpaceBetween, crossAxisAlignment = caStart,
-          children = @[
-        styleSwatch("all(8)",
-          BoxDecoration(color: scheme.primaryContainer, borderRadius: 4)),
-        styleSwatch("symmetric(12,4)",
-          BoxDecoration(color: scheme.primaryContainer, borderRadius: 4)),
-        styleSwatch("only(top=12)",
-          BoxDecoration(color: scheme.primaryContainer, borderRadius: 4)),
-        styleSwatch("LTRB(2,4,8,16)",
-          BoxDecoration(color: scheme.primaryContainer, borderRadius: 4)),
-      ]),
+      block:
+        proc swatch(label: string, p: EdgeInsets): Widget =
+          padding(padding = edgeInsetsAll(6),
+            child = column(mainAxisSize = msMin, crossAxisAlignment = caCenter,
+                           children = @[
+              Widget(decoratedBox(
+                decoration = boxDecoration(color = scheme.primaryContainer,
+                                           borderRadius = 6,
+                                           border = Border(color: scheme.outline, width: 1)),
+                child = padding(padding = p,
+                  child = decoratedBox(
+                    decoration = boxDecoration(color = scheme.primary, borderRadius = 4),
+                    child = sizedBox(width = 60, height = 40))))),
+              sizedBox(height = 4),
+              text(label, style = textStyle(fontSize = 11,
+                                            color = scheme.onSurface))]))
+        row(mainAxisAlignment = maStart, crossAxisAlignment = caStart,
+            children = @[
+          swatch("all(8)",          edgeInsetsAll(8)),
+          swatch("sym(h=20,v=4)",   edgeInsetsSymmetric(horizontal = 20, vertical = 4)),
+          swatch("only(top=24)",    edgeInsetsOnly(top = 24)),
+          swatch("LTRB(2,4,24,16)", edgeInsetsLTRB(2, 4, 24, 16)),
+        ]),
       divider(),
       heading("TextStyle"),
       sizedBox(height = 4),
@@ -376,23 +414,15 @@ proc inputsTab(s: ShowcaseState): Widget =
       sizedBox(height = 4),
       gestureDetector(
         behavior = htOpaque,
-        onPanStart = proc(p: Offset) =
-          setState(s, proc() = s.holdProgress = 0),
-        onPanUpdate = proc(delta, position: Offset) =
+        onPanStart = (proc(p: Offset) =
+          setState(s, proc() = s.holdProgress = 0.05'f32)),
+        onPanUpdate = (proc(delta, position: Offset) =
           setState(s, proc() =
-            s.holdProgress = clamp(s.holdProgress + 0.01'f32, 0.0'f32, 1.0'f32)),
-        onPanEnd = proc() = setState(s, proc() = s.holdProgress = 0),
-        onTap = proc() = setState(s, proc() = s.holdProgress = 0),
-        child = sizedBox(height = 24,
-          child = decoratedBox(
-            decoration = boxDecoration(color = scheme.surface, borderRadius = 12,
-              border = Border(color: scheme.outline, width: 1)),
-            child = align(alignment = alignCenterLeft,
-              widthFactor = s.holdProgress,
-              child = decoratedBox(
-                decoration = boxDecoration(color = scheme.primary,
-                                           borderRadius = 12),
-                child = sizedBox(height = 24)))))),
+            s.holdProgress = clamp(s.holdProgress + 0.02'f32,
+                                   0.0'f32, 1.0'f32))),
+        onPanEnd = (proc() = setState(s, proc() = s.holdProgress = 0)),
+        onTap = (proc() = setState(s, proc() = s.holdProgress = 0)),
+        child = progressBar(s.holdProgress, height = 24.0'f32)),
       sizedBox(height = 4),
       body("charge: " & formatFloat(s.holdProgress, ffDecimal, 2)),
     ]))
@@ -445,16 +475,7 @@ proc animationTab(s: ShowcaseState): Widget =
       row(mainAxisAlignment = maStart, mainAxisSize = msMax,
           crossAxisAlignment = caStart, children = pillRow),
       sizedBox(height = 12),
-      sizedBox(height = 30,
-        child = decoratedBox(
-          decoration = boxDecoration(color = scheme.surface, borderRadius = 15,
-            border = Border(color: scheme.outline, width: 1)),
-          child = align(alignment = alignCenterLeft,
-            widthFactor = s.animPos,
-            child = decoratedBox(
-              decoration = boxDecoration(color = scheme.primary,
-                                         borderRadius = 15),
-              child = sizedBox(height = 30))))),
+      progressBar(s.animPos, height = 30.0'f32),
       sizedBox(height = 12),
       row(mainAxisAlignment = maStart, children = @[
         Widget(elevatedButton(
