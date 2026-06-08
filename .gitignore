@@ -4,6 +4,13 @@ build/
 web/app.js
 web/app.js.map
 docs/api/
+tests/test_*
+!tests/test_*.nim
+examples/*/main
+examples/*/counter
+examples/*/gallery
+examples/*/todo
+examples/*/calculator
 *.exe
 *.dll
 *.dylib
