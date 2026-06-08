@@ -99,7 +99,9 @@ when not defined(js):
     f.size = fontSize
     let pt = argbToPaint(color)
     f.paints = @[pt]
-    c.image.fillText(f, text, translate(vec2(pos.dx, pos.dy + fontSize)))
+    # Pixie places typeset text at the top-left of the translate point, NOT
+    # the baseline. So we just translate to pos directly.
+    c.image.fillText(f, text, translate(vec2(pos.dx, pos.dy)))
 
   method save*(c: SdlCanvas) = c.ctx.save()
   method restore*(c: SdlCanvas) = c.ctx.restore()

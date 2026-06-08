@@ -6,7 +6,7 @@ when defined(js):
   {.error: "embedded runner is not for JS backend".}
 
 import std/[times, os]
-import pixie
+import pixie except Rect, rect
 import ../../foundation/[widget, render_object, binding, geometry, runtime,
                           diagnostics]
 
@@ -29,32 +29,48 @@ proc newEmbeddedCanvas*(w, h: int): EmbeddedCanvas =
   EmbeddedCanvas(image: img, ctx: newContext(img),
                  size: Size(width: float32(w), height: float32(h)))
 
+proc argbToPaint(v: uint32): Paint =
+  result = newPaint(SolidPaint)
+  result.color = argbToColor(v)
+
 method clear*(c: EmbeddedCanvas, color: uint32) =
-  c.ctx.fillStyle = argbToColor(color)
-  c.ctx.fillRect(rect(0.0, 0.0, c.size.width, c.size.height))
+  c.ctx.fillStyle = argbToPaint(color)
+  c.ctx.fillRect(pixie.rect(0.0'f32, 0.0'f32, c.size.width, c.size.height))
 
 method drawRect*(c: EmbeddedCanvas, r: Rect, fill: uint32) =
-  c.ctx.fillStyle = argbToColor(fill)
+  c.ctx.fillStyle = argbToPaint(fill)
   c.ctx.fillRect(pixie.rect(r.left, r.top, r.width, r.height))
 
 method drawRRect*(c: EmbeddedCanvas, r: RRect, fill: uint32) =
-  c.ctx.fillStyle = argbToColor(fill)
-  c.ctx.fillRoundedRect(
-    pixie.rect(r.rect.left, r.rect.top, r.rect.width, r.rect.height),
-    r.tl.x, r.tr.x, r.br.x, r.bl.x)
+  c.ctx.fillStyle = argbToPaint(fill)
+  var path = newPath()
+  path.roundedRect(pixie.rect(r.rect.left, r.rect.top, r.rect.width, r.rect.height),
+                   r.tl.x, r.tr.x, r.br.x, r.bl.x)
+  c.ctx.fill(path)
 
 method drawCircle*(c: EmbeddedCanvas, center: Offset, radius: float32, fill: uint32) =
-  c.ctx.fillStyle = argbToColor(fill)
-  c.ctx.fillCircle(circle(pixie.vec2(center.dx, center.dy), radius))
+  c.ctx.fillStyle = argbToPaint(fill)
+  var path = newPath()
+  path.circle(center.dx, center.dy, radius)
+  c.ctx.fill(path)
 
 method drawLine*(c: EmbeddedCanvas, p0, p1: Offset, color: uint32, width: float32) =
-  c.ctx.strokeStyle = argbToColor(color)
+  c.ctx.strokeStyle = argbToPaint(color)
   c.ctx.lineWidth = width
-  c.ctx.strokeSegment(segment(pixie.vec2(p0.dx, p0.dy), pixie.vec2(p1.dx, p1.dy)))
+  var path = newPath()
+  path.moveTo(p0.dx, p0.dy)
+  path.lineTo(p1.dx, p1.dy)
+  c.ctx.stroke(path)
+
+var embeddedFont*: pixie.Font = nil
 
 method drawText*(c: EmbeddedCanvas, text: string, pos: Offset, color: uint32,
                  fontSize: float32, fontFamily: string) =
-  discard  # embedded loads a font separately if needed
+  if embeddedFont.isNil: return
+  embeddedFont.size = fontSize
+  embeddedFont.paints = @[argbToPaint(color)]
+  c.image.fillText(embeddedFont, text,
+                   translate(pixie.vec2(pos.dx, pos.dy)))
 
 method save*(c: EmbeddedCanvas)    = c.ctx.save()
 method restore*(c: EmbeddedCanvas) = c.ctx.restore()

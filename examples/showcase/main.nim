@@ -123,24 +123,30 @@ proc tabBar(s: ShowcaseState): Widget =
 # ---------------------------------------------------------------------------
 
 proc homeTab(s: ShowcaseState): Widget =
+  let scheme = currentTheme().colorScheme
   padding(
     padding = edgeInsetsAll(16),
-    child = column(crossAxisAlignment = caStart, children = @[
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caStart,
+                   children = @[
       heading("flit Showcase", 32.0'f32),
       body("Every tab demonstrates a different corner of the framework."),
       sizedBox(height = 16),
-      card(margin = edgeInsetsAll(0),
+      decoratedBox(
+        decoration = boxDecoration(color = scheme.primaryContainer,
+          borderRadius = 12,
+          border = Border(color: scheme.outline, width: 1)),
         child = padding(
           padding = edgeInsetsAll(16),
-          child = column(crossAxisAlignment = caStart, children = @[
+          child = column(mainAxisSize = msMin, crossAxisAlignment = caStart,
+                         children = @[
             Widget(text("You have pressed the button:",
-              style = textStyle(fontSize = 14))),
+              style = textStyle(fontSize = 14, color = scheme.onSurface))),
             sizedBox(height = 8),
             text($s.counter,
               style = textStyle(fontSize = 56, fontWeight = 700,
-                                color = currentTheme().colorScheme.primary)),
+                                color = scheme.primary)),
             sizedBox(height = 8),
-            row(mainAxisAlignment = maStart, children = @[
+            row(mainAxisSize = msMin, mainAxisAlignment = maStart, children = @[
               Widget(elevatedButton(
                 child = text("Increment",
                   style = textStyle(fontSize = 14, color = colorWhite)),
@@ -148,8 +154,7 @@ proc homeTab(s: ShowcaseState): Widget =
               sizedBox(width = 12),
               textButton(
                 child = text("Reset",
-                  style = textStyle(fontSize = 14,
-                    color = currentTheme().colorScheme.primary)),
+                  style = textStyle(fontSize = 14, color = scheme.primary)),
                 onPressed = proc() = setState(s, proc() = s.counter = 0))]),
           ]))),
       sizedBox(height = 24),
@@ -199,7 +204,7 @@ proc rowDemo(label: string, ma: MainAxisAlignment): Widget =
 proc layoutTab(s: ShowcaseState): Widget =
   padding(
     padding = edgeInsetsAll(16),
-    child = column(crossAxisAlignment = caStretch, children = @[
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caStretch, children = @[
       Widget(heading("Row mainAxisAlignment")),
       rowDemo("maStart",        maStart),
       rowDemo("maEnd",          maEnd),
@@ -247,7 +252,7 @@ proc layoutTab(s: ShowcaseState): Widget =
 proc styleSwatch(label: string, decoration: BoxDecoration): Widget =
   padding(
     padding = edgeInsetsAll(6),
-    child = column(crossAxisAlignment = caCenter, children = @[
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caCenter, children = @[
       Widget(decoratedBox(decoration = decoration,
         child = sizedBox(width = 80, height = 60))),
       sizedBox(height = 4),
@@ -257,7 +262,7 @@ proc styleTab(s: ShowcaseState): Widget =
   let scheme = currentTheme().colorScheme
   padding(
     padding = edgeInsetsAll(16),
-    child = column(crossAxisAlignment = caStretch, children = @[
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caStretch, children = @[
       Widget(heading("Decorations")),
       body("Boxes with color, radius, border, circle shape and drop shadow."),
       sizedBox(height = 8),
@@ -323,7 +328,7 @@ proc inputsTab(s: ShowcaseState): Widget =
   let scheme = currentTheme().colorScheme
   padding(
     padding = edgeInsetsAll(16),
-    child = column(crossAxisAlignment = caStretch, children = @[
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caStretch, children = @[
       Widget(heading("Buttons")),
       sizedBox(height = 4),
       row(mainAxisAlignment = maStart, children = @[
@@ -432,7 +437,7 @@ proc animationTab(s: ShowcaseState): Widget =
 
   padding(
     padding = edgeInsetsAll(16),
-    child = column(crossAxisAlignment = caStretch, children = @[
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caStretch, children = @[
       Widget(heading("Animation curves")),
       body("Pick a curve, then press Run. The bar fills using that curve."),
       sizedBox(height = 8),
@@ -485,7 +490,7 @@ proc cupertinoTab(s: ShowcaseState): Widget =
   cupertinoCurrent = t  # update ambient
   padding(
     padding = edgeInsetsAll(16),
-    child = column(crossAxisAlignment = caStretch, children = @[
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caStretch, children = @[
       Widget(heading("Cupertino widgets")),
       body("The same setState-driven model with iOS-styled controls."),
       sizedBox(height = 8),
@@ -508,7 +513,7 @@ proc cupertinoTab(s: ShowcaseState): Widget =
           border = Border(color: t.colors.separator, width: 1)),
         child = padding(
           padding = edgeInsetsAll(12),
-          child = column(crossAxisAlignment = caStretch, children = @[
+          child = column(mainAxisSize = msMin, crossAxisAlignment = caStretch, children = @[
             Widget(row(mainAxisAlignment = maSpaceBetween,
                        crossAxisAlignment = caCenter, children = @[
               Widget(text("Tap count",

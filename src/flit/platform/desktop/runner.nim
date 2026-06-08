@@ -48,9 +48,31 @@ proc runDesktop*(rootWidget: Widget,
     echo "createRenderer failed: ", getError()
     return
 
+  # Auto-discover a system font if the caller didn't pass one. Without a
+  # font the SDL canvas silently skips every drawText call, which makes
+  # every label and button look empty even when layout is correct.
+  var fontPath = config.fontPath
+  if fontPath.len == 0:
+    const candidates = [
+      "/System/Library/Fonts/Supplemental/Arial.ttf",
+      "/System/Library/Fonts/Supplemental/Helvetica.ttc",
+      "/Library/Fonts/Arial.ttf",
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+      "/usr/share/fonts/TTF/DejaVuSans.ttf",
+      "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
+      "C:/Windows/Fonts/arial.ttf",
+    ]
+    for c in candidates:
+      if fileExists(c):
+        fontPath = c
+        break
+    if fontPath.len > 0:
+      flogi("flit using font: ", fontPath)
+    else:
+      flogw("flit found no system font; text will not render")
   let canvas = newSdlCanvas(window, renderer,
                             config.width, config.height,
-                            config.fontPath)
+                            fontPath)
   let binding = newBinding(canvas,
                            Size(width: float32(config.width),
                                 height: float32(config.height)))

@@ -49,7 +49,9 @@ proc boxDecoration*(color = colorTransparent, borderRadius = 0.0'f32,
 
 method performLayout*(r: RenderDecoratedBox) =
   if r.child.isNil:
-    r.setSize(r.constraints.constrain(SizeZero))
+    let w = if r.constraints.hasBoundedWidth:  r.constraints.maxWidth  else: 0.0'f32
+    let h = if r.constraints.hasBoundedHeight: r.constraints.maxHeight else: 0.0'f32
+    r.setSize(r.constraints.constrain(Size(width: w, height: h)))
   else:
     r.child.layout(r.constraints)
     r.setSize(r.constraints.constrain(r.child.size))

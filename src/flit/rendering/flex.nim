@@ -52,13 +52,18 @@ method performLayout*(r: RenderFlex) =
   let maxCross = if axis == axHorizontal: r.constraints.maxHeight else: r.constraints.maxWidth
   let minCross = if axis == axHorizontal: r.constraints.minHeight else: r.constraints.minWidth
 
+  # caStretch tightens the cross axis so children fill it.
+  let stretch = r.crossAxisAlignment == caStretch
+  let crossMin = if stretch: maxCross else: 0.0'f32
+  let crossMax = maxCross
+
   # Pass 1: inflexible children
   for child in r.children:
     if child.pd.flex > 0:
       totalFlex += child.pd.flex
       continue
     let innerMain = (0.0'f32 .. (maxMain - allocatedMain).max(0))
-    let innerCross = (0.0'f32 .. maxCross)
+    let innerCross = (crossMin .. crossMax)
     let inner = constraintsAlongAxis(r.constraints, axis, innerMain, innerCross)
     child.obj.layout(inner)
     allocatedMain += mainAxisExtent(child.obj.size, axis)
@@ -73,7 +78,7 @@ method performLayout*(r: RenderFlex) =
       let mainExtent = spacePerFlex * float32(child.pd.flex)
       let mainMin = if child.pd.fit == ffTight: mainExtent else: 0.0'f32
       let innerMain = (mainMin .. mainExtent)
-      let innerCross = (0.0'f32 .. maxCross)
+      let innerCross = (crossMin .. crossMax)
       let inner = constraintsAlongAxis(r.constraints, axis, innerMain, innerCross)
       child.obj.layout(inner)
       allocatedMain += mainAxisExtent(child.obj.size, axis)

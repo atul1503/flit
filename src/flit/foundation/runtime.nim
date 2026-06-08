@@ -9,6 +9,7 @@ import ./geometry
 import ./key
 import ./diagnostics
 import ../widgets/basic
+import ../gestures/detector
 import ../rendering/[flex, stack, proxy_box, decoration]
 
 # Find the nearest descendant Element whose widget produces a RenderObject.
@@ -102,6 +103,9 @@ proc childrenOf(w: Widget): seq[Widget] =
   elif w of Row:        result = Row(w).children
   elif w of Column:     result = Column(w).children
   elif w of Stack:      result = Stack(w).children
+  elif w of GestureDetector:
+    if not GestureDetector(w).child.isNil:
+      result.add(GestureDetector(w).child)
   elif w of ProxyWidget:
     let p = ProxyWidget(w)
     if not p.child.isNil: result.add(p.child)

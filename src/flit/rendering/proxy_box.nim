@@ -37,7 +37,12 @@ type
 
 method performLayout*(r: RenderProxyBox) =
   if r.child.isNil:
-    r.setSize(r.constraints.constrain(SizeZero))
+    # No child: expand to whatever the parent's constraints allow. If we
+    # shrunk to zero here, every decorative-only ColoredBox/DecoratedBox
+    # (used as backgrounds, dividers, spacers) would disappear.
+    let w = if r.constraints.hasBoundedWidth:  r.constraints.maxWidth  else: 0.0'f32
+    let h = if r.constraints.hasBoundedHeight: r.constraints.maxHeight else: 0.0'f32
+    r.setSize(r.constraints.constrain(Size(width: w, height: h)))
   else:
     r.child.layout(r.constraints)
     r.setSize(r.constraints.constrain(r.child.size))
@@ -59,13 +64,21 @@ method performLayout*(r: RenderConstrainedBox) =
 # SizedBox: like ConstrainedBox but supplies tight constraints from width/height.
 
 method performLayout*(r: RenderSizedBox) =
+  # SizedBox uses requested dims as TIGHT constraints. For unspecified dims:
+  # when no child, default to 0 (so SizedBox(width=12) is a 12x0 spacer, not
+  # a column-filling bar). When there IS a child, leave loose so the child
+  # picks its own size in the unspecified axis.
   var minW, maxW, minH, maxH: float32
   if r.requestedWidth > 0:
     minW = r.requestedWidth; maxW = r.requestedWidth
+  elif r.child.isNil:
+    minW = 0; maxW = 0
   else:
     minW = r.constraints.minWidth; maxW = r.constraints.maxWidth
   if r.requestedHeight > 0:
     minH = r.requestedHeight; maxH = r.requestedHeight
+  elif r.child.isNil:
+    minH = 0; maxH = 0
   else:
     minH = r.constraints.minHeight; maxH = r.constraints.maxHeight
   let merged = constraints(minW, maxW, minH, maxH).enforce(r.constraints)
