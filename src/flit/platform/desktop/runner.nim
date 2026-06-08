@@ -1,5 +1,9 @@
 ## Desktop runner: SDL2 window, event loop, frame pump. Used on macOS,
 ## Linux, and Windows.
+##
+## Users typically don't import this directly; `runApp(widget)` from
+## `flit/app` dispatches here on desktop builds. The public surface
+## is `DesktopWindowConfig`, `defaultDesktopConfig`, and `runDesktop`.
 
 when defined(js):
   {.error: "desktop runner is not available on the JS backend".}
@@ -12,6 +16,17 @@ import ../../rendering/canvas_sdl
 
 type
   DesktopWindowConfig* = object
+    ## Configuration for the desktop SDL2 window. Fields:
+    ## - `title`: window title bar text.
+    ## - `width`, `height`: initial size in logical pixels.
+    ## - `resizable`: whether the user can drag the edges.
+    ## - `highDpi`: whether to request a HiDPI backing store on
+    ##   retina displays.
+    ## - `vsync`: whether to wait for vertical sync (caps to display
+    ##   refresh rate).
+    ## - `fontPath`: absolute path to a TTF file. Empty string asks
+    ##   the runner to auto-discover a system font (Arial /
+    ##   Helvetica / DejaVu Sans).
     title*: string
     width*, height*: int
     resizable*: bool
@@ -20,12 +35,26 @@ type
     fontPath*: string
 
 proc defaultDesktopConfig*(): DesktopWindowConfig =
+  ## Returns a `DesktopWindowConfig` with the defaults
+  ## flit's examples use: 1024x768 resizable HiDPI vsync'd window
+  ## titled "flit", auto-discovered system font.
   DesktopWindowConfig(title: "flit", width: 1024, height: 768,
                       resizable: true, highDpi: true, vsync: true,
                       fontPath: "")
 
 proc runDesktop*(rootWidget: Widget,
                  config: DesktopWindowConfig = defaultDesktopConfig()) =
+  ## Opens the SDL2 window described by `config`, mounts `rootWidget`,
+  ## and pumps the event loop. Blocks until the user closes the window.
+  ##
+  ## Inputs:
+  ## - `rootWidget`: the top of the widget tree.
+  ## - `config`: window settings. Defaults to
+  ##   `defaultDesktopConfig()`.
+  ##
+  ## Effect: drives layout, paint, frame callbacks, and pointer event
+  ## dispatch each iteration. Returns when the user closes the
+  ## window or `SDL_Quit` is received.
   if sdl2.init(INIT_VIDEO or INIT_EVENTS) != SdlSuccess:
     echo "SDL_Init failed: ", getError()
     return

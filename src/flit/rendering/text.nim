@@ -1,32 +1,52 @@
-## Text rendering. A simplified single-style text layout. Backends (SDL2,
-## canvas, mobile) provide actual glyph rendering; here we compute the box
-## size given metrics from the canvas.
+## Text rendering. A simplified single-style text layout. Concrete
+## backends (`canvas_sdl`, `canvas_js`, `canvas_embedded`) provide the
+## glyph rendering and font metrics; this file produces the box size
+## and line layout from those metrics.
 
 import std/strutils
 import ../foundation/[render_object, geometry, color]
 
 type
   TextAlign* = enum
+    ## Horizontal alignment of each laid-out line within the paragraph
+    ## box. `taStart`/`taEnd` are LTR-aware aliases for left/right;
+    ## `taJustify` is currently treated as left.
     taLeft, taRight, taCenter, taJustify, taStart, taEnd
 
   TextStyle* = object
+    ## Per-string text styling. Build via `textStyle(...)`. Fields:
+    ## - `color`: glyph fill color.
+    ## - `fontSize`: em size in logical pixels.
+    ## - `fontFamily`: font name to look up in the backend's font
+    ##   registry. `"system"` resolves to the auto-loaded system font.
+    ## - `fontWeight`: 100..900 (currently informational; backends
+    ##   don't yet load weighted fonts).
+    ## - `italic`: informational.
+    ## - `letterSpacing`: extra spacing between glyphs.
+    ## - `height`: line-height multiplier (each line consumes
+    ##   `fontSize * height` vertical pixels).
     color*:        Color
     fontSize*:     float32
     fontFamily*:   string
-    fontWeight*:   int    # 100..900
+    fontWeight*:   int
     italic*:       bool
     letterSpacing*: float32
-    height*:       float32  # line height multiplier
+    height*:       float32
 
   RenderParagraph* = ref object of RenderObject
+    ## Render object backing the `Text` widget. Computes and caches
+    ## the wrapped `lines` during `performLayout`, then paints each
+    ## line with `textAlign` during `paint`.
     text*:  string
     style*: TextStyle
     align*: TextAlign
-    maxLines*: int          # 0 = unlimited
+    maxLines*: int           ## 0 = unlimited.
     softWrap*: bool
-    lines*: seq[string]     # computed during performLayout
+    lines*: seq[string]
 
 const defaultTextStyle* = TextStyle(
+    ## Default `TextStyle` used by `text()` if the caller doesn't
+    ## supply one: 14pt black system font, weight 400, line height 1.2.
   color: colorBlack, fontSize: 14, fontFamily: "system",
   fontWeight: 400, italic: false, letterSpacing: 0, height: 1.2)
 
@@ -34,17 +54,32 @@ proc textStyle*(color = colorBlack, fontSize = 14.0'f32,
                 fontFamily = "system", fontWeight = 400,
                 italic = false, letterSpacing = 0.0'f32,
                 height = 1.2'f32): TextStyle =
+  ## Builds a `TextStyle` with sensible defaults.
+  ##
+  ## Inputs (all optional):
+  ## - `color`: text color.
+  ## - `fontSize`: em size in logical pixels.
+  ## - `fontFamily`: font name to look up at draw time.
+  ## - `fontWeight`: 100..900 (Material-style weights). Informational.
+  ## - `italic`: informational.
+  ## - `letterSpacing`: extra horizontal pixels between glyphs.
+  ## - `height`: line-height multiplier.
+  ##
+  ## Output: a populated `TextStyle` value.
   TextStyle(color: color, fontSize: fontSize, fontFamily: fontFamily,
             fontWeight: fontWeight, italic: italic,
             letterSpacing: letterSpacing, height: height)
 
-# We approximate width: 0.55 * fontSize per glyph; height: fontSize * lineHeight.
-# A real backend measures via its font engine and overrides via a callback.
+var measureText*: proc(text: string, style: TextStyle): Size
+  ## Returns the bounding-box size of `text` in `style`. Backends
+  ## replace this with their font-aware implementation at startup;
+  ## the default approximation is `len * fontSize * 0.55` wide by
+  ## `fontSize * style.height` tall. Used by layout to wrap and
+  ## clamp.
 
-var measureText*: proc(text: string, style: TextStyle): Size =
-  proc(text: string, style: TextStyle): Size =
-    Size(width:  float32(text.len) * style.fontSize * 0.55'f32,
-         height: style.fontSize * style.height)
+measureText = proc(text: string, style: TextStyle): Size =
+  Size(width:  float32(text.len) * style.fontSize * 0.55'f32,
+       height: style.fontSize * style.height)
 
 proc wrapText(text: string, maxWidth: float32, style: TextStyle): seq[string] =
   ## Greedy word-wrap that respects measureText. Falls back to char-wrap if

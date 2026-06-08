@@ -1,46 +1,82 @@
-## Proxy-style render objects: those with a single child that mostly delegate
-## layout and painting to it. ConstrainedBox, Padding, Center, Align, Opacity,
-## etc. all build on these.
+## Proxy-style render objects: single-child render objects that mostly
+## delegate to their child. These are the internal render-tree nodes
+## behind widgets like `Padding`, `Center`, `Align`, `ConstrainedBox`,
+## `Opacity`, `Transform`, `SizedBox`, `AspectRatio`, `ClipRect`,
+## `ClipRRect`, `ColoredBox`.
+##
+## End users typically don't construct these directly; they use the
+## widget constructors in `flit/widgets/basic.nim` which create the
+## right render object via their `createRenderObject` method.
 
 import std/options
 import ../foundation/[render_object, geometry, color]
 
 type
   RenderProxyBox* = ref object of RenderObject
+    ## Base class for single-child render objects. Default layout
+    ## passes constraints through to the child and adopts the child's
+    ## size. Default paint just paints the child unmodified.
     child*: RenderObject
 
   RenderConstrainedBox* = ref object of RenderProxyBox
+    ## Adds extra constraints (via `additionalConstraints.enforce`) on
+    ## top of those passed by the parent. Backs the `ConstrainedBox`
+    ## widget.
     additionalConstraints*: Constraints
 
   RenderPadding* = ref object of RenderProxyBox
+    ## Insets the child by `padding`. Backs the `Padding` widget.
     padding*: EdgeInsets
 
   RenderAlign* = ref object of RenderProxyBox
+    ## Positions the child according to `alignment`. When
+    ## `widthFactor`/`heightFactor` are nonzero, sizes itself to
+    ## `child.size * factor`; otherwise fills its constraints. Backs
+    ## the `Align` and `center` widgets.
     alignment*: Alignment
-    widthFactor*: float32   # 0 means follow constraints
+    widthFactor*: float32
     heightFactor*: float32
 
   RenderColoredBox* = ref object of RenderProxyBox
+    ## Paints a solid `fill` color underneath the child. Backs the
+    ## `ColoredBox` widget.
     fill*: Color
 
   RenderOpacity* = ref object of RenderProxyBox
+    ## Wraps the child paint with `pushOpacity` / `popOpacity` so
+    ## every primitive painted inside dims by `opacity`. Backs the
+    ## `OpacityWidget`.
     opacity*: float32
 
   RenderTransform* = ref object of RenderProxyBox
+    ## Applies a 2D translate + rotate + scale to the child's paint.
+    ## Backs the `Transform` widget. `scale = 0` or `1` is treated as
+    ## identity for that axis; `rotation` is in radians.
     translation*: Offset
     scale*: float32
     rotation*: float32
 
   RenderSizedBox* = ref object of RenderProxyBox
+    ## Forces tight constraints on whichever axis has
+    ## `requestedWidth > 0` or `requestedHeight > 0`. Backs the
+    ## `SizedBox` widget.
     requestedWidth*: float32
     requestedHeight*: float32
 
   RenderAspectRatio* = ref object of RenderProxyBox
-    aspectRatio*: float32   # width / height
+    ## Sizes the child to a given width/height ratio while obeying
+    ## parent constraints. Backs the `AspectRatio` widget.
+    aspectRatio*: float32
 
   RenderClipRect* = ref object of RenderProxyBox
+    ## Clips the child's painting to this render object's rectangular
+    ## bounds. Backs the `ClipRect` widget.
 
   RenderClipRRect* = ref object of RenderProxyBox
+    ## Clips the child's painting to a rounded rectangle of the given
+    ## `radius`. Backs the `ClipRRect` widget. Backend support for
+    ## rounded clipping is partial; falls back to rectangular clip
+    ## on backends without it.
     radius*: float32
 
 method performLayout*(r: RenderProxyBox) =

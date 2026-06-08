@@ -1,22 +1,36 @@
-## Row/Column rendering. Flex layout based on Flutter's RenderFlex.
+## Row/Column rendering. Two-pass flex layout matching Flutter's
+## `RenderFlex`. Backs `Row` and `Column`; children are wrapped in
+## `RenderFlexChild` with parent-data carrying their flex weight.
 
 import std/[options, math]
 import ../foundation/[render_object, geometry, color]
 
 type
   FlexFit* = enum
+    ## How a flex child fills its allocated extent along the main axis.
+    ## `ffLoose`: child may be smaller than its allocation (min = 0).
+    ## `ffTight`: child must fill its allocation exactly.
     ffLoose, ffTight
 
   FlexParentData* = ref object
+    ## Parent-data attached to each flex child. Contributed by the
+    ## `Flexible` / `expanded` proxy widget at attach time.
     flex*: int
     fit*: FlexFit
     offset*: Offset
 
   RenderFlexChild* = ref object
+    ## A single child slot in a `RenderFlex`. Pairs the child render
+    ## object with its parent-data.
     obj*: RenderObject
     pd*:  FlexParentData
 
   RenderFlex* = ref object of RenderObject
+    ## The render object behind `Row` and `Column`. Lays children out
+    ## along `direction` using `mainAxisAlignment` and
+    ## `crossAxisAlignment`. `mainAxisSize` controls whether the flex
+    ## shrinks to its children (`msMin`) or expands to its parent's max
+    ## (`msMax`).
     direction*: Axis
     mainAxisAlignment*: MainAxisAlignment
     crossAxisAlignment*: CrossAxisAlignment

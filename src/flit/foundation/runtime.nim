@@ -1,6 +1,20 @@
-## Runtime: owns the build cycle. Mounts Elements, reconciles children on
-## rebuild, links RenderObjects into a parent->child chain, and drives layout
-## and paint.
+## Runtime: owns the build cycle. Mounts Elements from Widgets,
+## reconciles children on rebuild, links RenderObjects into a
+## parent->child chain, drives layout and paint, and dispatches input
+## events to gesture detectors.
+##
+## Public surface (used by platform runners):
+##
+## - `mountElement(parent, widget, slot)` - initial mount; returns the
+##   newly-built element tree.
+## - `rebuildElement(elem)` - rebuild a dirty element subtree.
+## - `runLayout(root, constraints)` - lay out the render tree under
+##   the given surface constraints.
+## - `runPaint(root, canvas)` - paint the render tree onto a canvas.
+## - `processPointerEvents(binding)` - drain `binding.pendingPointers`
+##   and dispatch to gesture detectors.
+## - `descendantRenderElement(elem)` - finds the first render-element
+##   descendant (or the element itself if it is render-kind).
 
 import std/[options, deques, tables, hashes]
 import ./widget
@@ -13,9 +27,11 @@ import ../widgets/basic
 import ../gestures/detector
 import ../rendering/[flex, stack, proxy_box, decoration, viewport]
 
-# Find the nearest descendant Element whose widget produces a RenderObject.
-# Walk through stateless/stateful/proxy until we hit a render or end of tree.
 proc descendantRenderElement*(e: Element): Element =
+  ## Returns the first descendant of `e` (including `e` itself) whose
+  ## kind is `ekRender`. Walks through stateless/stateful/proxy
+  ## elements which have no render object of their own. Returns nil if
+  ## no render element exists in the subtree.
   if e.isNil: return nil
   case e.kind
   of ekRender: return e
@@ -28,6 +44,10 @@ proc descendantRenderElement*(e: Element): Element =
 # Attach the child render objects of an element into the slot under
 # `parentRender`. Handles the multi-child container case for Row/Column/Stack.
 proc attachChildRenders*(e: Element)
+  ## Walks `e`'s element children, finds each child's descendant
+  ## render element, and attaches the render object to `e.renderObj`
+  ## (or to the parent's flex/stack child list). Re-runs every time
+  ## the element's children change.
 
 proc attachAsChild(parent: RenderObject, child: RenderObject) =
   ## Attach `child` under `parent` based on `parent`'s concrete type.
@@ -128,6 +148,8 @@ proc childrenOf(w: Widget): seq[Widget] =
     if not OpacityWidget(w).child.isNil: result.add(OpacityWidget(w).child)
 
 proc kindFor*(w: Widget): ElementKind =
+  ## Returns the `ElementKind` for the runtime class of `w`. Used by
+  ## `mountElement` to pick the right element shape.
   if   w of StatelessWidget:    ekStateless
   elif w of StatefulWidget:     ekStateful
   elif w of InheritedWidget:    ekInherited
@@ -136,6 +158,17 @@ proc kindFor*(w: Widget): ElementKind =
   else: ekRoot
 
 proc mountElement*(parent: Element, w: Widget, slot: int): Element =
+  ## Mounts a fresh element subtree for `w` under `parent`. Walks the
+  ## widget's children (via `childrenOf`), recursively mounts each one,
+  ## and for render widgets creates the render object and attaches
+  ## the child render objects.
+  ##
+  ## Inputs:
+  ## - `parent`: parent element (nil for the root).
+  ## - `w`: the widget to mount. Required.
+  ## - `slot`: index of this child within the parent's children.
+  ##
+  ## Returns the newly-mounted element, ready for layout.
   result = newElement(kindFor(w), w)
   result.parent = parent
   result.depth = if parent.isNil: 0 else: parent.depth + 1
@@ -260,6 +293,18 @@ proc reconcileChildren(parent: Element, newWidgets: seq[Widget]) =
   parent.children = newChildren
 
 proc rebuildElement*(e: Element) =
+  ## Rebuilds `e` and reconciles its children. Branches on `e.kind`:
+  ## - `ekStateless`: re-runs `build(ctx)`, reconciles against single
+  ##   child.
+  ## - `ekStateful`: lazily creates the State on first build, then
+  ##   re-runs `state.build(ctx)` and reconciles.
+  ## - `ekRender`: calls `updateRenderObject` to mirror config, then
+  ##   reconciles children, then reattaches render objects.
+  ## - `ekProxy` / `ekInherited`: just reconciles children.
+  ## - `ekRoot`: recurses into its single child.
+  ##
+  ## Clears `dirty` at the end. Wraps build calls in `inBuildPhase`
+  ## so `setState` calls inside `build` will raise Defect.
   if e.isNil: return
   case e.kind
   of ekStateless:
@@ -294,11 +339,17 @@ proc rebuildElement*(e: Element) =
 # Layout/paint pass entry points
 
 proc runLayout*(root: Element, c: Constraints) =
+  ## Walks down from `root` to the first render element and calls its
+  ## `layout(c)`. `c` is the surface constraints (usually
+  ## `tightFor(windowSize)`). No-op if no render element exists.
   let rE = descendantRenderElement(root)
   if not rE.isNil:
     rE.renderObj.layout(c)
 
 proc runPaint*(root: Element, canvas: Canvas) =
+  ## Walks down from `root` to the first render element and paints it
+  ## onto `canvas`. The runner is expected to have called `canvas.clear`
+  ## beforehand and `canvas.present` (if applicable) afterwards.
   let rE = descendantRenderElement(root)
   if rE.isNil: return
   let ctx = newPaintingContext(canvas, OffsetZero)
@@ -308,11 +359,16 @@ proc runPaint*(root: Element, canvas: Canvas) =
 
 type
   EventDispatcher* = ref object
-    captured*: RenderGestureDetector  # current pan target, sticky across moves
+    ## Holds cross-event state for pointer dispatching. Most importantly
+    ## `captured`: the gesture detector that received the latest peDown
+    ## and is the implicit target for following peMove / peUp events
+    ## (pan continuity).
+    captured*: RenderGestureDetector
     lastDown*: Offset
     lastMove*: Offset
 
 var globalDispatcher* = EventDispatcher()
+  ## App-wide pointer dispatcher state.
 
 proc firstGestureDetector(path: seq[HitTestEntry]): tuple[g: RenderGestureDetector, local: Offset] =
   for entry in path:
@@ -327,9 +383,26 @@ proc firstViewport(path: seq[HitTestEntry]): RenderViewport =
   nil
 
 proc processPointerEvents*(b: Binding) =
-  ## Drain pendingPointers, hit-test through the render tree, dispatch to
-  ## the deepest matching GestureDetector. Pan continuity is preserved by
-  ## capturing the detector on down and releasing on up.
+  ## Drains `b.pendingPointers` and dispatches each event to the
+  ## appropriate target:
+  ## - `peDown`: hit-tests the render tree and captures the topmost
+  ##   `GestureDetector` in the hit path. Calls its `handleDown`.
+  ## - `peMove`: routes to the captured detector (if any) via
+  ##   `handleMove`. Consecutive moves are coalesced to the last
+  ##   position so we don't rebuild per-pixel of mouse motion.
+  ## - `peUp`: routes to the captured detector via `handleUp`, then
+  ##   releases the capture.
+  ## - `peCancel`: releases the capture without notifying.
+  ## - `peScroll`: hit-tests for the topmost `RenderViewport` and
+  ##   updates its `scrollOffset`. Sets `b.needsRepaint` so the
+  ##   runner does a paint-only frame (no rebuild).
+  ##
+  ## Inputs:
+  ## - `b`: the binding whose event queue to drain.
+  ##
+  ## Effect: may invoke user `onTap` / `onPanUpdate` / etc. closures
+  ## (which usually call `setState`), so this proc can dirty the
+  ## element tree as a side effect.
   if b.isNil or b.rootElement.isNil: return
   let rE = descendantRenderElement(b.rootElement)
   if rE.isNil: return

@@ -1,18 +1,33 @@
-## Scrollable viewport. Lays out the child with unbounded main-axis
-## constraints, clips to its own bounds, and paints the child translated
-## by -scrollOffset. The runtime's pointer dispatch updates scrollOffset
-## when a mouse-wheel event lands inside.
+## Scrollable viewport. Backs the `ScrollView` widget.
+##
+## Lays out the child with unbounded main-axis constraints, clips
+## painting to its own bounds, paints the child translated by
+## `-scrollOffset`, and draws a thin scrollbar thumb on the trailing
+## edge. The runtime's pointer dispatcher updates `scrollOffset` when
+## a wheel event lands inside.
 
 import ../foundation/[render_object, geometry, color]
 
 type
   RenderViewport* = ref object of RenderObject
+    ## A clipping, translating render object that backs `ScrollView`.
+    ## Fields:
+    ## - `child`: content; can be larger than the viewport along
+    ##   `direction`.
+    ## - `scrollOffset`: how many pixels of content are hidden above
+    ##   (or to the left of) the viewport. Always in `[0, maxScroll]`.
+    ## - `maxScroll`: maximum scroll offset, set during layout to
+    ##   `child.mainExtent - viewport.mainExtent` (zero when the
+    ##   child fits).
+    ## - `direction`: scroll axis. `axVertical` or `axHorizontal`.
     child*: RenderObject
-    scrollOffset*: float32    # how far down (or right) we've scrolled
-    maxScroll*:    float32    # set during layout: child main-extent minus our main-extent
+    scrollOffset*: float32
+    maxScroll*:    float32
     direction*:    Axis
 
 proc clampScroll*(r: RenderViewport) =
+  ## Clamps `r.scrollOffset` to `[0, r.maxScroll]`. Called after the
+  ## offset changes (e.g. by wheel events).
   if r.scrollOffset < 0:               r.scrollOffset = 0
   if r.scrollOffset > r.maxScroll:     r.scrollOffset = r.maxScroll
 

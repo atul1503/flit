@@ -1,6 +1,8 @@
 ## Embedded runner. For headless targets that draw to a raw framebuffer
-## (Raspberry Pi DRM/KMS, e-ink panels, kiosks). Uses Pixie to render off-screen,
-## then writes pixel buffers via a user-supplied flush callback.
+## (Raspberry Pi DRM/KMS, e-ink panels, kiosks, etc.). Uses Pixie to
+## render off-screen, then hands the pixel buffer to a caller-supplied
+## flush callback. Typically dispatched to via
+## `runApp(widget, flush = myFlush)` on builds with `-d:flitEmbedded`.
 
 when defined(js):
   {.error: "embedded runner is not for JS backend".}
@@ -12,10 +14,17 @@ import ../../foundation/[widget, render_object, binding, geometry, runtime,
 
 type
   EmbeddedCanvas* = ref object of Canvas
+    ## A `Canvas` implementation that paints into a Pixie `Image`
+    ## in memory. The host pulls the rendered pixels out via
+    ## `EmbeddedFlush` once per frame.
     image*: Image
     ctx*:   Context
 
   EmbeddedFlush* = proc(pixels: ptr UncheckedArray[uint32], w, h: int)
+    ## Host-supplied callback that writes the rendered frame
+    ## somewhere (e.g. `/dev/fb0`, an SPI bus, a network stream).
+    ## `pixels` is an ARGB buffer of length `w * h`. The pointer is
+    ## owned by flit and only valid for the duration of the call.
 
 proc argbToColor(v: uint32): pixie.Color =
   let a = float32((v shr 24) and 0xFF) / 255.0
@@ -25,6 +34,9 @@ proc argbToColor(v: uint32): pixie.Color =
   pixie.color(r, g, b, a)
 
 proc newEmbeddedCanvas*(w, h: int): EmbeddedCanvas =
+  ## Allocates a Pixie-backed canvas of `w x h` pixels. Used for both
+  ## the `runEmbedded` runner and for offline tests that render the
+  ## widget tree to a PNG.
   let img = newImage(w, h)
   EmbeddedCanvas(image: img, ctx: newContext(img),
                  size: Size(width: float32(w), height: float32(h)))
@@ -63,6 +75,9 @@ method drawLine*(c: EmbeddedCanvas, p0, p1: Offset, color: uint32, width: float3
   c.ctx.stroke(path)
 
 var embeddedFont*: pixie.Font = nil
+  ## Pixie font used by the embedded canvas's `drawText`. Hosts that
+  ## need text rendering should assign this from a loaded TTF before
+  ## the first frame; defaults to nil (no text drawn).
 
 method drawText*(c: EmbeddedCanvas, text: string, pos: Offset, color: uint32,
                  fontSize: float32, fontFamily: string) =
@@ -80,6 +95,15 @@ method rotate*(c: EmbeddedCanvas, radians: float32) = c.ctx.rotate(radians)
 
 proc runEmbedded*(rootWidget: Widget, w, h: int, flush: EmbeddedFlush,
                   frameRateHz: int = 30) =
+  ## Mounts `rootWidget`, renders frames at `frameRateHz`, and calls
+  ## `flush(pixels, w, h)` after each frame so the host can present
+  ## them. Blocks forever; intended for kiosk / embedded use.
+  ##
+  ## Inputs:
+  ## - `rootWidget`: top of the widget tree.
+  ## - `w`, `h`: framebuffer dimensions in pixels.
+  ## - `flush`: host callback. See `EmbeddedFlush`.
+  ## - `frameRateHz`: target frame rate. Sleeps between frames.
   let canvas = newEmbeddedCanvas(w, h)
   let binding = newBinding(canvas, Size(width: float32(w), height: float32(h)))
   let rootElement = mountElement(nil, rootWidget, 0)

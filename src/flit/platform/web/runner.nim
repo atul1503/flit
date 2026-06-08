@@ -1,5 +1,7 @@
 ## Web runner: HTMLCanvasElement-based backend for the JS target.
-## Driven by the browser's requestAnimationFrame.
+## Driven by the browser's requestAnimationFrame. Dispatched to by
+## `runApp(widget, canvasId)` on `nim js` builds. The host page must
+## contain a `<canvas>` element with the matching id.
 
 when not defined(js):
   {.error: "web runner is only for the js backend".}
@@ -10,8 +12,12 @@ import ../../foundation/[widget, render_object, binding, geometry,
 
 type
   WebCanvas* = ref object of Canvas
-    ctx*: JsObject  # CanvasRenderingContext2D
-    elem*: Element  # HTMLCanvasElement
+    ## `Canvas` implementation that proxies to a browser
+    ## CanvasRenderingContext2D. `elem` is the `<canvas>` DOM node
+    ## as a `dom.Element`. `ctx` is the 2D rendering context obtained
+    ## via `canvas.getContext("2d")`.
+    ctx*: JsObject
+    elem*: Element
 
 proc colorToCss(v: uint32): cstring =
   let a = (v shr 24) and 0xFF
@@ -64,6 +70,14 @@ method clipRect*(c: WebCanvas, r: Rect) =
   c.ctx.clip()
 
 proc runWeb*(rootWidget: Widget, canvasElementId: string = "flit-canvas") =
+  ## Mounts `rootWidget` and starts the browser frame loop against
+  ## the `<canvas>` element identified by `canvasElementId`. The
+  ## canvas's CSS-pixel dimensions are read at startup and used as
+  ## the surface size.
+  ##
+  ## Raises `ValueError` if no DOM element with the given id exists.
+  ## Returns immediately after scheduling the first frame; further
+  ## frames are driven by `requestAnimationFrame`.
   let canvasEl = document.getElementById(canvasElementId.cstring)
   if canvasEl.isNil:
     raise newException(ValueError, "canvas element not found: " & canvasElementId)

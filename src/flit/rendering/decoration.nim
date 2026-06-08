@@ -1,26 +1,42 @@
-## BoxDecoration: background color, gradient, border, shadow, border radius.
-## This is what gives Container its visual style in Flutter.
+## `BoxDecoration` and `RenderDecoratedBox`: background fill, border,
+## shadow, border radius, and shape. This is what gives `Container`
+## and `Card` their visual style.
 
 import ../foundation/[render_object, geometry, color]
 
 type
   BoxShape* = enum
+    ## Outline shape of a `BoxDecoration`. `bsRectangle` (the default)
+    ## fills with `borderRadius` rounding; `bsCircle` fills a circle
+    ## whose diameter is `min(box.width, box.height)`.
     bsRectangle, bsCircle
 
   Border* = object
+    ## A simple uniform border. Set `width = 0` for no border.
     color*: Color
     width*: float32
 
   BoxShadow* = object
+    ## A drop shadow attached to a `BoxDecoration`. Currently rendered
+    ## as a solid-colored rect at `offset` inflated by `spread`; the
+    ## `blur` field is stored but not yet rasterized (the canvas
+    ## backends lack proper gaussian blur).
     color*:    Color
     offset*:   Offset
     blur*:     float32
     spread*:   float32
 
   GradientKind* = enum
+    ## Gradient flavor. `gkLinear` interpolates along a line from
+    ## `begin` to `end` alignment; `gkRadial` interpolates outward
+    ## from `begin`. Neither is rendered today; flit's canvas backends
+    ## don't yet implement gradient fills.
     gkLinear, gkRadial
 
   Gradient* = object
+    ## Linear or radial gradient definition. Currently a placeholder:
+    ## `BoxDecoration.gradient` is stored but not drawn. Reserved API
+    ## surface for forward compatibility.
     kind*:   GradientKind
     begin*:  Alignment
     `end`*:  Alignment
@@ -28,12 +44,19 @@ type
     stops*:  seq[float32]
 
   BoxDecoration* = object
+    ## Visual style of a decorated box. Build via `boxDecoration(...)`.
+    ##
+    ## Fields:
+    ## - `color`: solid fill color.
+    ## - `gradient`: NOT YET RENDERED.
+    ## - `border`: uniform-width outline.
+    ## - `borderRadius`: corner rounding in logical pixels.
+    ## - `shape`: rectangle or circle.
+    ## - `shadows`: list of drop shadows. Rendered as solid offset
+    ##   rectangles (no blur yet).
+    ## - `hasGradient`, `hasBorder`: opt-in flags so default zero
+    ##   values don't accidentally enable rendering.
     color*:        Color
-    # NOTE: `gradient` and `shadows` are surfaced but only partially
-    # rendered. Gradients are not yet drawn (planned for a future flit
-    # version once the canvas backends gain a gradient-fill method).
-    # Shadows render as solid-color rects at offset+spread (no gaussian
-    # blur), so they look like duplicate boxes rather than soft shadows.
     gradient*:     Gradient
     border*:       Border
     borderRadius*: float32
@@ -43,12 +66,26 @@ type
     hasBorder*:    bool
 
   RenderDecoratedBox* = ref object of RenderObject
+    ## Render object that paints a `BoxDecoration` underneath its
+    ## optional child. Backs the `DecoratedBox` widget.
     decoration*: BoxDecoration
     child*: RenderObject
 
 proc boxDecoration*(color = colorTransparent, borderRadius = 0.0'f32,
                     border = Border(color: colorTransparent, width: 0),
                     shape = bsRectangle): BoxDecoration =
+  ## Builds a `BoxDecoration` from the most common knobs.
+  ##
+  ## Inputs:
+  ## - `color`: solid fill color. Default `colorTransparent` (no fill).
+  ## - `borderRadius`: corner rounding in logical pixels. `0` =
+  ##   sharp corners.
+  ## - `border`: a `Border` value. Set `border.width > 0` to enable
+  ##   an outline. Default no border.
+  ## - `shape`: `bsRectangle` (default) or `bsCircle`.
+  ##
+  ## Output: a `BoxDecoration` value ready to pass to
+  ## `decoratedBox(...)` or to assign to `Container.decoration`.
   BoxDecoration(color: color, borderRadius: borderRadius, border: border,
                 shape: shape, hasBorder: border.width > 0)
 

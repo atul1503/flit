@@ -1,32 +1,54 @@
-## Z-stack rendering. Children paint in order, each absolutely-positioned via
-## `Positioned` parent data, falling back to alignment for non-positioned ones.
+## Z-stack rendering. Children paint back-to-front in the order they
+## appear in `children`. Each child can be either:
+## - `positioned`: absolute placement via `StackParentData` (left,
+##   top, right, bottom, width, height; NaN means "not specified"),
+## - non-positioned: laid out under stack constraints and aligned by
+##   `RenderStack.alignment`.
+##
+## Backs the `Stack` widget; `Positioned` contributes the parent data.
 
 import std/[math]
 import ../foundation/[render_object, geometry, color]
 
 type
   StackFit* = enum
+    ## Constraint policy for non-positioned stack children.
+    ## - `sfLoose`: loose constraints (each child picks its size).
+    ## - `sfExpand`: tight max-size constraints (each child fills).
+    ## - `sfPassthrough`: pass the stack's own constraints unchanged.
     sfLoose, sfExpand, sfPassthrough
 
   StackParentData* = ref object
+    ## Parent-data attached to each stack child. NaN-valued fields
+    ## mean "not specified". `positioned` is true when at least one
+    ## position/size field is specified.
     left*, top*, right*, bottom*, width*, height*: float32
     positioned*: bool
     offset*: Offset
 
   RenderStackChild* = ref object
+    ## A single child slot in a `RenderStack`.
     obj*: RenderObject
     pd*:  StackParentData
 
   RenderStack* = ref object of RenderObject
+    ## Render object behind `Stack`. Lays out positioned children at
+    ## absolute offsets and non-positioned children with the stack's
+    ## `alignment`.
     alignment*: Alignment
     fit*: StackFit
     children*: seq[RenderStackChild]
 
 const unsetF*: float32 = float32(NaN)
+  ## Sentinel "not specified" value for `StackParentData` fields.
+  ## Pass to `Positioned`'s side parameters to leave them unset.
 
 proc newStackParentData*(left = unsetF, top = unsetF, right = unsetF,
                          bottom = unsetF, width = unsetF,
                          height = unsetF): StackParentData =
+  ## Builds a `StackParentData`. Any specified field flips
+  ## `positioned` to true so the layout treats this child as
+  ## absolutely positioned.
   StackParentData(
     left: left, top: top, right: right, bottom: bottom,
     width: width, height: height,

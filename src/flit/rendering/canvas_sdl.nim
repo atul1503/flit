@@ -19,6 +19,9 @@ when not defined(js):
 
   type
     SdlCanvas* = ref object of Canvas
+      ## SDL2 + Pixie canvas. Drawing operations go through Pixie
+      ## into `image`; once per frame `present()` swizzles the buffer
+      ## into the streaming `texture` and copies it to the window.
       image*:    Image
       ctx*:      Context
       window*:   WindowPtr
@@ -29,6 +32,18 @@ when not defined(js):
 
   proc newSdlCanvas*(window: WindowPtr, renderer: RendererPtr,
                      w, h: int, defaultFontPath: string = ""): SdlCanvas =
+    ## Constructs an `SdlCanvas`.
+    ##
+    ## Inputs:
+    ## - `window`, `renderer`: live SDL2 handles obtained via
+    ##   `createWindow` / `createRenderer`.
+    ## - `w`, `h`: surface size in pixels.
+    ## - `defaultFontPath`: absolute path to a TTF to load and
+    ##   register under the "system" family. Empty leaves the font
+    ##   table empty; `drawText` becomes a no-op.
+    ##
+    ## Output: a ready-to-use canvas. Pair with `present(canvas)`
+    ## once per frame to ship pixels to the SDL window.
     var img = newImage(w, h)
     var c = newContext(img)
     var defaultFont: Font
@@ -48,6 +63,9 @@ when not defined(js):
               size: Size(width: float32(w), height: float32(h)))
 
   proc resize*(c: SdlCanvas, w, h: int) =
+    ## Resizes the canvas to `w x h` pixels. Allocates a new Pixie
+    ## image and a new SDL streaming texture. Call when the window
+    ## resize event arrives.
     c.image = newImage(w, h)
     c.ctx  = newContext(c.image)
     c.size = Size(width: float32(w), height: float32(h))
@@ -115,7 +133,10 @@ when not defined(js):
     c.ctx.clip(path)
 
   proc present*(c: SdlCanvas) =
-    ## Push the pixie image into the SDL streaming texture and render it.
+    ## Push the Pixie image into the SDL streaming texture, copy the
+    ## texture to the renderer's window, and call `SDL_RenderPresent`.
+    ## Call once per rendered frame after all draw calls have run.
+    ## Performs a per-pixel RGBA->ARGB swizzle in the process.
     var pixels: pointer
     var pitch: cint
     discard lockTexture(c.texture, nil, addr pixels, addr pitch)

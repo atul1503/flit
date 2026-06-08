@@ -11,6 +11,17 @@ when defined(android) or defined(ios):
 
   proc runMobile*(rootWidget: Widget,
                   title = "flit-app", fontPath = "") =
+    ## Opens a fullscreen SDL2 window sized to the current display
+    ## mode, mounts `rootWidget`, and pumps frames. Touch events are
+    ## translated to `PointerEvent`s with normalized coordinates
+    ## scaled to the surface size. Blocks until the OS terminates
+    ## the app.
+    ##
+    ## Inputs:
+    ## - `rootWidget`: top of the widget tree.
+    ## - `title`: shown by the OS app switcher.
+    ## - `fontPath`: absolute path to a TTF to load as the system
+    ##   font. Empty means no text rendering.
     if sdl2.init(INIT_VIDEO or INIT_EVENTS) != SdlSuccess:
       return
     # On mobile, SDL window dimensions equal device screen; we open full.
@@ -62,4 +73,7 @@ else:
   # without conditional compilation noise.
   import ../../foundation/widget
   proc runMobile*(rootWidget: Widget, title = "flit-app", fontPath = "") =
+    ## Non-mobile stub. Always raises `Defect`. Present so files that
+    ## conditionally call `runMobile` can compile on all platforms;
+    ## only Android/iOS builds get the real implementation.
     raise newException(Defect, "runMobile is only available on android/ios builds")
