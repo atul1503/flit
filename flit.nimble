@@ -28,8 +28,20 @@ task examples, "Build all example apps":
 task web, "Build for web (JS backend)":
   exec "nim js -d:release -o:web/app.js examples/counter/web.nim"
 
-task docs, "Generate API docs":
+task docs, "Generate API docs (open docs/api/index.html in your browser)":
   exec "nim doc --project --index:on --outdir:docs/api src/flit.nim"
+  # nim doc emits flit.html and theindex.html but not index.html; the
+  # curated landing page lives in docs/api/index.html and is committed
+  # to the repo. If it was removed (e.g. rm -rf docs/api), fall back
+  # to redirecting to the umbrella module page so the URL still loads.
+  if not fileExists("docs/api/index.html"):
+    writeFile("docs/api/index.html",
+      "<!doctype html><meta http-equiv=refresh content=\"0; url=./flit.html\">")
+  echo ""
+  echo "Docs generated. Open:"
+  echo "  docs/api/index.html   (curated landing page)"
+  echo "  docs/api/flit.html    (umbrella module reference)"
+  echo "  docs/api/theindex.html (alphabetical symbol index)"
 
 task test, "Run test suite":
   exec "nim c -r tests/test_widgets.nim"
