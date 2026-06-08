@@ -3,7 +3,8 @@ bin/
 build/
 web/app.js
 web/app.js.map
-docs/api/
+docs/api/*
+!docs/api/index.html
 tests/test_*
 tests/debug_dump
 tests/dump_frame

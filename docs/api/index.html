@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>flit API documentation</title>
+  <link rel="stylesheet" href="./nimdoc.out.css" />
+  <style>
+    body { max-width: 900px; margin: 2rem auto; padding: 0 1rem;
+           font-family: system-ui, -apple-system, sans-serif;
+           line-height: 1.5; color: #1d1d1f; }
+    h1 { margin-bottom: 0.25rem; }
+    .lead { color: #555; margin-top: 0; }
+    h2 { margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 4px 0; }
+    a { color: #2a64d8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { background: #f4f4f6; padding: 1px 5px; border-radius: 3px;
+           font-size: 0.92em; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>flit</h1>
+  <p class="lead">A Flutter-inspired UI toolkit for Nim. API reference.</p>
+
+  <p>
+    Three quick entry points:
+    <a href="./flit.html"><code>flit</code></a> (the umbrella import),
+    <a href="./theindex.html">alphabetical symbol index</a>,
+    or jump to a module below.
+  </p>
+
+  <h2>Foundation</h2>
+  <p>Core types and the runtime that drives the build/layout/paint cycle.</p>
+  <ul>
+    <li><a href="./flit/foundation/widget.html"><code>foundation/widget</code></a> &mdash; Widget, Element, State, BuildContext, setState</li>
+    <li><a href="./flit/foundation/render_object.html"><code>foundation/render_object</code></a> &mdash; RenderObject, Canvas, PaintingContext, hit-testing</li>
+    <li><a href="./flit/foundation/geometry.html"><code>foundation/geometry</code></a> &mdash; Offset, Size, Rect, Constraints, EdgeInsets, Alignment, lerp</li>
+    <li><a href="./flit/foundation/color.html"><code>foundation/color</code></a> &mdash; Color, rgba/rgb/fromHex, withAlpha/withOpacity, lerp, named constants</li>
+    <li><a href="./flit/foundation/key.html"><code>foundation/key</code></a> &mdash; Key, ValueKey, UniqueKey, GlobalKey</li>
+    <li><a href="./flit/foundation/binding.html"><code>foundation/binding</code></a> &mdash; Binding, PointerEvent, KeyEvent, frame callbacks</li>
+    <li><a href="./flit/foundation/runtime.html"><code>foundation/runtime</code></a> &mdash; mountElement, rebuildElement, runLayout, runPaint, processPointerEvents</li>
+    <li><a href="./flit/foundation/diagnostics.html"><code>foundation/diagnostics</code></a> &mdash; DiagnosticsNode, prettyPrint, logf</li>
+  </ul>
+
+  <h2>Widgets</h2>
+  <ul>
+    <li><a href="./flit/widgets/basic.html"><code>widgets/basic</code></a> &mdash; Container, Row, Column, Stack, Text, Padding, Align, SizedBox, AspectRatio, ClipRect, Opacity, ScrollView, &hellip;</li>
+  </ul>
+
+  <h2>Design libraries</h2>
+  <div class="row">
+    <div>
+      <h3>Material</h3>
+      <ul>
+        <li><a href="./flit/material/material.html"><code>material/material</code></a> &mdash; MaterialApp, Scaffold, AppBar, ElevatedButton, TextButton, Card, FloatingActionButton</li>
+        <li><a href="./flit/material/theme.html"><code>material/theme</code></a> &mdash; ThemeData, ColorScheme, Typography, currentTheme, setTheme</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cupertino</h3>
+      <ul>
+        <li><a href="./flit/cupertino/cupertino.html"><code>cupertino/cupertino</code></a> &mdash; CupertinoApp, CupertinoNavigationBar, CupertinoButton, CupertinoTheme</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Animation &amp; gestures</h2>
+  <ul>
+    <li><a href="./flit/animation/animation.html"><code>animation/animation</code></a> &mdash; AnimationController, Ticker, Tween, curves</li>
+    <li><a href="./flit/gestures/detector.html"><code>gestures/detector</code></a> &mdash; GestureDetector, HitTestBehavior, callback types</li>
+  </ul>
+
+  <h2>Rendering (internal)</h2>
+  <p>Render objects that back the widgets above. Most users don't import these directly.</p>
+  <ul>
+    <li><a href="./flit/rendering/proxy_box.html"><code>rendering/proxy_box</code></a> &mdash; RenderProxyBox + single-child render objects (Padding, Align, SizedBox, &hellip;)</li>
+    <li><a href="./flit/rendering/flex.html"><code>rendering/flex</code></a> &mdash; RenderFlex, FlexParentData, FlexFit</li>
+    <li><a href="./flit/rendering/stack.html"><code>rendering/stack</code></a> &mdash; RenderStack, StackParentData, StackFit</li>
+    <li><a href="./flit/rendering/decoration.html"><code>rendering/decoration</code></a> &mdash; BoxDecoration, Border, BoxShadow, RenderDecoratedBox</li>
+    <li><a href="./flit/rendering/text.html"><code>rendering/text</code></a> &mdash; TextStyle, RenderParagraph, measureText</li>
+    <li><a href="./flit/rendering/viewport.html"><code>rendering/viewport</code></a> &mdash; RenderViewport, scrollOffset, scrollbar</li>
+    <li><a href="./flit/rendering/canvas_sdl.html"><code>rendering/canvas_sdl</code></a> &mdash; SdlCanvas (SDL2 + Pixie backend)</li>
+  </ul>
+
+  <h2>Platform runners</h2>
+  <ul>
+    <li><a href="./flit/app.html"><code>app</code></a> &mdash; <code>runApp(widget)</code> dispatch by build target</li>
+    <li><a href="./flit/platform/desktop/runner.html"><code>platform/desktop/runner</code></a> &mdash; macOS / Linux / Windows via SDL2</li>
+    <li><a href="./flit/platform/embedded/runner.html"><code>platform/embedded/runner</code></a> &mdash; framebuffer / kiosk</li>
+    <li><a href="./flit/platform/mobile/runner.html"><code>platform/mobile/runner</code></a> &mdash; iOS / Android via SDL2</li>
+    <li><a href="./flit/platform/web/runner.html"><code>platform/web/runner</code></a> &mdash; HTMLCanvas (nim js)</li>
+  </ul>
+
+  <hr />
+  <p style="color: #888; font-size: 0.9em;">
+    Generated by <code>nim doc --project</code>.
+    Regenerate with <code>nimble docs</code>.
+  </p>
+</body>
+</html>
