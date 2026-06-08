@@ -32,6 +32,12 @@ proc clampScroll*(r: RenderViewport) =
   if r.scrollOffset > r.maxScroll:     r.scrollOffset = r.maxScroll
 
 method performLayout*(r: RenderViewport) =
+  ## Lays the child out with UNBOUNDED main-axis extent (cross
+  ## constraints pass through unchanged), then sizes the viewport
+  ## to fill the parent's bounded constraints. Sets `maxScroll`
+  ## to `child.mainExtent - viewport.mainExtent` (clamped to zero
+  ## when the child fits). Clamps the current scroll offset so it
+  ## stays in range after content size changes.
   if r.child.isNil:
     r.setSize(r.constraints.constrain(SizeZero))
     r.maxScroll = 0
@@ -52,6 +58,12 @@ method performLayout*(r: RenderViewport) =
   r.clampScroll()
 
 method paint*(r: RenderViewport, ctx: PaintingContext, offset: Offset) =
+  ## Wraps the child paint with `save()` + `clipRect()` so content
+  ## outside the viewport is hidden, then offsets the child by
+  ## `-scrollOffset` on the scroll axis. Restores the canvas, then
+  ## draws a thin dark scrollbar thumb on the trailing edge when
+  ## `maxScroll > 0`. Thumb length is `viewportExtent /
+  ## totalContentExtent` and position is `scrollOffset / maxScroll`.
   if r.child.isNil: return
   ctx.canvas.save()
   ctx.canvas.clipRect(rectFromOffsetSize(offset, r.size))
@@ -86,8 +98,11 @@ method paint*(r: RenderViewport, ctx: PaintingContext, offset: Offset) =
     ctx.canvas.drawRRect(rrect(rect, thumbWidth * 0.5), 0x99000000'u32)
 
 method hitTest*(r: RenderViewport, htResult: HitTestResult, position: Offset): bool =
-  # Translate the hit point by the scroll offset, but only if it's inside
-  # the visible viewport (the clip area).
+  ## Rejects points outside the visible viewport bounds, then
+  ## translates the hit point by `+scrollOffset` (matching the
+  ## paint-time `-scrollOffset` translation) before recursing into
+  ## the child. Always adds itself to the path so wheel events can
+  ## find this viewport.
   if position.dx < 0 or position.dy < 0 or
      position.dx >= r.size.width or position.dy >= r.size.height:
     return false

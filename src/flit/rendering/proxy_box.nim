@@ -80,10 +80,12 @@ type
     radius*: float32
 
 method performLayout*(r: RenderProxyBox) =
+  ## Default proxy layout. With a child: passes the parent's
+  ## constraints through unchanged, adopts the child's size. With no
+  ## child: expands to fill bounded constraints (so decorative-only
+  ## ColoredBox/DecoratedBox used as backgrounds, dividers and
+  ## spacers don't shrink to zero).
   if r.child.isNil:
-    # No child: expand to whatever the parent's constraints allow. If we
-    # shrunk to zero here, every decorative-only ColoredBox/DecoratedBox
-    # (used as backgrounds, dividers, spacers) would disappear.
     let w = if r.constraints.hasBoundedWidth:  r.constraints.maxWidth  else: 0.0'f32
     let h = if r.constraints.hasBoundedHeight: r.constraints.maxHeight else: 0.0'f32
     r.setSize(r.constraints.constrain(Size(width: w, height: h)))
@@ -92,12 +94,16 @@ method performLayout*(r: RenderProxyBox) =
     r.setSize(r.constraints.constrain(r.child.size))
 
 method paint*(r: RenderProxyBox, ctx: PaintingContext, offset: Offset) =
+  ## Default proxy paint: paints the child at this widget's origin,
+  ## adding no decoration of its own. Subclasses override to draw
+  ## extra layers (decoration, opacity, clipping, ...).
   if not r.child.isNil:
     ctx.paintChild(r.child, OffsetZero)
 
 method hitTest*(r: RenderProxyBox, htResult: HitTestResult, position: Offset): bool =
-  ## Default proxy: forward to the child if the point is inside us, then add
-  ## ourself so a GestureDetector wrapping us is reachable.
+  ## Default proxy hit test: forwards to the child first (if any),
+  ## then unconditionally adds itself to the path so a wrapping
+  ## `GestureDetector` is reachable. Always returns true.
   if not r.child.isNil:
     let local = position - r.child.offset
     let cs = r.child.size
@@ -109,6 +115,10 @@ method hitTest*(r: RenderProxyBox, htResult: HitTestResult, position: Offset): b
 # ConstrainedBox
 
 method performLayout*(r: RenderConstrainedBox) =
+  ## Combines `additionalConstraints` with the parent's via `enforce`
+  ## (parent's tight constraints always win), then lays out the child
+  ## under the merged result. With no child, sizes to the merged
+  ## constraints' minima.
   let merged = r.additionalConstraints.enforce(r.constraints)
   if r.child.isNil:
     r.setSize(merged.constrain(SizeZero))
@@ -119,10 +129,11 @@ method performLayout*(r: RenderConstrainedBox) =
 # SizedBox: like ConstrainedBox but supplies tight constraints from width/height.
 
 method performLayout*(r: RenderSizedBox) =
-  # SizedBox uses requested dims as TIGHT constraints. For unspecified dims:
-  # when no child, default to 0 (so SizedBox(width=12) is a 12x0 spacer, not
-  # a column-filling bar). When there IS a child, leave loose so the child
-  # picks its own size in the unspecified axis.
+  ## Tightens an axis when its requested dim is positive. For an axis
+  ## with no requested dim and no child, the size collapses to 0 (so
+  ## `SizedBox(width = 12)` is a 12x0 spacer, not a column-filling
+  ## bar). With a child, an unspecified axis passes through the
+  ## parent's range so the child can pick its own size.
   var minW, maxW, minH, maxH: float32
   if r.requestedWidth > 0:
     minW = r.requestedWidth; maxW = r.requestedWidth
@@ -143,12 +154,13 @@ method performLayout*(r: RenderSizedBox) =
     r.child.layout(merged)
     r.setSize(merged.constrain(r.child.size))
 
-# AspectRatio: pick the largest box that fits constraints and has the
-# requested width/height ratio, mirroring Flutter's RenderAspectRatio
-# algorithm. Falls back to width-driven sizing when both axes are
-# unbounded so the result is still finite.
-
 method performLayout*(r: RenderAspectRatio) =
+  ## Picks the largest box that fits the parent constraints and has
+  ## the requested width/height ratio (mirrors Flutter's
+  ## RenderAspectRatio algorithm). Falls back to width-driven sizing
+  ## via `maxHeight * ratio` when both axes are unbounded so the
+  ## result is still finite. Child receives tight constraints equal
+  ## to the chosen size.
   let c = r.constraints
   let ar = if r.aspectRatio > 0: r.aspectRatio else: 1.0'f32
 
@@ -171,6 +183,10 @@ method performLayout*(r: RenderAspectRatio) =
 # Padding
 
 method performLayout*(r: RenderPadding) =
+  ## Deflates the parent constraints by the inset totals, lays out
+  ## the child under those reduced constraints, then sets this
+  ## render object's size to `child.size + insets`. With no child,
+  ## sizes to just the inset totals (acts as a spacer).
   let innerConstraints = r.constraints.deflate(r.padding)
   if r.child.isNil:
     r.setSize(r.constraints.constrain(
@@ -183,12 +199,19 @@ method performLayout*(r: RenderPadding) =
          height: r.child.size.height + r.padding.vertical)))
 
 method paint*(r: RenderPadding, ctx: PaintingContext, offset: Offset) =
+  ## Paints the child at the inset offset stored in `child.offset`
+  ## (set during `performLayout`).
   if not r.child.isNil:
     ctx.paintChild(r.child, r.child.offset)
 
 # Align (also used by Center, which is just Align(Alignment.center))
 
 method performLayout*(r: RenderAlign) =
+  ## Lays the child out with loose constraints so it picks its own
+  ## size, then sizes this box to either `child.size * widthFactor`
+  ## (when widthFactor > 0) or the parent's max width. Same for
+  ## height. Finally positions the child via
+  ## `alignment.resolveOffset`.
   let loose = r.constraints.loosen()
   if r.child.isNil:
     let w = if r.widthFactor  > 0: r.widthFactor  else: r.constraints.maxWidth
@@ -205,53 +228,62 @@ method performLayout*(r: RenderAlign) =
   r.child.offset = r.alignment.resolveOffset(mySize, r.child.size)
 
 method paint*(r: RenderAlign, ctx: PaintingContext, offset: Offset) =
+  ## Paints the child at the offset set during layout.
   if not r.child.isNil:
     ctx.paintChild(r.child, r.child.offset)
 
 # ColoredBox
 
 method paint*(r: RenderColoredBox, ctx: PaintingContext, offset: Offset) =
+  ## Draws a solid `fill` rectangle covering this box's bounds, then
+  ## paints the child on top unchanged.
   let rect = rectFromOffsetSize(offset, r.size)
   ctx.canvas.drawRect(rect, r.fill.value)
   if not r.child.isNil:
     ctx.paintChild(r.child, OffsetZero)
 
-# Opacity (simple: just dim child by alpha-blending its result). For
-# performance we'd push a layer; here we forward to the canvas hint.
+# Opacity
 
 method paint*(r: RenderOpacity, ctx: PaintingContext, offset: Offset) =
+  ## Pushes `r.opacity` onto the canvas opacity stack, paints the
+  ## child, then pops. Every primitive painted inside is alpha-scaled
+  ## by `currentOpacity * r.opacity`. Nested `RenderOpacity` widgets
+  ## therefore multiply.
   if r.child.isNil: return
   ctx.canvas.pushOpacity(r.opacity)
   ctx.paintChild(r.child, OffsetZero)
   ctx.canvas.popOpacity()
 
-# ClipRect: clips its child's painting to its own bounds. Layout is just
+# ClipRect: clips its child's painting to its own bounds. Layout is
 # pass-through (parent constraints define our box).
 
 method paint*(r: RenderClipRect, ctx: PaintingContext, offset: Offset) =
+  ## Wraps the child's painting in `save()` + rectangular
+  ## `clipRect()` + `restore()`. Any drawing that would extend
+  ## outside this box's bounds is cut off.
   if r.child.isNil: return
   ctx.canvas.save()
   ctx.canvas.clipRect(rectFromOffsetSize(offset, r.size))
   ctx.paintChild(r.child, OffsetZero)
   ctx.canvas.restore()
-
-# ClipRRect: same but with rounded corners. The clipRect call on most
-# backends is rectangular, so we approximate by painting a rounded fill
-# in a transparent layer; here we just clip to the bounding box and rely
-# on the child's own rounded decoration. A real layer-aware backend can
-# override this method.
 
 method paint*(r: RenderClipRRect, ctx: PaintingContext, offset: Offset) =
+  ## Like `RenderClipRect.paint` but conceptually a rounded clip.
+  ## Backends that don't support rounded clipping fall back to the
+  ## bounding rectangle, so children with their own rounded
+  ## decoration look correct but those without may show square
+  ## corners at the edges.
   if r.child.isNil: return
   ctx.canvas.save()
   ctx.canvas.clipRect(rectFromOffsetSize(offset, r.size))
   ctx.paintChild(r.child, OffsetZero)
   ctx.canvas.restore()
 
-# Transform: applies a full TRS (translate, rotate, scale) around the
-# child's top-left. Each component is skipped if it's the identity.
-
 method paint*(r: RenderTransform, ctx: PaintingContext, offset: Offset) =
+  ## Applies a full Translate-Rotate-Scale on the canvas around this
+  ## box's top-left, then paints the child in the transformed
+  ## coordinate space. Each TRS component is skipped if it's the
+  ## identity (rotation == 0, scale == 0 or 1).
   if r.child.isNil: return
   ctx.canvas.save()
   # Translate first so subsequent rotation/scale happens around the box's

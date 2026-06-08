@@ -76,6 +76,9 @@ type
 method widgetTypeName*(w: CupertinoApp): string = "CupertinoApp"
 method createElement*(w: CupertinoApp): Element = newElement(ekStateless, w)
 method build*(w: CupertinoApp, ctx: BuildContext): Widget =
+  ## Assigns `w.theme` to `cupertinoCurrent` (so descendant widgets
+  ## pick it up via that var) and wraps `home` in a system-background
+  ## `ColoredBox`.
   cupertinoCurrent = w.theme
   coloredBox(child = w.home, color = w.theme.colors.systemBackground)
 
@@ -108,6 +111,8 @@ type
 method widgetTypeName*(w: CupertinoNavigationBar): string = "CupertinoNavigationBar"
 method createElement*(w: CupertinoNavigationBar): Element = newElement(ekStateless, w)
 method build*(w: CupertinoNavigationBar, ctx: BuildContext): Widget =
+  ## Builds `[leading?, expanded(center(middle)), trailing?]` inside
+  ## a 44pt-tall translucent (0.92 alpha) background bar.
   let t = cupertinoCurrent
   var rowChildren: seq[Widget] = @[]
   if not w.leading.isNil: rowChildren.add(w.leading)
@@ -149,6 +154,10 @@ type
 method widgetTypeName*(w: CupertinoButton): string = "CupertinoButton"
 method createElement*(w: CupertinoButton): Element = newElement(ekStateless, w)
 method build*(w: CupertinoButton, ctx: BuildContext): Widget =
+  ## When `filled`, builds a tint-colored rounded (8px) rectangle
+  ## with the child wrapped in `edgeInsetsSymmetric(20, 10)`. When
+  ## not filled, just wraps the child in `edgeInsetsSymmetric(16, 8)`
+  ## padding. Wrapped in a `GestureDetector` if `onPressed` is set.
   let t = cupertinoCurrent
   var body: Widget
   if w.filled:

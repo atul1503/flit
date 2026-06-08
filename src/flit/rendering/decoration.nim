@@ -90,6 +90,11 @@ proc boxDecoration*(color = colorTransparent, borderRadius = 0.0'f32,
                 shape: shape, hasBorder: border.width > 0)
 
 method performLayout*(r: RenderDecoratedBox) =
+  ## Sizes the box: with a child, passes parent constraints through
+  ## and adopts the child's size. With no child, fills bounded
+  ## constraints (so a standalone decoration is visible). Decoration
+  ## painting itself is parameterless w.r.t. layout - it just fills
+  ## whatever size we end up with.
   if r.child.isNil:
     let w = if r.constraints.hasBoundedWidth:  r.constraints.maxWidth  else: 0.0'f32
     let h = if r.constraints.hasBoundedHeight: r.constraints.maxHeight else: 0.0'f32
@@ -99,6 +104,14 @@ method performLayout*(r: RenderDecoratedBox) =
     r.setSize(r.constraints.constrain(r.child.size))
 
 method paint*(r: RenderDecoratedBox, ctx: PaintingContext, offset: Offset) =
+  ## Paints the decoration in this order: shadows (back-most), then
+  ## the fill shape (rectangle / rounded rect / circle), then the
+  ## border outline (currently four line segments), then the child
+  ## on top.
+  ##
+  ## Note: shadows are drawn as solid offset rects (no gaussian
+  ## blur), gradients are not drawn at all. See `BoxDecoration`'s
+  ## type doc for the limitations.
   let rect = rectFromOffsetSize(offset, r.size)
 
   # Shadows behind the box
@@ -133,6 +146,9 @@ method paint*(r: RenderDecoratedBox, ctx: PaintingContext, offset: Offset) =
     ctx.paintChild(r.child, OffsetZero)
 
 method hitTest*(r: RenderDecoratedBox, htResult: HitTestResult, position: Offset): bool =
+  ## Forwards to the child if any, then adds itself so a wrapping
+  ## `GestureDetector` is reachable. Decorations themselves don't
+  ## consume taps; the underlying rectangle does.
   if not r.child.isNil:
     discard r.child.hitTest(htResult, position)
   htResult.path.add(HitTestEntry(target: r, local: position))

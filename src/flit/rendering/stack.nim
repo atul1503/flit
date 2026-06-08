@@ -56,6 +56,16 @@ proc newStackParentData*(left = unsetF, top = unsetF, right = unsetF,
                      bottom.isNaN and width.isNaN and height.isNaN))
 
 method performLayout*(r: RenderStack) =
+  ## Two-pass layout for a `RenderStack`.
+  ##
+  ## Pass 1 (non-positioned children): each receives constraints
+  ## determined by `r.fit` (loose / tight-expand / passthrough). The
+  ## stack's own size is the largest size across these children.
+  ##
+  ## Pass 2 (positioned children): each child's size and position
+  ## are computed from its `StackParentData` (left/top/right/bottom/
+  ## width/height). When both opposing edges are specified, the
+  ## extent on that axis is `parent_extent - left - right`.
   var maxW = 0.0'f32
   var maxH = 0.0'f32
   let childConstraints = case r.fit
@@ -105,10 +115,16 @@ method performLayout*(r: RenderStack) =
     child.pd.offset = Offset(dx: x, dy: y)
 
 method paint*(r: RenderStack, ctx: PaintingContext, offset: Offset) =
+  ## Paints children in declaration order: index 0 is the back layer,
+  ## last index is the top layer. Each child is offset by its
+  ## per-child `pd.offset` computed during layout.
   for child in r.children:
     ctx.paintChild(child.obj, child.pd.offset)
 
 method hitTest*(r: RenderStack, htResult: HitTestResult, position: Offset): bool =
+  ## Walks children in reverse paint order (top-first) so the visually
+  ## topmost child catches the pointer. Returns on the first child
+  ## whose bounds contain the point.
   # Iterate from top to bottom (last child paints on top, so it should
   # receive the event first).
   for i in countdown(r.children.high, 0):

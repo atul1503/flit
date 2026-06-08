@@ -56,8 +56,21 @@ proc constraintsAlongAxis(c: Constraints, axis: Axis, main, cross: Slice[float32
     Constraints(minWidth: cross.a, maxWidth: cross.b, minHeight: main.a, maxHeight: main.b)
 
 method performLayout*(r: RenderFlex) =
-  ## Two-pass: lay out inflexible children to find remaining space, then flex
-  ## children fill the remainder weighted by their flex value.
+  ## Two-pass flex layout, mirroring Flutter's `RenderFlex`.
+  ##
+  ## Pass 1: each child with `flex == 0` gets loose constraints on
+  ## the main axis (max = remaining space) and the configured cross
+  ## constraints. Its size is recorded; the consumed main extent is
+  ## subtracted from the remaining space.
+  ##
+  ## Pass 2: each child with `flex > 0` gets a main extent equal to
+  ## `(remaining * thisFlex / totalFlex)`. With `fit = ffTight` the
+  ## extent is a tight constraint; with `ffLoose` the child may be
+  ## smaller.
+  ##
+  ## Finally the flex computes its own size (using `msMax` or `msMin`)
+  ## and positions children along the main axis according to
+  ## `mainAxisAlignment`.
   let axis = r.direction
   var totalFlex = 0
   var allocatedMain = 0.0'f32
@@ -147,10 +160,17 @@ method performLayout*(r: RenderFlex) =
     cursor += childMain + between
 
 method paint*(r: RenderFlex, ctx: PaintingContext, offset: Offset) =
+  ## Paints each child at the per-child offset computed during
+  ## `performLayout`. Children paint in declaration order so the
+  ## last child overlays the first (relevant only for overlapping
+  ## children, which is rare in flex layouts).
   for child in r.children:
     ctx.paintChild(child.obj, child.pd.offset)
 
 method hitTest*(r: RenderFlex, htResult: HitTestResult, position: Offset): bool =
+  ## Iterates children in order and recurses into the first one
+  ## whose bounds contain the point. Adds itself to the path after
+  ## the child returns so the path is ordered leaf-first.
   for child in r.children:
     let local = position - child.pd.offset
     let cs = child.obj.size

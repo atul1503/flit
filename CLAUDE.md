@@ -25,6 +25,7 @@ Semver. Bump before publishing user-facing changes. `flitVersion` lives in `cli/
 
 ## Version history
 
+- 0.4.1: Documented every substantive method (was missed in 0.4.0). performLayout / paint / hitTest overrides across all render objects, plus the build methods on every compound Material and Cupertino widget. 1813 doc lines now (up from 1649).
 - 0.4.0: Documentation pass. Every exported symbol across the public API now carries a docstring describing inputs, outputs, effects, defaults, and (where relevant) the Flutter analog. `nim doc` against `src/flit.nim` generates 25 HTML pages with 1649 lines of doc comments total (up from ~60 at session start). Run `nimble docs` to regenerate.
 - 0.3.3: Smoke-test every Material/Cupertino widget + AspectRatio/ClipRect/ClipRRect/ConstrainedBox/Flexible-fit/Tween coverage. Verified every example (counter, gallery, todo, calculator, showcase) compiles under -d:release and launches an SDL window. 118 assertions across 16 test files, all green. The complete shipped public API surface is now exercised by at least one assertion.
 - 0.3.2: Property test battery. 4 new test files exercise the API with thousands of randomized inputs (test_property_foundation: ~38000 trials; test_property_layout: 500+ random widget trees; test_property_reconcile: 600 keyed-shuffle scenarios; test_flutter_conformance: 22 table-driven Flutter behavioral assertions). 93 assertions across 14 test files, all passing. One bug surfaced and noted (the test itself was wrong about Color.withOpacity: Flutter REPLACES alpha, doesn't multiply).

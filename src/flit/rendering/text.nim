@@ -107,6 +107,12 @@ proc wrapText(text: string, maxWidth: float32, style: TextStyle): seq[string] =
   if result.len == 0: result.add("")
 
 method performLayout*(r: RenderParagraph) =
+  ## Measures the text with the active `measureText`. If `softWrap`
+  ## is false or the single-line width fits within `maxWidth`, sizes
+  ## to one line. Otherwise word-wraps via `wrapText`, clamps to
+  ## `maxLines` if positive, and sizes height to
+  ## `lines.len * fontSize * style.height`. Width is the widest
+  ## measured line. Stores `lines` for `paint`.
   let singleLineSize = measureText(r.text, r.style)
   if not r.softWrap or singleLineSize.width <= r.constraints.maxWidth:
     r.lines = @[r.text]
@@ -123,6 +129,11 @@ method performLayout*(r: RenderParagraph) =
     width: widest, height: lineH * float32(r.lines.len))))
 
 method paint*(r: RenderParagraph, ctx: PaintingContext, offset: Offset) =
+  ## Iterates the lines computed during layout and calls
+  ## `canvas.drawText` for each one. Horizontal placement per line
+  ## respects `textAlign`: `taStart`/`taLeft` -> 0, `taEnd`/`taRight`
+  ## -> `size.width - lineWidth`, `taCenter` -> centered. Vertical
+  ## spacing is `fontSize * style.height` per line.
   let lineH = r.style.fontSize * r.style.height
   let lines = if r.lines.len > 0: r.lines else: @[r.text]
   for i, line in lines:

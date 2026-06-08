@@ -27,6 +27,9 @@ type
 method widgetTypeName*(w: MaterialApp): string = "MaterialApp"
 method createElement*(w: MaterialApp): Element = newElement(ekStateless, w)
 method build*(w: MaterialApp, ctx: BuildContext): Widget =
+  ## Installs `w.theme` as the ambient theme (so descendants reading
+  ## `currentTheme()` see it), then wraps `home` in a `ColoredBox`
+  ## painted in the theme's background color.
   pushTheme(w.theme)
   coloredBox(child = w.home, color = w.theme.colorScheme.background)
 
@@ -63,6 +66,12 @@ type
 method widgetTypeName*(w: Scaffold): string = "Scaffold"
 method createElement*(w: Scaffold): Element = newElement(ekStateless, w)
 method build*(w: Scaffold, ctx: BuildContext): Widget =
+  ## Builds a column `[appBar, expanded(body)]` (each section is
+  ## skipped if not provided), wraps it in a background-colored box,
+  ## and overlays the floating action button at the bottom-right via
+  ## a Stack when present. Background color is either
+  ## `w.backgroundColor` (if `hasBackgroundColor`) or the theme's
+  ## `background`.
   let bg = if w.hasBackgroundColor: w.backgroundColor
            else: currentTheme().colorScheme.background
   var kids: seq[Widget] = @[]
@@ -121,6 +130,9 @@ type
 method widgetTypeName*(w: AppBar): string = "AppBar"
 method createElement*(w: AppBar): Element = newElement(ekStateless, w)
 method build*(w: AppBar, ctx: BuildContext): Widget =
+  ## Builds a row `[expanded(title), action1, action2, ...]` inside
+  ## a 56pt-tall decorated box with the configured background
+  ## (theme's primary by default).
   let t = currentTheme()
   let bg = if w.hasBackgroundColor: w.backgroundColor else: t.colorScheme.primary
   var rowChildren: seq[Widget] = @[]
@@ -178,6 +190,10 @@ type
 method widgetTypeName*(w: ElevatedButton): string = "ElevatedButton"
 method createElement*(w: ElevatedButton): Element = newElement(ekStateless, w)
 method build*(w: ElevatedButton, ctx: BuildContext): Widget =
+  ## Builds a rounded (radius 20) DecoratedBox in the primary color
+  ## with the child wrapped in `edgeInsetsSymmetric(24, 12)` padding.
+  ## When `onPressed` is set, wraps in a `GestureDetector` with
+  ## `htOpaque` so the whole padded area is tappable.
   let t = currentTheme()
   let bg = if w.hasColors: w.backgroundColor else: t.colorScheme.primary
   let fg = if w.hasColors: w.foregroundColor else: t.colorScheme.onPrimary
@@ -225,6 +241,8 @@ type
 method widgetTypeName*(w: TextButton): string = "TextButton"
 method createElement*(w: TextButton): Element = newElement(ekStateless, w)
 method build*(w: TextButton, ctx: BuildContext): Widget =
+  ## Wraps the child in `edgeInsetsSymmetric(16, 8)` padding and
+  ## a `GestureDetector` if `onPressed` is set. No background fill.
   let body = padding(padding = edgeInsetsSymmetric(16, 8), child = w.child)
   if w.onPressed.isNil: body
   else: gestureDetector(child = body, onTap = w.onPressed, behavior = htOpaque)
@@ -256,6 +274,9 @@ type
 method widgetTypeName*(w: Card): string = "Card"
 method createElement*(w: Card): Element = newElement(ekStateless, w)
 method build*(w: Card, ctx: BuildContext): Widget =
+  ## Builds `padding(margin) > decoratedBox(surface, radius) >
+  ## child`. The shadow `elevation` field is stored but not yet
+  ## rendered.
   let t = currentTheme()
   padding(padding = w.margin,
     child = decoratedBox(
@@ -291,6 +312,9 @@ type
 method widgetTypeName*(w: FloatingActionButton): string = "FloatingActionButton"
 method createElement*(w: FloatingActionButton): Element = newElement(ekStateless, w)
 method build*(w: FloatingActionButton, ctx: BuildContext): Widget =
+  ## Builds a 56x56 circular DecoratedBox in the primary color with
+  ## the child centered inside. Wrapped in a GestureDetector when
+  ## `onPressed` is set.
   let t = currentTheme()
   let body = decoratedBox(
     decoration = boxDecoration(color = t.colorScheme.primary,

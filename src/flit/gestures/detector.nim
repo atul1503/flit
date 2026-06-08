@@ -59,8 +59,11 @@ type
     htDeferToChild, htOpaque, htTranslucent
 
 method hitTest*(r: RenderGestureDetector, htResult: HitTestResult, position: Offset): bool =
-  ## Adds this detector to the hit-test path if the position is inside
-  ## (according to `behavior`). Always recurses into the child first.
+  ## Recurses into the child first. If the child reports a hit, adds
+  ## this detector to the path and returns true. If the child misses
+  ## and `behavior == htDeferToChild`, returns false (this detector
+  ## is not hit). Otherwise (`htOpaque` / `htTranslucent`) the
+  ## detector itself absorbs the hit even in padding-only zones.
   if not r.child.isNil:
     if r.child.hitTest(htResult, position):
       htResult.path.add(HitTestEntry(target: r, local: position))
