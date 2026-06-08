@@ -41,8 +41,8 @@ proc runDesktop*(rootWidget: Widget,
     echo "createWindow failed: ", getError()
     return
 
-  var rflags: uint32 = SDL_RENDERER_ACCELERATED
-  if config.vsync: rflags = rflags or SDL_RENDERER_PRESENTVSYNC
+  var rflags: cint = Renderer_Accelerated
+  if config.vsync: rflags = rflags or Renderer_PresentVsync
   let renderer = createRenderer(window, -1, rflags)
   if renderer.isNil:
     echo "createRenderer failed: ", getError()

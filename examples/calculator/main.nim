@@ -52,14 +52,15 @@ proc onClear(s: CalcState) =
 proc btn(label: string, cb: TapCallback, bg = rgb(70, 70, 70),
          fg = colorWhite): Widget =
   expanded(
-    padding(padding = edgeInsetsAll(4),
-      gestureDetector(
+    padding(
+      child = gestureDetector(
         onTap = cb, behavior = htOpaque,
         child = decoratedBox(
           decoration = boxDecoration(color = bg, borderRadius = 12),
           child = sizedBox(height = 64,
             child = center(child = text(label,
-              style = textStyle(fontSize = 22, color = fg))))))))
+              style = textStyle(fontSize = 22, color = fg)))))),
+      padding = edgeInsetsAll(4)))
 
 method build*(s: CalcState, ctx: BuildContext): Widget =
   let orange = rgb(255, 149, 0)
@@ -92,14 +93,16 @@ method build*(s: CalcState, ctx: BuildContext): Widget =
       btn("3", proc() = onDigit(s, "3")),
       btn("+", proc() = onOp(s, '+'), orange)]),
     row(crossAxisAlignment = caStretch, children = @[
-      expanded(flex = 2, padding(padding = edgeInsetsAll(4),
-        gestureDetector(behavior = htOpaque,
-          onTap = proc() = onDigit(s, "0"),
-          child = decoratedBox(
-            decoration = boxDecoration(color = rgb(70, 70, 70), borderRadius = 12),
-            child = sizedBox(height = 64,
-              child = center(child = text("0",
-                style = textStyle(fontSize = 22, color = colorWhite)))))))),
+      expanded(padding(
+          child = gestureDetector(behavior = htOpaque,
+            onTap = proc() = onDigit(s, "0"),
+            child = decoratedBox(
+              decoration = boxDecoration(color = rgb(70, 70, 70), borderRadius = 12),
+              child = sizedBox(height = 64,
+                child = center(child = text("0",
+                  style = textStyle(fontSize = 22, color = colorWhite)))))),
+          padding = edgeInsetsAll(4)),
+        flex = 2),
       btn(".", proc() = setState(s, proc() =
         if "." notin s.display: s.display.add('.'))),
       btn("=", proc() = onEq(s), orange)])]

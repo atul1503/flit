@@ -20,7 +20,7 @@ const flitVersion* = "0.1.0"
 
 proc usage() =
   echo """
-flit v""" & flitVersion & """ — a Flutter-style cross-platform UI toolkit for Nim.
+flit v""" & flitVersion & """, a Flutter-style cross-platform UI toolkit for Nim.
 
 Common commands:
 
@@ -55,9 +55,9 @@ method build*(s: AppState, ctx: BuildContext): Widget =
     appBar = appBar(title = text("$1")),
     body = center(child = column(mainAxisAlignment = maCenter, children = @[
       Widget(text("Tap the button.")),
-      text($$s.count, style = textStyle(fontSize: 40))])),
+      text($$s.count, style = textStyle(fontSize = 40))])),
     floatingActionButton = floatingActionButton(
-      child = text("+", style = textStyle(fontSize: 28, color: colorWhite)),
+      child = text("+", style = textStyle(fontSize = 28, color = colorWhite)),
       onPressed = proc() = setState(s, proc() = inc s.count))))
 
 when isMainModule: runApp(App())
@@ -170,8 +170,11 @@ proc cmdDoctor() =
   echo "  xcode xcrun        : ", which("xcrun")
   echo "  pkg-config (sdl2)  : ",
     if which("pkg-config").len > 0:
-      execProcess("pkg-config --modversion sdl2",
-                  options = {poStdErrToStdOut, poUsePath}).strip()
+      try:
+        execProcess("/bin/sh", args = ["-c", "pkg-config --modversion sdl2"],
+                    options = {poStdErrToStdOut, poUsePath}).strip()
+      except OSError:
+        "(not configured)"
     else: "(missing)"
 
 # ----- devices -----

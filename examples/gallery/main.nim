@@ -37,13 +37,14 @@ method build*(w: Gallery, ctx: BuildContext): Widget =
         text("Layout", style = textStyle(fontSize = 20, fontWeight = 600)),
         sizedBox(height = 8),
         row(crossAxisAlignment = caStretch, children = @[
-          Widget(expanded(flex = 1, decoratedBox(
+          Widget(expanded(decoratedBox(
             decoration = boxDecoration(color = colorAmber),
             child = sizedBox(height = 80, child = center(child = text("1")))))),
-          expanded(flex = 2, decoratedBox(
+          expanded(decoratedBox(
             decoration = boxDecoration(color = colorTeal),
-            child = sizedBox(height = 80, child = center(child = text("2"))))),
-          expanded(flex = 1, decoratedBox(
+            child = sizedBox(height = 80, child = center(child = text("2")))),
+            flex = 2),
+          expanded(decoratedBox(
             decoration = boxDecoration(color = colorPurple),
             child = sizedBox(height = 80, child = center(child = text("1"))))),
         ]),

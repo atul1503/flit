@@ -1,13 +1,19 @@
 ## SDL2 + Pixie-backed canvas implementation.
 ##
-## Pixie does the high-quality 2D vector rendering into an ARGB pixel buffer;
-## SDL2 blits that buffer to a window each frame. This gives us anti-aliased
-## shapes, gradients, and real font rendering on macOS, Linux, and Windows.
+## Pixie draws into an ARGB pixel buffer; SDL2 blits that buffer to the
+## window each frame. Anti-aliased shapes and real font rendering on macOS,
+## Linux, and Windows.
+##
+## Note: both pixie (via bumpy) and sdl2 ship a `Rect` type, and my geometry
+## module exports one too. So this file uses explicit qualification to keep
+## them straight: `geometry.Rect`, `geometry.rect()` for ours; `pixie.rect()`
+## for Pixie's; SDL types only via `sdl2.X` aliases.
 
-import ../foundation/[render_object, geometry]
+import ../foundation/render_object
+import ../foundation/geometry as geom
 
 when not defined(js):
-  import pixie
+  import pixie except Rect, rect
   import sdl2
   import std/[tables]
 
@@ -49,52 +55,59 @@ when not defined(js):
     c.texture = createTexture(c.renderer, SDL_PIXELFORMAT_ARGB8888,
                               SDL_TEXTUREACCESS_STREAMING, cint(w), cint(h))
 
-  proc argbToColor(v: uint32): pixie.Color =
+  proc argbToPaint(v: uint32): Paint =
     let a = float32((v shr 24) and 0xFF) / 255.0
     let r = float32((v shr 16) and 0xFF) / 255.0
     let g = float32((v shr  8) and 0xFF) / 255.0
     let b = float32( v         and 0xFF) / 255.0
-    pixie.color(r, g, b, a)
+    result = newPaint(SolidPaint)
+    result.color = color(r, g, b, a)
 
   method clear*(c: SdlCanvas, color: uint32) =
-    c.ctx.fillStyle = argbToColor(color)
-    c.ctx.fillRect(rect(0.0, 0.0, c.size.width, c.size.height))
+    c.ctx.fillStyle = argbToPaint(color)
+    c.ctx.fillRect(pixie.rect(0.0'f32, 0.0'f32, c.size.width, c.size.height))
 
-  method drawRect*(c: SdlCanvas, r: Rect, fill: uint32) =
-    c.ctx.fillStyle = argbToColor(fill)
+  method drawRect*(c: SdlCanvas, r: geom.Rect, fill: uint32) =
+    c.ctx.fillStyle = argbToPaint(fill)
     c.ctx.fillRect(pixie.rect(r.left, r.top, r.width, r.height))
 
-  method drawRRect*(c: SdlCanvas, r: RRect, fill: uint32) =
-    c.ctx.fillStyle = argbToColor(fill)
-    c.ctx.fillRoundedRect(
-      pixie.rect(r.rect.left, r.rect.top, r.rect.width, r.rect.height),
-      r.tl.x, r.tr.x, r.br.x, r.bl.x)
+  method drawRRect*(c: SdlCanvas, r: geom.RRect, fill: uint32) =
+    c.ctx.fillStyle = argbToPaint(fill)
+    let pxR = pixie.rect(r.rect.left, r.rect.top, r.rect.width, r.rect.height)
+    var path = newPath()
+    path.roundedRect(pxR, r.tl.x, r.tr.x, r.br.x, r.bl.x)
+    c.ctx.fill(path)
 
-  method drawCircle*(c: SdlCanvas, center: Offset, radius: float32, fill: uint32) =
-    c.ctx.fillStyle = argbToColor(fill)
-    c.ctx.fillCircle(circle(pixie.vec2(center.dx, center.dy), radius))
+  method drawCircle*(c: SdlCanvas, center: geom.Offset, radius: float32, fill: uint32) =
+    c.ctx.fillStyle = argbToPaint(fill)
+    var path = newPath()
+    path.circle(center.dx, center.dy, radius)
+    c.ctx.fill(path)
 
-  method drawLine*(c: SdlCanvas, p0, p1: Offset, color: uint32, width: float32) =
-    c.ctx.strokeStyle = argbToColor(color)
+  method drawLine*(c: SdlCanvas, p0, p1: geom.Offset, color: uint32, width: float32) =
+    c.ctx.strokeStyle = argbToPaint(color)
     c.ctx.lineWidth = width
-    c.ctx.strokeSegment(segment(
-      pixie.vec2(p0.dx, p0.dy), pixie.vec2(p1.dx, p1.dy)))
+    var path = newPath()
+    path.moveTo(p0.dx, p0.dy)
+    path.lineTo(p1.dx, p1.dy)
+    c.ctx.stroke(path)
 
-  method drawText*(c: SdlCanvas, text: string, pos: Offset, color: uint32,
+  method drawText*(c: SdlCanvas, text: string, pos: geom.Offset, color: uint32,
                    fontSize: float32, fontFamily: string) =
     var f = c.fonts.getOrDefault(fontFamily, c.defaultFont)
     if f.isNil: return
     f.size = fontSize
-    f.paint.color = argbToColor(color)
-    c.ctx.image.fillText(f, text, translate(pixie.vec2(pos.dx, pos.dy + fontSize)))
+    let pt = argbToPaint(color)
+    f.paints = @[pt]
+    c.image.fillText(f, text, translate(vec2(pos.dx, pos.dy + fontSize)))
 
   method save*(c: SdlCanvas) = c.ctx.save()
   method restore*(c: SdlCanvas) = c.ctx.restore()
   method translate*(c: SdlCanvas, dx, dy: float32) = c.ctx.translate(dx, dy)
-  method clipRect*(c: SdlCanvas, r: Rect) =
-    c.ctx.beginPath()
-    c.ctx.rect(pixie.rect(r.left, r.top, r.width, r.height))
-    c.ctx.clip()
+  method clipRect*(c: SdlCanvas, r: geom.Rect) =
+    var path = newPath()
+    pixie.rect(path, pixie.rect(r.left, r.top, r.width, r.height))
+    c.ctx.clip(path)
 
   proc present*(c: SdlCanvas) =
     ## Push the pixie image into the SDL streaming texture and render it.
@@ -103,7 +116,8 @@ when not defined(js):
     discard lockTexture(c.texture, nil, addr pixels, addr pitch)
     let w = c.image.width
     let h = c.image.height
-    # Pixie uses RGBA8888; SDL wants ARGB8888. Swap bytes per pixel.
+    # Pixie's buffer is RGBA8888 (R in low byte); SDL_PIXELFORMAT_ARGB8888 is
+    # ARGB in memory. We swizzle in place.
     let src = cast[ptr UncheckedArray[uint32]](addr c.image.data[0])
     let dst = cast[ptr UncheckedArray[uint32]](pixels)
     for i in 0 ..< w * h:
