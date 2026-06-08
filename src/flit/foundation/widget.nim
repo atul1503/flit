@@ -104,21 +104,18 @@ proc newElement*(kind: ElementKind, widget: Widget): Element =
 var onSetStateRoot*: proc(root: Element) = proc(_: Element) = discard
 
 proc setState*(s: State, fn: proc()) =
+  ## Mark THIS state's element dirty (not the whole root). The runner
+  ## rebuilds only that subtree, which is much cheaper when the state
+  ## change is local to one widget.
   fn()
   if not s.element.isNil:
     s.element.dirty = true
-    var e = s.element
-    while not e.parent.isNil:
-      e = e.parent
-    onSetStateRoot(e)
+    onSetStateRoot(s.element)
 
 proc markNeedsBuild*(e: Element) =
   if e.isNil or e.dirty: return
   e.dirty = true
-  var root = e
-  while not root.parent.isNil:
-    root = root.parent
-  onSetStateRoot(root)
+  onSetStateRoot(e)
 
 # Reconciliation
 

@@ -247,8 +247,19 @@ proc processPointerEvents*(b: Binding) =
   if b.isNil or b.rootElement.isNil: return
   let rE = descendantRenderElement(b.rootElement)
   if rE.isNil: return
+
+  # Coalesce consecutive peMove events into just the last one: SDL emits
+  # one mouse-motion event per pixel of travel and processing every one
+  # rebuilds the tree per pixel. Only the final position matters.
+  var coalesced: seq[PointerEvent]
   while b.pendingPointers.len > 0:
     let ev = b.pendingPointers.popFirst()
+    if ev.kind == peMove and coalesced.len > 0 and coalesced[^1].kind == peMove:
+      coalesced[^1] = ev
+    else:
+      coalesced.add(ev)
+
+  for ev in coalesced:
     case ev.kind
     of peDown:
       let res = HitTestResult(path: @[])
