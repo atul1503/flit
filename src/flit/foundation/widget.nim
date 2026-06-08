@@ -39,8 +39,32 @@ type
     ## `build` and `widgetTypeName`. Optionally override `createElement`
     ## (the default of `newElement(ekStateless, w)` is usually fine).
   StatefulWidget*     = ref object of Widget
-    ## A widget that pairs with a `State` returned by `createState`. The
-    ## State persists across rebuilds and is where mutable data lives.
+    ## A widget that pairs with a long-lived `State` object returned by
+    ## `createState`. The State is mounted ONCE per element and persists
+    ## across rebuilds; this is where mutable data, controllers and
+    ## subscriptions live.
+    ##
+    ## Pattern (see `examples/counter/main.nim` for a runnable copy):
+    ##
+    ## .. code-block:: nim
+    ##   type
+    ##     Counter = ref object of StatefulWidget
+    ##     CounterState = ref object of State
+    ##       count: int
+    ##
+    ##   method widgetTypeName(w: Counter): string = "Counter"
+    ##   method createElement(w: Counter): Element = newElement(ekStateful, w)
+    ##   method createState(w: Counter): State = CounterState(count: 0)
+    ##
+    ##   method build(s: CounterState, ctx: BuildContext): Widget =
+    ##     column(children = @[
+    ##       Widget(text($s.count)),
+    ##       elevatedButton(child = text("+"),
+    ##         onPressed = proc() = setState(s, proc() = inc s.count))])
+    ##
+    ## The framework calls `createState` once on first mount, then
+    ## `build` every time the state goes dirty (`setState`) or the
+    ## widget config above is replaced (`didUpdateWidget` fires first).
   RenderObjectWidget* = ref object of Widget
     ## A widget that owns a `RenderObject`. Override `createRenderObject`
     ## to build one, and `updateRenderObject` to mirror config changes
@@ -90,6 +114,33 @@ type
     ## Subclasses store their data fields and override `build`, plus
     ## any of `initState`, `didUpdateWidget`, `didChangeDependencies`,
     ## `dispose`, `reassemble` as needed.
+    ##
+    ## Lifecycle order (mirrors Flutter):
+    ##
+    ## 1. `createState()` runs once on the StatefulWidget when the
+    ##    element first mounts.
+    ## 2. `initState()` runs immediately after, with `s.element`
+    ##    already set and `s.mounted == true`. Allocate controllers,
+    ##    register listeners, kick off timers here.
+    ## 3. `didChangeDependencies()` runs after `initState`. Override
+    ##    if the State reads from inherited widgets.
+    ## 4. `build(ctx)` runs every time the state is dirty.
+    ## 5. `didUpdateWidget(oldWidget)` runs when the parent rebuilds
+    ##    with a NEW StatefulWidget instance of the same kind+key.
+    ##    `s.element.widget` is already the new widget. Override to
+    ##    react to config-prop changes.
+    ## 6. `dispose()` runs once when the element is unmounted.
+    ##    Release any resources you allocated in `initState`. After
+    ##    dispose, `mounted` is false and the State will not receive
+    ##    further calls.
+    ##
+    ## Fields:
+    ## - `element`: the Element this State is attached to. Use
+    ##   `s.element.widget` to read the current widget config from
+    ##   inside `build` (cast to your widget type).
+    ## - `mounted`: true between `initState` and `dispose`. Check
+    ##   before calling `setState` from async callbacks to avoid
+    ##   touching a disposed State.
     element*: Element
     mounted*: bool
 
