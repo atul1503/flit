@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.3.0"
+version       = "0.3.1"
 author        = "Atul Tripathi"
 description   = "Flit: a Flutter-inspired cross-platform UI toolkit for Nim. Declarative widgets, hot reload, single codebase for desktop, mobile, web, and embedded."
 license       = "BSD-3-Clause"
@@ -41,6 +41,7 @@ task test, "Run test suite":
   exec "nim c -r tests/test_lifecycle.nim"
   exec "nim c -r tests/test_container.nim"
   exec "nim c -r tests/test_opacity.nim"
+  exec "nim c -r tests/test_audit.nim"
 
 task fmt, "Format code with nimpretty":
   exec "find src tests examples -name '*.nim' -exec nimpretty {} \\;"

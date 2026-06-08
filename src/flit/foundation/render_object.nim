@@ -74,6 +74,8 @@ method clipRect*(c: Canvas, r: Rect) {.base.} = discard
 method save*(c: Canvas) {.base.} = discard
 method restore*(c: Canvas) {.base.} = discard
 method translate*(c: Canvas, dx, dy: float32) {.base.} = discard
+method scale*(c: Canvas, sx, sy: float32) {.base.} = discard
+method rotate*(c: Canvas, radians: float32) {.base.} = discard
 method clear*(c: Canvas, color: uint32) {.base.} = discard
 
 # PaintingContext

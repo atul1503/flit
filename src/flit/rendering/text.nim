@@ -2,6 +2,7 @@
 ## canvas, mobile) provide actual glyph rendering; here we compute the box
 ## size given metrics from the canvas.
 
+import std/strutils
 import ../foundation/[render_object, geometry, color]
 
 type
@@ -21,8 +22,9 @@ type
     text*:  string
     style*: TextStyle
     align*: TextAlign
-    maxLines*: int
+    maxLines*: int          # 0 = unlimited
     softWrap*: bool
+    lines*: seq[string]     # computed during performLayout
 
 const defaultTextStyle* = TextStyle(
   color: colorBlack, fontSize: 14, fontFamily: "system",
@@ -44,16 +46,60 @@ var measureText*: proc(text: string, style: TextStyle): Size =
     Size(width:  float32(text.len) * style.fontSize * 0.55'f32,
          height: style.fontSize * style.height)
 
+proc wrapText(text: string, maxWidth: float32, style: TextStyle): seq[string] =
+  ## Greedy word-wrap that respects measureText. Falls back to char-wrap if
+  ## a single word exceeds maxWidth. Returns at least one line.
+  result = @[]
+  var current = ""
+  proc width(s: string): float32 = measureText(s, style).width
+  for word in text.split(' '):
+    let candidate = if current.len == 0: word else: current & " " & word
+    if width(candidate) <= maxWidth:
+      current = candidate
+    else:
+      if current.len > 0:
+        result.add(current)
+        current = ""
+      # Word might still be too wide alone. Char-wrap it.
+      var w = word
+      while width(w) > maxWidth and w.len > 1:
+        var cut = w.len - 1
+        while cut > 1 and width(w[0 ..< cut]) > maxWidth: dec cut
+        result.add(w[0 ..< cut])
+        w = w[cut ..< w.len]
+      current = w
+  if current.len > 0: result.add(current)
+  if result.len == 0: result.add("")
+
 method performLayout*(r: RenderParagraph) =
-  var sz = measureText(r.text, r.style)
-  if r.softWrap and sz.width > r.constraints.maxWidth:
-    let avgCharW = max(1.0'f32, r.style.fontSize * 0.55'f32)
-    let charsPerLine = max(1, int(r.constraints.maxWidth / avgCharW))
-    let lines = (r.text.len + charsPerLine - 1) div charsPerLine
-    sz = Size(width: r.constraints.maxWidth,
-              height: r.style.fontSize * r.style.height * float32(lines))
-  r.setSize(r.constraints.constrain(sz))
+  let singleLineSize = measureText(r.text, r.style)
+  if not r.softWrap or singleLineSize.width <= r.constraints.maxWidth:
+    r.lines = @[r.text]
+    r.setSize(r.constraints.constrain(singleLineSize))
+    return
+  r.lines = wrapText(r.text, r.constraints.maxWidth, r.style)
+  if r.maxLines > 0 and r.lines.len > r.maxLines:
+    r.lines.setLen(r.maxLines)
+  let lineH = r.style.fontSize * r.style.height
+  var widest = 0.0'f32
+  for line in r.lines:
+    widest = max(widest, measureText(line, r.style).width)
+  r.setSize(r.constraints.constrain(Size(
+    width: widest, height: lineH * float32(r.lines.len))))
 
 method paint*(r: RenderParagraph, ctx: PaintingContext, offset: Offset) =
-  ctx.canvas.drawText(r.text, offset, r.style.color.value,
-                      r.style.fontSize, r.style.fontFamily)
+  let lineH = r.style.fontSize * r.style.height
+  let lines = if r.lines.len > 0: r.lines else: @[r.text]
+  for i, line in lines:
+    # Apply textAlign: left/start = 0, right/end = box.right - lineWidth,
+    # center = (box.width - lineWidth)/2.
+    var x = offset.dx
+    if r.align != taLeft and r.align != taStart:
+      let lineW = measureText(line, r.style).width
+      case r.align
+      of taRight, taEnd:    x = offset.dx + r.size.width - lineW
+      of taCenter:          x = offset.dx + (r.size.width - lineW) * 0.5'f32
+      else: discard
+    ctx.canvas.drawText(line, Offset(dx: x, dy: offset.dy + float32(i) * lineH),
+                        r.style.color.value,
+                        r.style.fontSize, r.style.fontFamily)

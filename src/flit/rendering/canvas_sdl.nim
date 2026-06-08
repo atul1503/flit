@@ -107,6 +107,8 @@ when not defined(js):
   method save*(c: SdlCanvas) = c.ctx.save()
   method restore*(c: SdlCanvas) = c.ctx.restore()
   method translate*(c: SdlCanvas, dx, dy: float32) = c.ctx.translate(dx, dy)
+  method scale*(c: SdlCanvas, sx, sy: float32) = c.ctx.scale(sx, sy)
+  method rotate*(c: SdlCanvas, radians: float32) = c.ctx.rotate(radians)
   method clipRect*(c: SdlCanvas, r: geom.Rect) =
     var path = newPath()
     pixie.rect(path, pixie.rect(r.left, r.top, r.width, r.height))

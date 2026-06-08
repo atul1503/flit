@@ -75,6 +75,8 @@ method drawText*(c: EmbeddedCanvas, text: string, pos: Offset, color: uint32,
 method save*(c: EmbeddedCanvas)    = c.ctx.save()
 method restore*(c: EmbeddedCanvas) = c.ctx.restore()
 method translate*(c: EmbeddedCanvas, dx, dy: float32) = c.ctx.translate(dx, dy)
+method scale*(c: EmbeddedCanvas, sx, sy: float32) = c.ctx.scale(sx, sy)
+method rotate*(c: EmbeddedCanvas, radians: float32) = c.ctx.rotate(radians)
 
 proc runEmbedded*(rootWidget: Widget, w, h: int, flush: EmbeddedFlush,
                   frameRateHz: int = 30) =

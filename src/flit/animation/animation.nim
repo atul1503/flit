@@ -148,6 +148,40 @@ proc reverse*(c: AnimationController, b: Binding,
       c.setStatus(asDismissed))
   c.ticker.start(b)
 
+proc repeat*(c: AnimationController, b: Binding,
+             curve: Curve = curveLinear, reverse: bool = false) =
+  ## Drives the controller from lower->upper repeatedly. If `reverse` is
+  ## true, alternates direction each lap (ping-pong). Mirrors Flutter's
+  ## AnimationController.repeat(reverse: true).
+  c.setStatus(asForward)
+  var goingForward = true
+  c.ticker = newTicker(proc(elapsed: float32) =
+    let lap = elapsed / c.duration
+    let t = clamp(lap mod 1.0'f32, 0.0'f32, 1.0'f32)
+    if reverse:
+      let cycle = int(lap) mod 2
+      if cycle == 0: c.setValue(c.lower + (c.upper - c.lower) * curve(t))
+      else:          c.setValue(c.upper - (c.upper - c.lower) * curve(t))
+    else:
+      c.setValue(c.lower + (c.upper - c.lower) * curve(t)))
+  c.ticker.start(b)
+
+proc animateTo*(c: AnimationController, b: Binding, target: float32,
+                durationSec: float32 = -1, curve: Curve = curveLinear) =
+  ## Animate from current value to `target`. If durationSec < 0 the
+  ## controller's own duration is used. Stops when the target is reached.
+  let dur = if durationSec > 0: durationSec else: c.duration
+  let startVal = c.value
+  let endVal = clamp(target, c.lower, c.upper)
+  c.setStatus(if endVal >= startVal: asForward else: asReverse)
+  c.ticker = newTicker(proc(elapsed: float32) =
+    let t = clamp(elapsed / dur, 0.0'f32, 1.0'f32)
+    c.setValue(startVal + (endVal - startVal) * curve(t))
+    if t >= 1.0:
+      c.ticker.stop()
+      c.setStatus(if endVal >= c.upper - 0.0001'f32: asCompleted else: asDismissed))
+  c.ticker.start(b)
+
 # Tween: linear interpolation between two values of any type T.
 
 type

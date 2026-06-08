@@ -263,7 +263,10 @@ proc rebuildElement*(e: Element) =
   if e.isNil: return
   case e.kind
   of ekStateless:
-    let built = StatelessWidget(e.widget).build(e)
+    inBuildPhase = true
+    let built =
+      try: StatelessWidget(e.widget).build(e)
+      finally: inBuildPhase = false
     reconcileChildren(e, if built.isNil: @[] else: @[built])
   of ekStateful:
     if e.state.isNil:
@@ -271,7 +274,10 @@ proc rebuildElement*(e: Element) =
       state.element = e
       state.initState()
       e.state = state
-    let built = e.state.build(e)
+    inBuildPhase = true
+    let built =
+      try: e.state.build(e)
+      finally: inBuildPhase = false
     reconcileChildren(e, if built.isNil: @[] else: @[built])
   of ekRender:
     # Update parameters on the render object (delegated to widget impl).

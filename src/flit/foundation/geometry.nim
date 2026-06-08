@@ -184,6 +184,22 @@ proc deflate*(c: Constraints, e: EdgeInsets): Constraints =
     minHeight: max(0.0, c.minHeight - v),
     maxHeight: max(0.0, c.maxHeight - v))
 
+# Interpolation - used by Tween[Offset] / Tween[Size] for animations.
+
+proc lerp*(a, b: Offset, t: float32): Offset =
+  Offset(dx: a.dx + (b.dx - a.dx) * t, dy: a.dy + (b.dy - a.dy) * t)
+
+proc lerp*(a, b: Size, t: float32): Size =
+  Size(width:  a.width  + (b.width  - a.width)  * t,
+       height: a.height + (b.height - a.height) * t)
+
+proc lerp*(a, b: EdgeInsets, t: float32): EdgeInsets =
+  EdgeInsets(
+    left:   a.left   + (b.left   - a.left)   * t,
+    top:    a.top    + (b.top    - a.top)    * t,
+    right:  a.right  + (b.right  - a.right)  * t,
+    bottom: a.bottom + (b.bottom - a.bottom) * t)
+
 proc `$`*(s: Size): string = "Size(" & $s.width & ", " & $s.height & ")"
 proc `$`*(o: Offset): string = "Offset(" & $o.dx & ", " & $o.dy & ")"
 proc `$`*(r: Rect): string =

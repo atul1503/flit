@@ -103,10 +103,20 @@ proc newElement*(kind: ElementKind, widget: Widget): Element =
 # Declared before `setState` so the proc can capture it.
 var onSetStateRoot*: proc(root: Element) = proc(_: Element) = discard
 
+# True while the runtime is in the middle of running build/State.build.
+# setState during build is a misuse in Flutter (FlutterError); we mirror
+# that by raising a Defect. The runtime sets/unsets this around its
+# rebuild pass.
+var inBuildPhase* {.threadvar.}: bool
+
 proc setState*(s: State, fn: proc()) =
   ## Mark THIS state's element dirty (not the whole root). The runner
   ## rebuilds only that subtree, which is much cheaper when the state
   ## change is local to one widget.
+  if inBuildPhase:
+    raise newException(Defect,
+      "setState called during build. Move the call out of build() " &
+      "into a frame callback, event handler, or initState().")
   fn()
   if not s.element.isNil:
     s.element.dirty = true

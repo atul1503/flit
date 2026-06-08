@@ -212,11 +212,21 @@ method paint*(r: RenderClipRRect, ctx: PaintingContext, offset: Offset) =
   ctx.paintChild(r.child, OffsetZero)
   ctx.canvas.restore()
 
-# Transform: applies a translate+scale (rotation handled by backend).
+# Transform: applies a full TRS (translate, rotate, scale) around the
+# child's top-left. Each component is skipped if it's the identity.
 
 method paint*(r: RenderTransform, ctx: PaintingContext, offset: Offset) =
   if r.child.isNil: return
   ctx.canvas.save()
-  ctx.canvas.translate(r.translation.dx, r.translation.dy)
-  ctx.paintChild(r.child, OffsetZero)
+  # Translate first so subsequent rotation/scale happens around the box's
+  # origin (matching Flutter's default origin = top-left).
+  ctx.canvas.translate(offset.dx + r.translation.dx, offset.dy + r.translation.dy)
+  if r.rotation != 0:
+    ctx.canvas.rotate(r.rotation)
+  if r.scale != 0 and r.scale != 1:
+    ctx.canvas.scale(r.scale, r.scale)
+  # The canvas is now translated; reset offset to 0 in this new coord
+  # space so drawing at (0,0) lands at the translated origin.
+  let innerCtx = newPaintingContext(ctx.canvas, OffsetZero)
+  paint(r.child, innerCtx, OffsetZero)
   ctx.canvas.restore()
