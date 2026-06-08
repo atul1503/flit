@@ -126,6 +126,16 @@ proc runDesktop*(rootWidget: Widget,
           position: Offset(dx: float32(mb.x), dy: float32(mb.y)),
           buttons: uint32(mb.button),
           timestamp: binding.currentTime))
+      of MouseWheel:
+        let mw = cast[MouseWheelEventPtr](addr ev)
+        # Get current mouse position so scroll lands on the right viewport
+        var mx, my: cint
+        discard getMouseState(mx, my)
+        binding.dispatchPointer(PointerEvent(
+          kind: peScroll, pointer: 0,
+          position: Offset(dx: float32(mx), dy: float32(my)),
+          scrollDelta: Offset(dx: float32(mw.x), dy: float32(mw.y)),
+          timestamp: binding.currentTime))
       of KeyDown:
         let ke = cast[KeyboardEventPtr](addr ev)
         binding.dispatchKey(KeyEvent(

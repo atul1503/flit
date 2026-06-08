@@ -3,7 +3,7 @@
 ## Expanded, Flexible, ConstrainedBox, AspectRatio, ColoredBox.
 
 import ../foundation/[widget, key, geometry, color, render_object]
-import ../rendering/[proxy_box, flex, stack, decoration, text]
+import ../rendering/[proxy_box, flex, stack, decoration, text, viewport]
 
 # ----- Container -----
 
@@ -261,6 +261,25 @@ method updateRenderObject*(w: Stack, ctx: BuildContext, r: RenderObject) =
 proc stack*(children: seq[Widget] = @[], alignment = alignTopLeft,
             fit = sfLoose, key: Key = nil): Stack =
   Stack(key: key, children: children, alignment: alignment, fit: fit)
+
+# ----- ScrollView -----
+
+type
+  ScrollView* = ref object of RenderObjectWidget
+    child*: Widget
+    direction*: Axis
+
+method widgetTypeName*(w: ScrollView): string = "ScrollView"
+method createElement*(w: ScrollView): Element = newElement(ekRender, w)
+method createRenderObject*(w: ScrollView, ctx: BuildContext): RenderObject =
+  RenderViewport(direction: w.direction, scrollOffset: 0, maxScroll: 0)
+method updateRenderObject*(w: ScrollView, ctx: BuildContext, r: RenderObject) =
+  RenderViewport(r).direction = w.direction
+  r.markNeedsLayout()
+
+proc scrollView*(child: Widget, direction = axVertical,
+                 key: Key = nil): ScrollView =
+  ScrollView(key: key, child: child, direction: direction)
 
 # ----- Text -----
 

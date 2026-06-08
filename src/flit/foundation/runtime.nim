@@ -11,7 +11,7 @@ import ./binding
 import ./diagnostics
 import ../widgets/basic
 import ../gestures/detector
-import ../rendering/[flex, stack, proxy_box, decoration]
+import ../rendering/[flex, stack, proxy_box, decoration, viewport]
 
 # Find the nearest descendant Element whose widget produces a RenderObject.
 # Walk through stateless/stateful/proxy until we hit a render or end of tree.
@@ -38,6 +38,8 @@ proc attachAsChild(parent: RenderObject, child: RenderObject) =
   elif parent of RenderStack:
     let ps = RenderStack(parent)
     ps.children.add(RenderStackChild(obj: child, pd: newStackParentData()))
+  elif parent of RenderViewport:
+    RenderViewport(parent).child = child
   elif parent of RenderProxyBox:
     RenderProxyBox(parent).child = child
   elif parent of RenderDecoratedBox:
@@ -49,6 +51,7 @@ proc attachChildRenders*(e: Element) =
     # Clear existing then re-attach all child renders found in subtree
     if e.renderObj of RenderFlex: RenderFlex(e.renderObj).children.setLen(0)
     elif e.renderObj of RenderStack: RenderStack(e.renderObj).children.setLen(0)
+    elif e.renderObj of RenderViewport: RenderViewport(e.renderObj).child = nil
     elif e.renderObj of RenderProxyBox: RenderProxyBox(e.renderObj).child = nil
     elif e.renderObj of RenderDecoratedBox: RenderDecoratedBox(e.renderObj).child = nil
 
@@ -107,6 +110,9 @@ proc childrenOf(w: Widget): seq[Widget] =
   elif w of GestureDetector:
     if not GestureDetector(w).child.isNil:
       result.add(GestureDetector(w).child)
+  elif w of ScrollView:
+    if not ScrollView(w).child.isNil:
+      result.add(ScrollView(w).child)
   elif w of ProxyWidget:
     let p = ProxyWidget(w)
     if not p.child.isNil: result.add(p.child)
@@ -228,6 +234,12 @@ proc firstGestureDetector(path: seq[HitTestEntry]): tuple[g: RenderGestureDetect
       return (RenderGestureDetector(entry.target), entry.local)
   (nil, OffsetZero)
 
+proc firstViewport(path: seq[HitTestEntry]): RenderViewport =
+  for entry in path:
+    if entry.target of RenderViewport:
+      return RenderViewport(entry.target)
+  nil
+
 proc processPointerEvents*(b: Binding) =
   ## Drain pendingPointers, hit-test through the render tree, dispatch to
   ## the deepest matching GestureDetector. Pan continuity is preserved by
@@ -260,4 +272,19 @@ proc processPointerEvents*(b: Binding) =
         globalDispatcher.captured = nil
     of peCancel:
       globalDispatcher.captured = nil
+    of peScroll:
+      let res = HitTestResult(path: @[])
+      discard rE.renderObj.hitTest(res, ev.position)
+      let vp = firstViewport(res.path)
+      if not vp.isNil:
+        # SDL wheel events use positive Y = scroll up. We want positive
+        # scrollOffset = content shifts up, so user sees content below.
+        let delta = if vp.direction == axVertical: -ev.scrollDelta.dy
+                    else: -ev.scrollDelta.dx
+        vp.scrollOffset = vp.scrollOffset + delta * 40.0'f32
+        vp.clampScroll()
+        vp.markNeedsPaint()
+        # Force a frame by marking the root dirty.
+        if not b.rootElement.isNil:
+          b.markRootDirty(b.rootElement)
     else: discard

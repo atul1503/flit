@@ -446,16 +446,17 @@ const curveNames = ["linear", "easeIn", "easeOut", "easeInOut",
 
 proc animationTab(s: ShowcaseState): Widget =
   let scheme = currentTheme().colorScheme
-  var pillRow: seq[Widget] = @[]
-  for i, n in curveNames:
-    let idx = i
-    let nm = n
-    let active = s.selectedCurve == idx
-    pillRow.add(padding(
+
+  # Closure-in-loop: Nim's loop variable is reused across iterations and
+  # closures capturing it by reference all see the LAST value. Wrap the
+  # tap callback creation in a proc so the captured `idx` is a fresh
+  # parameter binding per call.
+  proc makePill(idx: int, label: string, active: bool): Widget =
+    padding(
       padding = edgeInsetsAll(2),
       child = gestureDetector(
         behavior = htOpaque,
-        onTap = proc() = setState(s, proc() = s.selectedCurve = idx),
+        onTap = (proc() = setState(s, proc() = s.selectedCurve = idx)),
         child = decoratedBox(
           decoration = boxDecoration(
             color = if active: scheme.primary else: scheme.surface,
@@ -463,8 +464,12 @@ proc animationTab(s: ShowcaseState): Widget =
             border = Border(color: scheme.outline, width: 1)),
           child = padding(
             padding = edgeInsetsSymmetric(horizontal = 12, vertical = 6),
-            child = text(nm, style = textStyle(fontSize = 12,
-              color = if active: scheme.onPrimary else: scheme.onSurface)))))))
+            child = text(label, style = textStyle(fontSize = 12,
+              color = if active: scheme.onPrimary else: scheme.onSurface))))))
+
+  var pillRow: seq[Widget] = @[]
+  for i, n in curveNames:
+    pillRow.add(makePill(i, n, s.selectedCurve == i))
 
   padding(
     padding = edgeInsetsAll(16),
@@ -563,13 +568,16 @@ proc cupertinoTab(s: ShowcaseState): Widget =
 # ---------------------------------------------------------------------------
 
 proc currentTabContent(s: ShowcaseState): Widget =
-  case s.tab
-  of tabHome:      homeTab(s)
-  of tabLayout:    layoutTab(s)
-  of tabStyle:     styleTab(s)
-  of tabInputs:    inputsTab(s)
-  of tabAnimation: animationTab(s)
-  of tabCupertino: cupertinoTab(s)
+  let inner = case s.tab
+    of tabHome:      homeTab(s)
+    of tabLayout:    layoutTab(s)
+    of tabStyle:     styleTab(s)
+    of tabInputs:    inputsTab(s)
+    of tabAnimation: animationTab(s)
+    of tabCupertino: cupertinoTab(s)
+  # Wrap every tab body in a vertical scroll view so content taller than
+  # the window is reachable via mouse wheel / two-finger scroll.
+  scrollView(inner, direction = axVertical)
 
 method build*(s: ShowcaseState, ctx: BuildContext): Widget =
   # Set the ambient theme FIRST so every child widget that reads
