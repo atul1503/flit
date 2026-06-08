@@ -46,6 +46,30 @@ method paint*(r: RenderViewport, ctx: PaintingContext, offset: Offset) =
   ctx.paintChild(r.child, shift)
   ctx.canvas.restore()
 
+  # Scrollbar indicator. Drawn only if there's something to scroll, and
+  # sized proportionally: thumb length = visible/total, position = offset/total.
+  if r.maxScroll <= 0: return
+  const thumbWidth = 6.0'f32
+  const thumbMargin = 2.0'f32
+  let total = r.maxScroll +
+    (if r.direction == axVertical: r.size.height else: r.size.width)
+  if r.direction == axVertical:
+    let trackH = r.size.height - thumbMargin * 2
+    let thumbH = max(24.0'f32, trackH * (r.size.height / total))
+    let thumbY = (trackH - thumbH) * (r.scrollOffset / r.maxScroll)
+    let trackX = offset.dx + r.size.width - thumbWidth - thumbMargin
+    let rect = rectFromLTWH(trackX, offset.dy + thumbMargin + thumbY,
+                            thumbWidth, thumbH)
+    ctx.canvas.drawRRect(rrect(rect, thumbWidth * 0.5), 0x99000000'u32)
+  else:
+    let trackW = r.size.width - thumbMargin * 2
+    let thumbW = max(24.0'f32, trackW * (r.size.width / total))
+    let thumbX = (trackW - thumbW) * (r.scrollOffset / r.maxScroll)
+    let trackY = offset.dy + r.size.height - thumbWidth - thumbMargin
+    let rect = rectFromLTWH(offset.dx + thumbMargin + thumbX, trackY,
+                            thumbW, thumbWidth)
+    ctx.canvas.drawRRect(rrect(rect, thumbWidth * 0.5), 0x99000000'u32)
+
 method hitTest*(r: RenderViewport, htResult: HitTestResult, position: Offset): bool =
   # Translate the hit point by the scroll offset, but only if it's inside
   # the visible viewport (the clip area).

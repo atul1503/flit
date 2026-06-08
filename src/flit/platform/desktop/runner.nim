@@ -163,6 +163,13 @@ proc runDesktop*(rootWidget: Widget,
       canvas.clear(0xFFFFFFFF'u32)
       runPaint(rootElement, canvas)
       canvas.present()
+      binding.needsRepaint = false
+    elif binding.needsRepaint:
+      # Paint-only pass for scroll and other layout-stable changes.
+      canvas.clear(0xFFFFFFFF'u32)
+      runPaint(rootElement, canvas)
+      canvas.present()
+      binding.needsRepaint = false
     else:
       # Animation pump. Snapshot the callback list and clear FIRST, because
       # tickers re-schedule themselves by appending during the callback;

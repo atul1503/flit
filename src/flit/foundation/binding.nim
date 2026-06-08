@@ -38,6 +38,7 @@ type
     rootRender*:  RenderObject
     canvas*:      Canvas
     dirtyRoots*:  seq[Element]
+    needsRepaint*: bool  # paint-only pass (e.g. scroll, no tree change)
     frameCallbacks*: seq[FrameCallback]
     postFrame*:   seq[PostFrameCallback]
     pendingPointers*: Deque[PointerEvent]

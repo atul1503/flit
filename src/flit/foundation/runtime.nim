@@ -294,8 +294,7 @@ proc processPointerEvents*(b: Binding) =
                     else: -ev.scrollDelta.dx
         vp.scrollOffset = vp.scrollOffset + delta * 40.0'f32
         vp.clampScroll()
-        vp.markNeedsPaint()
-        # Force a frame by marking the root dirty.
-        if not b.rootElement.isNil:
-          b.markRootDirty(b.rootElement)
+        # Just repaint, don't rebuild the widget tree. The scroll offset
+        # doesn't affect layout, only paint translation.
+        b.needsRepaint = true
     else: discard
