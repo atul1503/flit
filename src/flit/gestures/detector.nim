@@ -2,6 +2,7 @@
 ## The render object wraps a child and records callbacks that the binding's
 ## hit-test pass invokes.
 
+import std/times
 import ../foundation/[widget, render_object, geometry, color]
 import ../rendering/proxy_box
 
@@ -13,6 +14,10 @@ type
   RenderGestureDetector* = ref object of RenderProxyBox
     onTap*: TapCallback
     onDoubleTap*: TapCallback
+    # onLongPress is exposed for forward-compatibility but doesn't fire
+    # yet - we have no binding-level timer to detect 500ms-without-move
+    # before peUp arrives. Use a frame callback in your app if you need
+    # it today, or wait for a future flit release.
     onLongPress*: TapCallback
     onPanStart*: PointerCallback
     onPanUpdate*: DragUpdate
@@ -21,6 +26,7 @@ type
     onPointerUp*: PointerCallback
     behavior*: HitTestBehavior
     lastDown*: Offset
+    lastTapTime*: float    # epoch-seconds of the last clean tap-up
     isDragging*: bool
 
   HitTestBehavior* = enum
@@ -43,8 +49,14 @@ proc handleDown*(r: RenderGestureDetector, p: Offset) =
 proc handleUp*(r: RenderGestureDetector, p: Offset) =
   if r.onPointerUp != nil: r.onPointerUp(p)
   let travel = (p - r.lastDown).distance
-  if travel < 8.0 and r.onTap != nil:
-    r.onTap()
+  if travel < 8.0:
+    let now = epochTime()
+    if r.lastTapTime > 0 and now - r.lastTapTime < 0.3 and r.onDoubleTap != nil:
+      r.onDoubleTap()
+      r.lastTapTime = 0   # consume so a triple-tap isn't a double-tap too
+    else:
+      if r.onTap != nil: r.onTap()
+      r.lastTapTime = now
   if r.isDragging and r.onPanEnd != nil:
     r.onPanEnd()
   r.isDragging = false

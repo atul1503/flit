@@ -29,6 +29,11 @@ type
 
   BoxDecoration* = object
     color*:        Color
+    # NOTE: `gradient` and `shadows` are surfaced but only partially
+    # rendered. Gradients are not yet drawn (planned for a future flit
+    # version once the canvas backends gain a gradient-fill method).
+    # Shadows render as solid-color rects at offset+spread (no gaussian
+    # blur), so they look like duplicate boxes rather than soft shadows.
     gradient*:     Gradient
     border*:       Border
     borderRadius*: float32

@@ -79,4 +79,33 @@ suite "Gesture dispatch":
     check moves >= 1
     check ended == 1
 
+suite "Double tap":
+  test "two taps within 300ms fire onDoubleTap, not onTap twice":
+    var taps = 0
+    var doubles = 0
+    let tree = center(
+      child = gestureDetector(
+        onTap = (proc() = inc taps),
+        onDoubleTap = (proc() = inc doubles),
+        behavior = htOpaque,
+        child = sizedBox(width = 100, height = 50,
+          child = coloredBox(color = colorRed))))
+    let root = mountElement(nil, tree, 0)
+    runLayout(root, tightFor(400, 300))
+    let canvas = Canvas(size: Size(width: 400, height: 300))
+    let b = newBinding(canvas, Size(width: 400, height: 300))
+    b.rootElement = root
+    # First tap
+    b.dispatchPointer(PointerEvent(kind: peDown, position: Offset(dx: 200, dy: 150)))
+    b.dispatchPointer(PointerEvent(kind: peUp,   position: Offset(dx: 200, dy: 150)))
+    processPointerEvents(b)
+    check taps == 1
+    check doubles == 0
+    # Second tap immediately after - within 300ms window.
+    b.dispatchPointer(PointerEvent(kind: peDown, position: Offset(dx: 200, dy: 150)))
+    b.dispatchPointer(PointerEvent(kind: peUp,   position: Offset(dx: 200, dy: 150)))
+    processPointerEvents(b)
+    check doubles == 1
+    check taps == 1  # the second tap is consumed by onDoubleTap
+
 when isMainModule: discard
