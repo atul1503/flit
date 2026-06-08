@@ -23,16 +23,15 @@ proc installFont() =
     let b = typeset(f, text).computeBounds()
     Size(width: b.w, height: max(b.h, style.fontSize * style.height))
 
-proc renderFrame(dark: bool, path: string) =
+proc renderFrame(tab: Tab, dark: bool, path: string) =
   let canvas = embed.newEmbeddedCanvas(W, H)
   let app = Showcase()
   let root = mountElement(nil, app, 0)
-  # Flip dark mode after mount by reaching into the state and rebuilding.
-  if dark:
-    let st = ShowcaseState(root.state)
-    st.darkMode = true
-    root.dirty = true
-    rebuildElement(root)
+  let st = ShowcaseState(root.state)
+  st.darkMode = dark
+  st.tab = tab
+  root.dirty = true
+  rebuildElement(root)
   runLayout(root, tightFor(W, H))
   canvas.clear(0xFFFFFFFF'u32)
   runPaint(root, canvas)
@@ -41,5 +40,10 @@ proc renderFrame(dark: bool, path: string) =
 
 when isMainModule:
   installFont()
-  renderFrame(dark = false, path = "/tmp/flit_showcase_light.png")
-  renderFrame(dark = true,  path = "/tmp/flit_showcase_dark.png")
+  renderFrame(tabHome,      dark = false, path = "/tmp/flit_showcase_light.png")
+  renderFrame(tabHome,      dark = true,  path = "/tmp/flit_showcase_dark.png")
+  renderFrame(tabLayout,    dark = false, path = "/tmp/flit_showcase_layout.png")
+  renderFrame(tabStyle,     dark = false, path = "/tmp/flit_showcase_style.png")
+  renderFrame(tabInputs,    dark = false, path = "/tmp/flit_showcase_inputs.png")
+  renderFrame(tabAnimation, dark = false, path = "/tmp/flit_showcase_animation.png")
+  renderFrame(tabCupertino, dark = false, path = "/tmp/flit_showcase_cupertino.png")

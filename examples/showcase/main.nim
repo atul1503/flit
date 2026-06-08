@@ -28,7 +28,7 @@ import std/[strutils, math]
 # ---------------------------------------------------------------------------
 
 type
-  Tab = enum
+  Tab* = enum
     tabHome, tabLayout, tabStyle, tabInputs, tabAnimation, tabCupertino
 
   Showcase* = ref object of StatefulWidget
@@ -184,7 +184,8 @@ proc box(label: string, color: Color, w = 60.0'f32, h = 40.0'f32): Widget =
 proc rowDemo(label: string, ma: MainAxisAlignment): Widget =
   padding(
     padding = edgeInsetsSymmetric(horizontal = 0, vertical = 4),
-    child = column(crossAxisAlignment = caStart, children = @[
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caStart,
+                   children = @[
       Widget(body(label)),
       sizedBox(height = 4),
       decoratedBox(
