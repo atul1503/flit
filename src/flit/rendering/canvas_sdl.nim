@@ -56,12 +56,12 @@ when not defined(js):
                               SDL_TEXTUREACCESS_STREAMING, cint(w), cint(h))
 
   proc argbToPaint(v: uint32): Paint =
-    let a = float32((v shr 24) and 0xFF) / 255.0
-    let r = float32((v shr 16) and 0xFF) / 255.0
-    let g = float32((v shr  8) and 0xFF) / 255.0
-    let b = float32( v         and 0xFF) / 255.0
+    let a = uint8((v shr 24) and 0xFF)
+    let r = uint8((v shr 16) and 0xFF)
+    let g = uint8((v shr  8) and 0xFF)
+    let b = uint8( v         and 0xFF)
     result = newPaint(SolidPaint)
-    result.color = color(r, g, b, a)
+    result.color = rgba(r, g, b, a).color
 
   method clear*(c: SdlCanvas, color: uint32) =
     c.ctx.fillStyle = argbToPaint(color)

@@ -8,6 +8,7 @@ import ../src/flit/foundation/render_object
 import ../src/flit/foundation/runtime
 import ../src/flit/platform/embedded/runner as embed
 import ../examples/showcase/main as showcaseApp
+import ../src/flit/foundation/widget
 
 const W = 1024
 const H = 768
@@ -22,17 +23,23 @@ proc installFont() =
     let b = typeset(f, text).computeBounds()
     Size(width: b.w, height: max(b.h, style.fontSize * style.height))
 
-when isMainModule:
-  installFont()
+proc renderFrame(dark: bool, path: string) =
   let canvas = embed.newEmbeddedCanvas(W, H)
-
-  # Mount and lay out the showcase.
-  let root = mountElement(nil, Showcase(), 0)
+  let app = Showcase()
+  let root = mountElement(nil, app, 0)
+  # Flip dark mode after mount by reaching into the state and rebuilding.
+  if dark:
+    let st = ShowcaseState(root.state)
+    st.darkMode = true
+    root.dirty = true
+    rebuildElement(root)
   runLayout(root, tightFor(W, H))
-
-  # Paint via the canvas pipeline.
   canvas.clear(0xFFFFFFFF'u32)
   runPaint(root, canvas)
+  canvas.image.writeFile(path)
+  echo "wrote ", path
 
-  canvas.image.writeFile("/tmp/flit_showcase_frame.png")
-  echo "wrote /tmp/flit_showcase_frame.png"
+when isMainModule:
+  installFont()
+  renderFrame(dark = false, path = "/tmp/flit_showcase_light.png")
+  renderFrame(dark = true,  path = "/tmp/flit_showcase_dark.png")

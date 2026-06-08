@@ -73,12 +73,20 @@ proc themeData*(brightness = bLight, fontFamily = "system",
             typography: defaultTypography(fontFamily),
             defaultRadius: defaultRadius, fontFamily: fontFamily)
 
-# Ambient theme: stored as a thread-local var. Real Flutter uses InheritedTheme;
-# for simplicity here we use a stack push/pop pattern.
+# Ambient theme. Replaces the previous push/pop stack: that pattern only
+# helped when nested subtrees needed local overrides, and it didn't update
+# parent-visible state when MaterialApp.build re-pushed, because the user's
+# tree was already constructed by then (capturing the OLD top of stack).
+#
+# Now currentTheme is a single var the app can set BEFORE constructing the
+# tree, so every `let scheme = currentTheme().colorScheme` line in user
+# code reads the freshly-set value.
 
-var themeStack: seq[ThemeData] = @[themeData()]
+var currentThemeVar*: ThemeData = themeData()
 
-proc currentTheme*(): ThemeData = themeStack[^1]
-proc pushTheme*(t: ThemeData) = themeStack.add(t)
-proc popTheme*() =
-  if themeStack.len > 1: discard themeStack.pop()
+proc currentTheme*(): ThemeData = currentThemeVar
+proc setTheme*(t: ThemeData) = currentThemeVar = t
+
+# Backward-compatible aliases.
+proc pushTheme*(t: ThemeData) = setTheme(t)
+proc popTheme*() = discard

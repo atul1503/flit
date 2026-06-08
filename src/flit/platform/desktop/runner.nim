@@ -154,12 +154,21 @@ proc runDesktop*(rootWidget: Widget,
       runPaint(rootElement, canvas)
       canvas.present()
     else:
-      # Animation pump
+      # Animation pump. Snapshot the callback list and clear FIRST, because
+      # tickers re-schedule themselves by appending during the callback;
+      # clearing after the loop would erase those re-schedules.
       if binding.frameCallbacks.len > 0:
         let now = binding.currentTime
-        for cb in binding.frameCallbacks:
-          cb(now)
+        let pending = binding.frameCallbacks
         binding.frameCallbacks.setLen(0)
+        for cb in pending:
+          cb(now)
+        # The callbacks may have set state, so check for dirty roots before
+        # painting.
+        if binding.dirtyRoots.len > 0:
+          for r in binding.dirtyRoots: rebuildElement(r)
+          binding.clearDirty()
+          runLayout(rootElement, tightFor(binding.surfaceSize))
         canvas.clear(0xFFFFFFFF'u32)
         runPaint(rootElement, canvas)
         canvas.present()

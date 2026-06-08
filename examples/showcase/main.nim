@@ -33,16 +33,16 @@ type
 
   Showcase* = ref object of StatefulWidget
 
-  ShowcaseState = ref object of State
-    tab: Tab
-    darkMode: bool
-    counter: int
-    panOffset: Offset
-    panTapCount: int
-    holdProgress: float32
-    animController: AnimationController
-    animPos: float32
-    selectedCurve: int
+  ShowcaseState* = ref object of State
+    tab*: Tab
+    darkMode*: bool
+    counter*: int
+    panOffset*: Offset
+    panTapCount*: int
+    holdProgress*: float32
+    animController*: AnimationController
+    animPos*: float32
+    selectedCurve*: int
 
 method widgetTypeName*(w: Showcase): string = "Showcase"
 method createElement*(w: Showcase): Element = newElement(ekStateful, w)
@@ -550,7 +550,10 @@ proc currentTabContent(s: ShowcaseState): Widget =
   of tabCupertino: cupertinoTab(s)
 
 method build*(s: ShowcaseState, ctx: BuildContext): Widget =
+  # Set the ambient theme FIRST so every child widget that reads
+  # `currentTheme()` during construction sees the right colors.
   let theme = themeData(if s.darkMode: bDark else: bLight)
+  setTheme(theme)
   materialApp(
     title = "flit showcase",
     theme = theme,

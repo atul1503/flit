@@ -54,6 +54,11 @@ method widgetTypeName*(w: SizedBox): string = "SizedBox"
 method createElement*(w: SizedBox): Element = newElement(ekRender, w)
 method createRenderObject*(w: SizedBox, ctx: BuildContext): RenderObject =
   RenderSizedBox(requestedWidth: w.width, requestedHeight: w.height)
+method updateRenderObject*(w: SizedBox, ctx: BuildContext, r: RenderObject) =
+  let s = RenderSizedBox(r)
+  s.requestedWidth = w.width
+  s.requestedHeight = w.height
+  r.markNeedsLayout()
 
 proc sizedBox*(child: Widget = nil, width = 0.0'f32, height = 0.0'f32,
                key: Key = nil): SizedBox =
@@ -70,6 +75,9 @@ method widgetTypeName*(w: Padding): string = "Padding"
 method createElement*(w: Padding): Element = newElement(ekRender, w)
 method createRenderObject*(w: Padding, ctx: BuildContext): RenderObject =
   RenderPadding(padding: w.padding)
+method updateRenderObject*(w: Padding, ctx: BuildContext, r: RenderObject) =
+  RenderPadding(r).padding = w.padding
+  r.markNeedsLayout()
 
 proc padding*(child: Widget = nil, padding = edgeInsetsAll(8),
               key: Key = nil): Padding =
@@ -88,6 +96,12 @@ method createElement*(w: Align): Element = newElement(ekRender, w)
 method createRenderObject*(w: Align, ctx: BuildContext): RenderObject =
   RenderAlign(alignment: w.alignment,
               widthFactor: w.widthFactor, heightFactor: w.heightFactor)
+method updateRenderObject*(w: Align, ctx: BuildContext, r: RenderObject) =
+  let a = RenderAlign(r)
+  a.alignment = w.alignment
+  a.widthFactor = w.widthFactor
+  a.heightFactor = w.heightFactor
+  r.markNeedsLayout()
 
 proc align*(child: Widget = nil, alignment = alignCenter,
             widthFactor = 0.0'f32, heightFactor = 0.0'f32,
@@ -109,6 +123,9 @@ method widgetTypeName*(w: ColoredBox): string = "ColoredBox"
 method createElement*(w: ColoredBox): Element = newElement(ekRender, w)
 method createRenderObject*(w: ColoredBox, ctx: BuildContext): RenderObject =
   RenderColoredBox(fill: w.color)
+method updateRenderObject*(w: ColoredBox, ctx: BuildContext, r: RenderObject) =
+  RenderColoredBox(r).fill = w.color
+  r.markNeedsPaint()
 
 proc coloredBox*(child: Widget = nil, color = colorTransparent,
                  key: Key = nil): ColoredBox =
@@ -125,6 +142,9 @@ method widgetTypeName*(w: DecoratedBox): string = "DecoratedBox"
 method createElement*(w: DecoratedBox): Element = newElement(ekRender, w)
 method createRenderObject*(w: DecoratedBox, ctx: BuildContext): RenderObject =
   RenderDecoratedBox(decoration: w.decoration)
+method updateRenderObject*(w: DecoratedBox, ctx: BuildContext, r: RenderObject) =
+  RenderDecoratedBox(r).decoration = w.decoration
+  r.markNeedsPaint()
 
 proc decoratedBox*(child: Widget = nil, decoration = BoxDecoration(),
                    key: Key = nil): DecoratedBox =
@@ -159,6 +179,18 @@ method createRenderObject*(w: Column, ctx: BuildContext): RenderObject =
              mainAxisAlignment: w.mainAxisAlignment,
              crossAxisAlignment: w.crossAxisAlignment,
              mainAxisSize: w.mainAxisSize)
+method updateRenderObject*(w: Row, ctx: BuildContext, r: RenderObject) =
+  let f = RenderFlex(r)
+  f.mainAxisAlignment = w.mainAxisAlignment
+  f.crossAxisAlignment = w.crossAxisAlignment
+  f.mainAxisSize = w.mainAxisSize
+  r.markNeedsLayout()
+method updateRenderObject*(w: Column, ctx: BuildContext, r: RenderObject) =
+  let f = RenderFlex(r)
+  f.mainAxisAlignment = w.mainAxisAlignment
+  f.crossAxisAlignment = w.crossAxisAlignment
+  f.mainAxisSize = w.mainAxisSize
+  r.markNeedsLayout()
 
 proc row*(children: seq[Widget] = @[],
           mainAxisAlignment = maStart, crossAxisAlignment = caCenter,
@@ -220,6 +252,11 @@ method widgetTypeName*(w: Stack): string = "Stack"
 method createElement*(w: Stack): Element = newElement(ekRender, w)
 method createRenderObject*(w: Stack, ctx: BuildContext): RenderObject =
   RenderStack(alignment: w.alignment, fit: w.fit)
+method updateRenderObject*(w: Stack, ctx: BuildContext, r: RenderObject) =
+  let st = RenderStack(r)
+  st.alignment = w.alignment
+  st.fit = w.fit
+  r.markNeedsLayout()
 
 proc stack*(children: seq[Widget] = @[], alignment = alignTopLeft,
             fit = sfLoose, key: Key = nil): Stack =
