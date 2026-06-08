@@ -17,7 +17,7 @@ type
     asDismissed, asForward, asReverse, asCompleted
 
   AnimationController* = ref object
-    value*:    float32
+    valueField:        float32   # use .value getter / .value= setter
     lower*:    float32
     upper*:    float32
     duration*: float32  # seconds
@@ -25,6 +25,8 @@ type
     ticker*:   Ticker
     listeners*:        seq[proc(v: float32)]
     statusListeners*:  seq[proc(s: AnimationStatus)]
+
+proc value*(c: AnimationController): float32 = c.valueField
 
 # Built-in curves
 
@@ -70,7 +72,7 @@ proc stop*(t: Ticker) = t.active = false
 proc newAnimationController*(durationSec: float32, lower = 0.0'f32,
                              upper = 1.0'f32): AnimationController =
   AnimationController(duration: durationSec, lower: lower, upper: upper,
-                      value: lower, status: asDismissed,
+                      valueField: lower, status: asDismissed,
                       listeners: @[], statusListeners: @[])
 
 proc addListener*(c: AnimationController, fn: proc(v: float32)) =
@@ -79,8 +81,44 @@ proc addListener*(c: AnimationController, fn: proc(v: float32)) =
 proc addStatusListener*(c: AnimationController, fn: proc(s: AnimationStatus)) =
   c.statusListeners.add(fn)
 
+proc removeListener*(c: AnimationController, fn: proc(v: float32)) =
+  ## Removes the first matching listener. Matches by closure environment
+  ## pointer; same constraint as Flutter's removeListener.
+  for i, l in c.listeners:
+    if l == fn:
+      c.listeners.delete(i)
+      return
+
+proc removeStatusListener*(c: AnimationController,
+                           fn: proc(s: AnimationStatus)) =
+  for i, l in c.statusListeners:
+    if l == fn:
+      c.statusListeners.delete(i)
+      return
+
+proc stop*(c: AnimationController) =
+  ## Halts the controller mid-animation, leaving value at its current spot.
+  if not c.ticker.isNil:
+    c.ticker.stop()
+
+proc dispose*(c: AnimationController) =
+  ## Releases the ticker and clears all listeners. Call this from State.dispose
+  ## when the controller's host widget is being unmounted.
+  if not c.ticker.isNil:
+    c.ticker.stop()
+    c.ticker = nil
+  c.listeners.setLen(0)
+  c.statusListeners.setLen(0)
+
+proc `value=`*(c: AnimationController, v: float32) =
+  ## Direct setter that notifies listeners, matching Flutter.
+  let clamped = clamp(v, c.lower, c.upper)
+  if c.value == clamped: return
+  c.valueField = clamped
+  for l in c.listeners: l(c.value)
+
 proc setValue(c: AnimationController, v: float32) =
-  c.value = clamp(v, c.lower, c.upper)
+  c.valueField = clamp(v, c.lower, c.upper)
   for l in c.listeners: l(c.value)
 
 proc setStatus(c: AnimationController, s: AnimationStatus) =

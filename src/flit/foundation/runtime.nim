@@ -2,7 +2,7 @@
 ## rebuild, links RenderObjects into a parent->child chain, and drives layout
 ## and paint.
 
-import std/[options, deques]
+import std/[options, deques, tables, hashes]
 import ./widget
 import ./render_object
 import ./geometry
@@ -118,6 +118,14 @@ proc childrenOf(w: Widget): seq[Widget] =
     if not p.child.isNil: result.add(p.child)
   elif w of ConstrainedBox:
     if not ConstrainedBox(w).child.isNil: result.add(ConstrainedBox(w).child)
+  elif w of AspectRatio:
+    if not AspectRatio(w).child.isNil: result.add(AspectRatio(w).child)
+  elif w of ClipRect:
+    if not ClipRect(w).child.isNil: result.add(ClipRect(w).child)
+  elif w of ClipRRect:
+    if not ClipRRect(w).child.isNil: result.add(ClipRRect(w).child)
+  elif w of OpacityWidget:
+    if not OpacityWidget(w).child.isNil: result.add(OpacityWidget(w).child)
 
 proc kindFor*(w: Widget): ElementKind =
   if   w of StatelessWidget:    ekStateless
@@ -164,19 +172,91 @@ proc mountElement*(parent: Element, w: Widget, slot: int): Element =
 
 proc rebuildElement*(e: Element)
 
+proc unmount(e: Element) =
+  ## Recursively unmount: dispose any state, then clear children. Mirrors
+  ## Flutter's Element.deactivate + unmount lifecycle so resources held in
+  ## State.dispose (timers, controllers, listeners) get released when the
+  ## element falls out of the tree.
+  if e.isNil: return
+  for c in e.children: unmount(c)
+  e.children.setLen(0)
+  if e.kind == ekStateful and not e.state.isNil:
+    try: e.state.dispose() except CatchableError: discard
+    e.state.mounted = false
+    e.state = nil
+
 proc reconcileChildren(parent: Element, newWidgets: seq[Widget]) =
-  ## Match old children with new widgets via canUpdate; preserve elements
-  ## when possible, otherwise replace.
-  var newChildren: seq[Element] = @[]
+  ## Two-pass match:
+  ##   1. Build a map of old children that carry a Key; new widgets with
+  ##      a matching key take ownership of that element.
+  ##   2. Remaining new widgets are matched against remaining old children
+  ##      by position. Unmatched old children are unmounted; unmatched new
+  ##      widgets get fresh elements.
+  ## Mirrors Flutter's MultiChildRenderObjectElement.updateChildren shape.
+  var keyMap: Table[Hash, Element]
+  for c in parent.children:
+    if not c.widget.key.isNil:
+      keyMap[hash(c.widget.key)] = c
+
+  var unusedOld = parent.children
+  proc removeFromUnused(e: Element) =
+    var keep: seq[Element]
+    for c in unusedOld:
+      if c != e: keep.add(c)
+    unusedOld = keep
+
+  var newChildren: seq[Element] = newSeq[Element](newWidgets.len)
+  # First pass: keyed matches.
   for i, nw in newWidgets:
-    let old = if i < parent.children.len: parent.children[i] else: nil
-    if not old.isNil and canUpdate(old.widget, nw):
+    if nw.key.isNil: continue
+    let h = hash(nw.key)
+    if keyMap.hasKey(h):
+      let old = keyMap[h]
+      keyMap.del(h)
+      removeFromUnused(old)
+      if canUpdate(old.widget, nw):
+        let oldWidget = old.widget
+        old.widget = nw
+        old.slot = i
+        if old.kind == ekStateful and not old.state.isNil:
+          try: old.state.didUpdateWidget(StatefulWidget(oldWidget))
+          except CatchableError: discard
+        old.dirty = true
+        rebuildElement(old)
+        newChildren[i] = old
+      # else: same key but different type, fall through to positional
+  # Second pass: positional matches for slots not yet filled.
+  var oldIdx = 0
+  for i, nw in newWidgets:
+    if not newChildren[i].isNil: continue
+    # Find next unused old at this slot or later.
+    var old: Element = nil
+    while oldIdx < unusedOld.len:
+      let candidate = unusedOld[oldIdx]
+      oldIdx.inc
+      if candidate.widget.key.isNil and canUpdate(candidate.widget, nw):
+        old = candidate
+        break
+    if not old.isNil:
+      let oldWidget = old.widget
       old.widget = nw
+      old.slot = i
+      if old.kind == ekStateful and not old.state.isNil:
+        try: old.state.didUpdateWidget(StatefulWidget(oldWidget))
+        except CatchableError: discard
       old.dirty = true
       rebuildElement(old)
-      newChildren.add(old)
+      newChildren[i] = old
     else:
-      newChildren.add(mountElement(parent, nw, i))
+      newChildren[i] = mountElement(parent, nw, i)
+
+  # Anything left in unusedOld past our cursor needs to be unmounted.
+  for j in oldIdx ..< unusedOld.len:
+    unmount(unusedOld[j])
+  # Any leftover keyed children that didn't match also need unmounting.
+  for _, v in keyMap:
+    unmount(v)
+
   parent.children = newChildren
 
 proc rebuildElement*(e: Element) =

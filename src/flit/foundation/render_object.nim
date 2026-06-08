@@ -11,6 +11,9 @@ type
     ## Abstract drawing surface. Implementations live in
     ## `flit/rendering/canvas_sdl.nim`, `flit/rendering/canvas_js.nim`, etc.
     size*: Size
+    # Opacity stack: top of stack is the current multiplier. Pushed by
+    # RenderOpacity via pushOpacity, popped by popOpacity. Default 1.0.
+    opacityStack*: seq[float32]
 
   PaintingContext* = ref object
     canvas*: Canvas
@@ -32,6 +35,29 @@ type
     needsPaint*: bool
     attached*: bool
     debugLabel*: string
+
+# Opacity stack helpers - declared after the type block so all of Canvas/
+# RenderObject/PaintingContext are in scope.
+
+proc currentOpacity*(c: Canvas): float32 =
+  if c.opacityStack.len == 0: 1.0'f32 else: c.opacityStack[^1]
+
+proc pushOpacity*(c: Canvas, alpha: float32) =
+  let parent = currentOpacity(c)
+  c.opacityStack.add(parent * clamp(alpha, 0.0'f32, 1.0'f32))
+
+proc popOpacity*(c: Canvas) =
+  if c.opacityStack.len > 0: discard c.opacityStack.pop()
+
+proc applyOpacity*(c: Canvas, color: uint32): uint32 =
+  ## Returns the input color with its alpha channel multiplied by the
+  ## current opacity. Backends call this on every draw so RenderOpacity
+  ## just needs to push/pop without each shape knowing about it.
+  let mul = currentOpacity(c)
+  if mul >= 0.999'f32: return color
+  let a = ((color shr 24) and 0xFF).float32 * mul
+  let aByte = uint32(clamp(a, 0.0, 255.0).int)
+  (color and 0x00FFFFFF'u32) or (aByte shl 24)
 
 # Forward declarations for methods used by procs below.
 method paint*(r: RenderObject, ctx: PaintingContext, offset: Offset) {.base.}
@@ -76,10 +102,18 @@ proc size*(r: RenderObject): Size =
 proc setSize*(r: RenderObject, s: Size) =
   r.sizeOpt = some(s)
 
+proc constraintsEq(a, b: Constraints): bool =
+  a.minWidth == b.minWidth and a.maxWidth == b.maxWidth and
+  a.minHeight == b.minHeight and a.maxHeight == b.maxHeight
+
 proc layout*(r: RenderObject, c: Constraints) =
-  ## Called by the parent. Stores constraints, runs performLayout, clears
-  ## the dirty flag.
+  ## Called by the parent. Skips performLayout when the constraints match
+  ## last call AND we haven't been marked dirty - mirrors Flutter's
+  ## RenderObject.layout fast path. Saves a measurement pass on every
+  ## widget whose constraints didn't change between rebuilds.
   if r.isNil: return
+  if not r.needsLayout and r.sizeOpt.isSome and constraintsEq(r.constraints, c):
+    return
   r.constraints = c
   r.performLayout()
   r.needsLayout = false

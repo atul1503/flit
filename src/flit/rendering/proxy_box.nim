@@ -35,6 +35,14 @@ type
     requestedWidth*: float32
     requestedHeight*: float32
 
+  RenderAspectRatio* = ref object of RenderProxyBox
+    aspectRatio*: float32   # width / height
+
+  RenderClipRect* = ref object of RenderProxyBox
+
+  RenderClipRRect* = ref object of RenderProxyBox
+    radius*: float32
+
 method performLayout*(r: RenderProxyBox) =
   if r.child.isNil:
     # No child: expand to whatever the parent's constraints allow. If we
@@ -99,6 +107,31 @@ method performLayout*(r: RenderSizedBox) =
     r.child.layout(merged)
     r.setSize(merged.constrain(r.child.size))
 
+# AspectRatio: pick the largest box that fits constraints and has the
+# requested width/height ratio, mirroring Flutter's RenderAspectRatio
+# algorithm. Falls back to width-driven sizing when both axes are
+# unbounded so the result is still finite.
+
+method performLayout*(r: RenderAspectRatio) =
+  let c = r.constraints
+  let ar = if r.aspectRatio > 0: r.aspectRatio else: 1.0'f32
+
+  var w = if c.hasBoundedWidth: c.maxWidth else: c.maxHeight * ar
+  var h = w / ar
+  if h > c.maxHeight:
+    h = c.maxHeight
+    w = h * ar
+  if w < c.minWidth:
+    w = c.minWidth
+    h = w / ar
+  if h < c.minHeight:
+    h = c.minHeight
+    w = h * ar
+  let size = c.constrain(Size(width: w, height: h))
+  if not r.child.isNil:
+    r.child.layout(tightFor(size))
+  r.setSize(size)
+
 # Padding
 
 method performLayout*(r: RenderPadding) =
@@ -152,7 +185,30 @@ method paint*(r: RenderColoredBox, ctx: PaintingContext, offset: Offset) =
 
 method paint*(r: RenderOpacity, ctx: PaintingContext, offset: Offset) =
   if r.child.isNil: return
+  ctx.canvas.pushOpacity(r.opacity)
+  ctx.paintChild(r.child, OffsetZero)
+  ctx.canvas.popOpacity()
+
+# ClipRect: clips its child's painting to its own bounds. Layout is just
+# pass-through (parent constraints define our box).
+
+method paint*(r: RenderClipRect, ctx: PaintingContext, offset: Offset) =
+  if r.child.isNil: return
   ctx.canvas.save()
+  ctx.canvas.clipRect(rectFromOffsetSize(offset, r.size))
+  ctx.paintChild(r.child, OffsetZero)
+  ctx.canvas.restore()
+
+# ClipRRect: same but with rounded corners. The clipRect call on most
+# backends is rectangular, so we approximate by painting a rounded fill
+# in a transparent layer; here we just clip to the bounding box and rely
+# on the child's own rounded decoration. A real layer-aware backend can
+# override this method.
+
+method paint*(r: RenderClipRRect, ctx: PaintingContext, offset: Offset) =
+  if r.child.isNil: return
+  ctx.canvas.save()
+  ctx.canvas.clipRect(rectFromOffsetSize(offset, r.size))
   ctx.paintChild(r.child, OffsetZero)
   ctx.canvas.restore()
 

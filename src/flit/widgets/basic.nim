@@ -7,41 +7,9 @@ import ../rendering/[proxy_box, flex, stack, decoration, text, viewport]
 
 # ----- Container -----
 
-type
-  Container* = ref object of RenderObjectWidget
-    width*, height*: float32
-    padding*, margin*: EdgeInsets
-    color*: Color
-    decoration*: BoxDecoration
-    alignment*: Alignment
-    child*: Widget
-    hasAlignment*: bool
-    hasDecoration*: bool
-
-method widgetTypeName*(w: Container): string = "Container"
-method createElement*(w: Container): Element = newElement(ekRender, w)
-method createRenderObject*(w: Container, ctx: BuildContext): RenderObject =
-  ## Real Container is a composite: margin -> decoration -> padding -> align -> child.
-  ## Here we return the outermost render object and chain inwards.
-  result = RenderConstrainedBox(
-    additionalConstraints:
-      if w.width > 0 or w.height > 0:
-        let mw = if w.width  > 0: w.width  else: Inf
-        let mh = if w.height > 0: w.height else: Inf
-        constraints(0, mw, 0, mh)
-      else: unbounded())
-
-proc container*(child: Widget = nil,
-                width = 0.0'f32, height = 0.0'f32,
-                color = colorTransparent,
-                padding = edgeInsetsAll(0),
-                margin = edgeInsetsAll(0),
-                alignment = alignTopLeft,
-                decoration = BoxDecoration(),
-                key: Key = nil): Container =
-  Container(key: key, width: width, height: height, color: color,
-            padding: padding, margin: margin, alignment: alignment,
-            decoration: decoration, child: child)
+# Container is defined at the END of this file: its build() needs to
+# call padding(), align(), decoratedBox(), constrainedBox() and
+# sizedBox() which are all defined below.
 
 # ----- SizedBox -----
 
@@ -326,3 +294,144 @@ method createRenderObject*(w: ConstrainedBox, ctx: BuildContext): RenderObject =
 proc constrainedBox*(child: Widget, boxConstraints: Constraints,
                      key: Key = nil): ConstrainedBox =
   ConstrainedBox(key: key, child: child, boxConstraints: boxConstraints)
+
+# ----- AspectRatio -----
+
+type
+  AspectRatio* = ref object of RenderObjectWidget
+    aspectRatio*: float32
+    child*: Widget
+
+method widgetTypeName*(w: AspectRatio): string = "AspectRatio"
+method createElement*(w: AspectRatio): Element = newElement(ekRender, w)
+method createRenderObject*(w: AspectRatio, ctx: BuildContext): RenderObject =
+  RenderAspectRatio(aspectRatio: w.aspectRatio)
+method updateRenderObject*(w: AspectRatio, ctx: BuildContext, r: RenderObject) =
+  RenderAspectRatio(r).aspectRatio = w.aspectRatio
+  r.markNeedsLayout()
+
+proc aspectRatio*(child: Widget, aspectRatio: float32,
+                  key: Key = nil): AspectRatio =
+  AspectRatio(key: key, child: child, aspectRatio: aspectRatio)
+
+# ----- ClipRect / ClipRRect / Opacity widgets -----
+
+type
+  ClipRect* = ref object of RenderObjectWidget
+    child*: Widget
+
+  ClipRRect* = ref object of RenderObjectWidget
+    radius*: float32
+    child*: Widget
+
+  OpacityWidget* = ref object of RenderObjectWidget
+    opacity*: float32
+    child*: Widget
+
+method widgetTypeName*(w: ClipRect): string = "ClipRect"
+method createElement*(w: ClipRect): Element = newElement(ekRender, w)
+method createRenderObject*(w: ClipRect, ctx: BuildContext): RenderObject =
+  RenderClipRect()
+
+method widgetTypeName*(w: ClipRRect): string = "ClipRRect"
+method createElement*(w: ClipRRect): Element = newElement(ekRender, w)
+method createRenderObject*(w: ClipRRect, ctx: BuildContext): RenderObject =
+  RenderClipRRect(radius: w.radius)
+method updateRenderObject*(w: ClipRRect, ctx: BuildContext, r: RenderObject) =
+  RenderClipRRect(r).radius = w.radius
+  r.markNeedsPaint()
+
+method widgetTypeName*(w: OpacityWidget): string = "Opacity"
+method createElement*(w: OpacityWidget): Element = newElement(ekRender, w)
+method createRenderObject*(w: OpacityWidget, ctx: BuildContext): RenderObject =
+  RenderOpacity(opacity: w.opacity)
+method updateRenderObject*(w: OpacityWidget, ctx: BuildContext, r: RenderObject) =
+  RenderOpacity(r).opacity = w.opacity
+  r.markNeedsPaint()
+
+proc clipRect*(child: Widget, key: Key = nil): ClipRect =
+  ClipRect(key: key, child: child)
+
+proc clipRRect*(child: Widget, radius: float32, key: Key = nil): ClipRRect =
+  ClipRRect(key: key, child: child, radius: radius)
+
+proc opacity*(child: Widget, opacity: float32, key: Key = nil): OpacityWidget =
+  OpacityWidget(key: key, child: child, opacity: opacity)
+
+# ----- Container -----
+# Convenience wrapper that builds the standard Flutter composition:
+#   margin > decoration > constrained > padding > align > child.
+# Each layer is skipped if not requested. Defined at end of file because
+# its build() needs the constructors above (padding, align, decoratedBox,
+# constrainedBox, sizedBox) to be in scope.
+
+type
+  Container* = ref object of StatelessWidget
+    width*, height*: float32
+    padding*, margin*: EdgeInsets
+    color*: Color
+    decoration*: BoxDecoration
+    alignment*: Alignment
+    child*: Widget
+    hasAlignment*: bool
+    hasDecoration*: bool
+    hasColor*: bool
+
+method widgetTypeName*(w: Container): string = "Container"
+method createElement*(w: Container): Element = newElement(ekStateless, w)
+method build*(w: Container, ctx: BuildContext): Widget =
+  var current = w.child
+
+  if w.hasAlignment and not current.isNil:
+    current = align(child = current, alignment = w.alignment)
+
+  if w.padding.left != 0 or w.padding.top != 0 or
+     w.padding.right != 0 or w.padding.bottom != 0:
+    current = padding(child = current, padding = w.padding)
+
+  if w.width > 0 or w.height > 0:
+    let minW = if w.width  > 0: w.width  else: 0.0'f32
+    let maxW = if w.width  > 0: w.width  else: Inf
+    let minH = if w.height > 0: w.height else: 0.0'f32
+    let maxH = if w.height > 0: w.height else: Inf
+    if current.isNil:
+      current = sizedBox(width = w.width, height = w.height)
+    else:
+      current = constrainedBox(child = current,
+                               boxConstraints = constraints(minW, maxW, minH, maxH))
+
+  if w.hasDecoration:
+    if not current.isNil:
+      current = decoratedBox(child = current, decoration = w.decoration)
+    else:
+      current = decoratedBox(decoration = w.decoration)
+  elif w.hasColor:
+    let dec = boxDecoration(color = w.color)
+    if not current.isNil:
+      current = decoratedBox(child = current, decoration = dec)
+    else:
+      current = decoratedBox(decoration = dec)
+
+  if w.margin.left != 0 or w.margin.top != 0 or
+     w.margin.right != 0 or w.margin.bottom != 0:
+    current = padding(child = current, padding = w.margin)
+
+  if current.isNil: current = sizedBox()
+  current
+
+proc container*(child: Widget = nil,
+                width = 0.0'f32, height = 0.0'f32,
+                color = colorTransparent,
+                padding = edgeInsetsAll(0),
+                margin = edgeInsetsAll(0),
+                alignment = alignCenter,
+                decoration = BoxDecoration(),
+                hasColor = false,
+                hasDecoration = false,
+                hasAlignment = false,
+                key: Key = nil): Container =
+  Container(key: key, width: width, height: height, color: color,
+            padding: padding, margin: margin, alignment: alignment,
+            decoration: decoration, child: child,
+            hasColor: hasColor, hasDecoration: hasDecoration,
+            hasAlignment: hasAlignment)

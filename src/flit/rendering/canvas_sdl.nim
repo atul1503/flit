@@ -55,37 +55,38 @@ when not defined(js):
     c.texture = createTexture(c.renderer, SDL_PIXELFORMAT_ARGB8888,
                               SDL_TEXTUREACCESS_STREAMING, cint(w), cint(h))
 
-  proc argbToPaint(v: uint32): Paint =
-    let a = uint8((v shr 24) and 0xFF)
-    let r = uint8((v shr 16) and 0xFF)
-    let g = uint8((v shr  8) and 0xFF)
-    let b = uint8( v         and 0xFF)
+  proc argbToPaint(c: SdlCanvas, v: uint32): Paint =
+    let opaqued = c.applyOpacity(v)
+    let a = uint8((opaqued shr 24) and 0xFF)
+    let r = uint8((opaqued shr 16) and 0xFF)
+    let g = uint8((opaqued shr  8) and 0xFF)
+    let b = uint8( opaqued         and 0xFF)
     result = newPaint(SolidPaint)
     result.color = rgba(r, g, b, a).color
 
   method clear*(c: SdlCanvas, color: uint32) =
-    c.ctx.fillStyle = argbToPaint(color)
+    c.ctx.fillStyle = argbToPaint(c, color)
     c.ctx.fillRect(pixie.rect(0.0'f32, 0.0'f32, c.size.width, c.size.height))
 
   method drawRect*(c: SdlCanvas, r: geom.Rect, fill: uint32) =
-    c.ctx.fillStyle = argbToPaint(fill)
+    c.ctx.fillStyle = argbToPaint(c, fill)
     c.ctx.fillRect(pixie.rect(r.left, r.top, r.width, r.height))
 
   method drawRRect*(c: SdlCanvas, r: geom.RRect, fill: uint32) =
-    c.ctx.fillStyle = argbToPaint(fill)
+    c.ctx.fillStyle = argbToPaint(c, fill)
     let pxR = pixie.rect(r.rect.left, r.rect.top, r.rect.width, r.rect.height)
     var path = newPath()
     path.roundedRect(pxR, r.tl.x, r.tr.x, r.br.x, r.bl.x)
     c.ctx.fill(path)
 
   method drawCircle*(c: SdlCanvas, center: geom.Offset, radius: float32, fill: uint32) =
-    c.ctx.fillStyle = argbToPaint(fill)
+    c.ctx.fillStyle = argbToPaint(c, fill)
     var path = newPath()
     path.circle(center.dx, center.dy, radius)
     c.ctx.fill(path)
 
   method drawLine*(c: SdlCanvas, p0, p1: geom.Offset, color: uint32, width: float32) =
-    c.ctx.strokeStyle = argbToPaint(color)
+    c.ctx.strokeStyle = argbToPaint(c, color)
     c.ctx.lineWidth = width
     var path = newPath()
     path.moveTo(p0.dx, p0.dy)
@@ -97,7 +98,7 @@ when not defined(js):
     var f = c.fonts.getOrDefault(fontFamily, c.defaultFont)
     if f.isNil: return
     f.size = fontSize
-    let pt = argbToPaint(color)
+    let pt = argbToPaint(c, color)
     f.paints = @[pt]
     # Pixie places typeset text at the top-left of the translate point, NOT
     # the baseline. So we just translate to pos directly.
