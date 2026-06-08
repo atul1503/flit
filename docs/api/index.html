@@ -43,8 +43,18 @@
     <li><a href="./flit/foundation/key.html"><code>foundation/key</code></a> &mdash; Key, ValueKey, UniqueKey, GlobalKey</li>
     <li><a href="./flit/foundation/binding.html"><code>foundation/binding</code></a> &mdash; Binding, PointerEvent, KeyEvent, frame callbacks</li>
     <li><a href="./flit/foundation/runtime.html"><code>foundation/runtime</code></a> &mdash; mountElement, rebuildElement, runLayout, runPaint, processPointerEvents</li>
+    <li><a href="./flit/foundation/listenable.html"><code>foundation/listenable</code></a> &mdash; ValueNotifier[T], ListenableBuilder &mdash; shared mutable state with auto-rebuild of watchers</li>
     <li><a href="./flit/foundation/diagnostics.html"><code>foundation/diagnostics</code></a> &mdash; DiagnosticsNode, prettyPrint, logf</li>
   </ul>
+
+  <p>
+    State management quick reference: see
+    <a href="./flit/foundation/listenable.html#ValueNotifier"><code>ValueNotifier[T]</code></a>
+    for a subscribable cell, and
+    <a href="./flit/foundation/widget.html#dependOnInheritedOfType%2CBuildContext"><code>dependOnInheritedOfType[T]</code></a>
+    for ancestor-data subscriptions via <code>InheritedWidget</code>.
+    Worked example in <code>examples/state_demo/main.nim</code>.
+  </p>
 
   <h2>Widgets</h2>
   <ul>
