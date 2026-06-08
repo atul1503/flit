@@ -89,3 +89,9 @@ method paint*(r: RenderDecoratedBox, ctx: PaintingContext, offset: Offset) =
 
   if not r.child.isNil:
     ctx.paintChild(r.child, OffsetZero)
+
+method hitTest*(r: RenderDecoratedBox, htResult: HitTestResult, position: Offset): bool =
+  if not r.child.isNil:
+    discard r.child.hitTest(htResult, position)
+  htResult.path.add(HitTestEntry(target: r, local: position))
+  return true

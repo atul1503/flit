@@ -140,6 +140,10 @@ proc runDesktop*(rootWidget: Widget,
           modifiers: uint32(ke.keysym.modstate)))
       else: discard
 
+    # Drain pointer events into gesture detectors. May enqueue dirty roots
+    # via setState callbacks.
+    processPointerEvents(binding)
+
     # Rebuild dirty subtrees
     if binding.dirtyRoots.len > 0:
       for r in binding.dirtyRoots:

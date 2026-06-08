@@ -51,6 +51,17 @@ method paint*(r: RenderProxyBox, ctx: PaintingContext, offset: Offset) =
   if not r.child.isNil:
     ctx.paintChild(r.child, OffsetZero)
 
+method hitTest*(r: RenderProxyBox, htResult: HitTestResult, position: Offset): bool =
+  ## Default proxy: forward to the child if the point is inside us, then add
+  ## ourself so a GestureDetector wrapping us is reachable.
+  if not r.child.isNil:
+    let local = position - r.child.offset
+    let cs = r.child.size
+    if local.dx >= 0 and local.dy >= 0 and local.dx < cs.width and local.dy < cs.height:
+      discard r.child.hitTest(htResult, local)
+  htResult.path.add(HitTestEntry(target: r, local: position))
+  return true
+
 # ConstrainedBox
 
 method performLayout*(r: RenderConstrainedBox) =

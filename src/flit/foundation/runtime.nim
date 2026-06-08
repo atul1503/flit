@@ -2,11 +2,12 @@
 ## rebuild, links RenderObjects into a parent->child chain, and drives layout
 ## and paint.
 
-import std/[options]
+import std/[options, deques]
 import ./widget
 import ./render_object
 import ./geometry
 import ./key
+import ./binding
 import ./diagnostics
 import ../widgets/basic
 import ../gestures/detector
@@ -210,3 +211,53 @@ proc runPaint*(root: Element, canvas: Canvas) =
   if rE.isNil: return
   let ctx = newPaintingContext(canvas, OffsetZero)
   rE.renderObj.paint(ctx, OffsetZero)
+
+# ---- Event dispatch ----
+
+type
+  EventDispatcher* = ref object
+    captured*: RenderGestureDetector  # current pan target, sticky across moves
+    lastDown*: Offset
+    lastMove*: Offset
+
+var globalDispatcher* = EventDispatcher()
+
+proc firstGestureDetector(path: seq[HitTestEntry]): tuple[g: RenderGestureDetector, local: Offset] =
+  for entry in path:
+    if entry.target of RenderGestureDetector:
+      return (RenderGestureDetector(entry.target), entry.local)
+  (nil, OffsetZero)
+
+proc processPointerEvents*(b: Binding) =
+  ## Drain pendingPointers, hit-test through the render tree, dispatch to
+  ## the deepest matching GestureDetector. Pan continuity is preserved by
+  ## capturing the detector on down and releasing on up.
+  if b.isNil or b.rootElement.isNil: return
+  let rE = descendantRenderElement(b.rootElement)
+  if rE.isNil: return
+  while b.pendingPointers.len > 0:
+    let ev = b.pendingPointers.popFirst()
+    case ev.kind
+    of peDown:
+      let res = HitTestResult(path: @[])
+      discard rE.renderObj.hitTest(res, ev.position)
+      let (g, _) = firstGestureDetector(res.path)
+      if not g.isNil:
+        globalDispatcher.captured = g
+        globalDispatcher.lastDown = ev.position
+        globalDispatcher.lastMove = ev.position
+        # Pass screen coords to all handlers so the tap-distance check in
+        # handleUp can subtract them sanely.
+        handleDown(g, ev.position)
+    of peMove:
+      if not globalDispatcher.captured.isNil:
+        let delta = ev.position - globalDispatcher.lastMove
+        globalDispatcher.lastMove = ev.position
+        handleMove(globalDispatcher.captured, ev.position, delta)
+    of peUp:
+      if not globalDispatcher.captured.isNil:
+        handleUp(globalDispatcher.captured, ev.position)
+        globalDispatcher.captured = nil
+    of peCancel:
+      globalDispatcher.captured = nil
+    else: discard

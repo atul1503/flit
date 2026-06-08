@@ -85,3 +85,17 @@ method performLayout*(r: RenderStack) =
 method paint*(r: RenderStack, ctx: PaintingContext, offset: Offset) =
   for child in r.children:
     ctx.paintChild(child.obj, child.pd.offset)
+
+method hitTest*(r: RenderStack, htResult: HitTestResult, position: Offset): bool =
+  # Iterate from top to bottom (last child paints on top, so it should
+  # receive the event first).
+  for i in countdown(r.children.high, 0):
+    let child = r.children[i]
+    let local = position - child.pd.offset
+    let cs = child.obj.size
+    if local.dx >= 0 and local.dy >= 0 and local.dx < cs.width and local.dy < cs.height:
+      if child.obj.hitTest(htResult, local):
+        htResult.path.add(HitTestEntry(target: r, local: position))
+        return true
+  htResult.path.add(HitTestEntry(target: r, local: position))
+  return true
