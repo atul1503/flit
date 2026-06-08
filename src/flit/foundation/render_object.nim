@@ -87,16 +87,19 @@ proc popOpacity*(c: Canvas) =
   ## (no-op).
   if c.opacityStack.len > 0: discard c.opacityStack.pop()
 
-proc applyOpacity*(c: Canvas, color: uint32): uint32 =
-  ## Returns `color` with its alpha multiplied by the current opacity.
-  ## Backends call this on every draw so `RenderOpacity` just pushes
-  ## and pops without each shape knowing about opacity.
+proc applyOpacity*(c: Canvas, color: uint32): uint32 {.inline.} =
+  ## Returns `color` with its alpha multiplied by the current
+  ## opacity. Backends call this on every draw so `RenderOpacity`
+  ## just pushes and pops without each shape knowing about
+  ## opacity. Inlined because every primitive call goes through
+  ## here on the hot paint path.
   ##
   ## Input: a packed `0xAARRGGBB` value.
   ## Output: same color with the alpha channel scaled by
-  ## `currentOpacity(c)`. Returns the input unchanged if opacity is
-  ## effectively 1.0.
-  let mul = currentOpacity(c)
+  ## `currentOpacity(c)`. Returns the input unchanged if opacity
+  ## is effectively 1.0 or the stack is empty.
+  if c.opacityStack.len == 0: return color
+  let mul = c.opacityStack[^1]
   if mul >= 0.999'f32: return color
   let a = ((color shr 24) and 0xFF).float32 * mul
   let aByte = uint32(clamp(a, 0.0, 255.0).int)
@@ -153,6 +156,30 @@ method rotate*(c: Canvas, radians: float32) {.base.} = discard
 method clear*(c: Canvas, color: uint32) {.base.} = discard
   ## Fills the entire canvas with `color`. Typically called by the
   ## runner at the start of each frame.
+
+# Layer / boundary support. These let `RenderRepaintBoundary` ask the
+# canvas backend for an off-screen sub-canvas, then later composite
+# the sub-canvas's contents onto the parent. On GPU-capable backends
+# the composite is a single textured blit; on CPU-only backends it's
+# a per-pixel copy. Defaults are no-ops so non-supporting backends
+# (tests / embedded) don't crash; the boundary just falls back to
+# straight subtree paint with no caching.
+
+method createSubCanvas*(c: Canvas, w, h: int): Canvas {.base.} = nil
+  ## Returns a new `Canvas` of size `w x h` that can be drawn into
+  ## independently and later composited back onto `c` via
+  ## `compositeSubCanvas`. The sub-canvas shares the same pixel
+  ## format as `c`. Backends that don't support off-screen surfaces
+  ## return `nil`; callers must treat that as "no caching available"
+  ## and fall back to direct painting.
+
+method compositeSubCanvas*(c: Canvas, sub: Canvas, offset: Offset, size: Size) {.base.} =
+  ## Copies the contents of `sub` onto `c` at the given absolute
+  ## `offset`, scaled (or not) to `size`. The intent is a single
+  ## GPU-side texture blit; backends are free to also batch
+  ## opacity / clip if the canvas state currently has any. Default
+  ## no-op.
+  discard
 
 # PaintingContext
 
@@ -237,12 +264,22 @@ proc markNeedsLayout*(r: RenderObject) =
   if not r.parent.isNil:
     r.parent.markNeedsLayout()
 
+method absorbPaintMark*(r: RenderObject) {.base.} = discard
+  ## Hook called for every render object visited during a
+  ## `markNeedsPaint` walk. `RenderRepaintBoundary` overrides this to
+  ## flip its `cacheDirty` flag so the next paint pass re-rasterizes
+  ## the cached sub-canvas. Default no-op for ordinary render
+  ## objects.
+
 proc markNeedsPaint*(r: RenderObject) =
   ## Marks `r` and all ancestors as needing repaint. Call this when
   ## a property changes that affects only appearance (color, etc.),
-  ## not layout.
+  ## not layout. Also invokes `absorbPaintMark` on every render
+  ## object along the walk so cache-bearing nodes (RepaintBoundary)
+  ## can invalidate their cached output.
   if r.isNil or r.needsPaint: return
   r.needsPaint = true
+  r.absorbPaintMark()
   if not r.parent.isNil:
     r.parent.markNeedsPaint()
 

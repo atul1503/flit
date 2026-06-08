@@ -629,6 +629,46 @@ proc clipRRect*(child: Widget, radius: float32, key: Key = nil): ClipRRect =
   ## - `key`: optional reconciliation key.
   ClipRRect(key: key, child: child, radius: radius)
 
+# ----- RepaintBoundary -----
+
+type
+  RepaintBoundary* = ref object of RenderObjectWidget
+    ## A widget that promotes its subtree to its own cached layer.
+    ## The subtree is rasterized to an off-screen surface once and
+    ## composited (GPU-side on the SDL desktop backend) on every
+    ## subsequent frame until something inside calls
+    ## `markNeedsPaint`. Mirrors Flutter's `RepaintBoundary`.
+    ##
+    ## Use this around subtrees that paint a lot of pixels but
+    ## rarely change relative to their surroundings: card lists,
+    ## decorative backgrounds, complex shadows behind animated UI.
+    ## Overusing it costs memory (one GPU texture per boundary);
+    ## underusing it costs frame time (every pixel re-rasterized
+    ## per frame).
+    child*: Widget
+
+method widgetTypeName*(w: RepaintBoundary): string = "RepaintBoundary"
+method createElement*(w: RepaintBoundary): Element = newElement(ekRender, w)
+method createRenderObject*(w: RepaintBoundary, ctx: BuildContext): RenderObject =
+  RenderRepaintBoundary()
+method updateRenderObject*(w: RepaintBoundary, ctx: BuildContext, r: RenderObject) =
+  ## Nothing config-driven to update; the cache stays valid across
+  ## widget identity changes as long as the subtree layout matches.
+  discard
+
+proc repaintBoundary*(child: Widget, key: Key = nil): RepaintBoundary =
+  ## Builds a `RepaintBoundary` around `child`.
+  ##
+  ## Inputs:
+  ## - `child`: subtree to cache. Required.
+  ## - `key`: optional reconciliation key.
+  ##
+  ## Effect: subtree is rasterized into an off-screen sub-canvas on
+  ## first paint; subsequent frames composite the cached surface
+  ## directly. The cache is invalidated automatically whenever any
+  ## descendant calls `markNeedsPaint` (including via `setState`).
+  RepaintBoundary(key: key, child: child)
+
 proc opacity*(child: Widget, opacity: float32, key: Key = nil): OpacityWidget =
   ## Builds an `OpacityWidget` that fades `child`.
   ##

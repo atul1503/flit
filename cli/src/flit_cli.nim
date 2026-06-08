@@ -16,7 +16,7 @@
 
 import std/[os, osproc, strutils, strformat, parseopt, tables, times]
 
-const flitVersion* = "0.5.1"
+const flitVersion* = "0.7.0"
 
 proc usage() =
   echo """

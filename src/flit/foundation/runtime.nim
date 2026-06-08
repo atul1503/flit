@@ -146,6 +146,8 @@ proc childrenOf(w: Widget): seq[Widget] =
     if not ClipRRect(w).child.isNil: result.add(ClipRRect(w).child)
   elif w of OpacityWidget:
     if not OpacityWidget(w).child.isNil: result.add(OpacityWidget(w).child)
+  elif w of RepaintBoundary:
+    if not RepaintBoundary(w).child.isNil: result.add(RepaintBoundary(w).child)
 
 proc kindFor*(w: Widget): ElementKind =
   ## Returns the `ElementKind` for the runtime class of `w`. Used by
@@ -218,6 +220,19 @@ proc unmount(e: Element) =
     e.state.mounted = false
     e.state = nil
 
+proc unmountElement*(e: Element) =
+  ## Public alias for the internal `unmount`. Use this when you
+  ## manage an element pool outside normal child-reconciliation
+  ## (e.g. `ListViewBuilder`). Disposes state and clears children.
+  unmount(e)
+
+proc descendantRenderObj*(e: Element): RenderObject =
+  ## Returns the first render object reachable from `e` by walking
+  ## through stateless / stateful / proxy elements. Returns `nil` if
+  ## the subtree has no render elements.
+  let r = descendantRenderElement(e)
+  if r.isNil: nil else: r.renderObj
+
 proc reconcileChildren(parent: Element, newWidgets: seq[Widget]) =
   ## Two-pass match:
   ##   1. Build a map of old children that carry a Key; new widgets with
@@ -248,6 +263,12 @@ proc reconcileChildren(parent: Element, newWidgets: seq[Widget]) =
       keyMap.del(h)
       removeFromUnused(old)
       if canUpdate(old.widget, nw):
+        if old.widget == nw:
+          # Identity fast path. See the positional pass for
+          # the full rationale.
+          old.slot = i
+          newChildren[i] = old
+          continue
         let oldWidget = old.widget
         old.widget = nw
         old.slot = i
@@ -282,6 +303,17 @@ proc reconcileChildren(parent: Element, newWidgets: seq[Widget]) =
         claimed[j] = true
         break
     if not old.isNil:
+      # Identity fast path: when the new widget is the same
+      # reference as the old one, every const widget property
+      # is by definition unchanged. We still keep the slot,
+      # but skip the rebuild walk entirely. Big win for cached
+      # subtrees where the parent's build returns the same
+      # widget object frame after frame (or `RepaintBoundary`s
+      # wrapping stable content).
+      if old.widget == nw:
+        old.slot = i
+        newChildren[i] = old
+        continue
       let oldWidget = old.widget
       old.widget = nw
       old.slot = i

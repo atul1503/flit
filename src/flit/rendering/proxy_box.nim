@@ -79,6 +79,26 @@ type
     ## on backends without it.
     radius*: float32
 
+  RenderRepaintBoundary* = ref object of RenderProxyBox
+    ## Caches the rasterized output of its subtree in a backend sub-
+    ## canvas. On each paint pass: if `cacheDirty` is true, the sub-
+    ## canvas is re-rasterized from the child; either way the sub-
+    ## canvas is then composited onto the parent canvas in a single
+    ## blit (GPU when the backend supports it).
+    ##
+    ## Sets `cacheDirty = true` whenever `markNeedsPaint` is called on
+    ## anything in the subtree (the bubble-up walk in `markNeedsPaint`
+    ## passes through this render object, so we override that to flip
+    ## the flag and stop the propagation).
+    ##
+    ## Backs the `RepaintBoundary` widget. Backends that return `nil`
+    ## from `createSubCanvas` skip caching entirely and just paint the
+    ## subtree directly; correctness is preserved, the perf win is
+    ## lost.
+    subCanvas*: Canvas
+    cachedSize*: Size
+    cacheDirty*: bool
+
 method performLayout*(r: RenderProxyBox) =
   ## Default proxy layout. With a child: passes the parent's
   ## constraints through unchanged, adopts the child's size. With no
@@ -278,6 +298,44 @@ method paint*(r: RenderClipRRect, ctx: PaintingContext, offset: Offset) =
   ctx.canvas.clipRect(rectFromOffsetSize(offset, r.size))
   ctx.paintChild(r.child, OffsetZero)
   ctx.canvas.restore()
+
+# RepaintBoundary: cache the child paint in a sub-canvas, composite on
+# every frame. The first paint always rasterizes; subsequent paints
+# skip rasterization until something in the subtree calls
+# `markNeedsPaint`, which bubbles through here and sets `cacheDirty`.
+
+method absorbPaintMark*(r: RenderRepaintBoundary) =
+  r.cacheDirty = true
+
+method paint*(r: RenderRepaintBoundary, ctx: PaintingContext, offset: Offset) =
+  if r.child.isNil: return
+  let sz = r.size
+  if sz.width <= 0 or sz.height <= 0:
+    # Degenerate; nothing to cache.
+    ctx.paintChild(r.child, OffsetZero)
+    return
+
+  # Recreate the sub-canvas whenever the boundary's size changed; the
+  # old surface no longer fits.
+  let sizeChanged = sz != r.cachedSize
+  if r.subCanvas.isNil or sizeChanged:
+    r.subCanvas = ctx.canvas.createSubCanvas(int(sz.width), int(sz.height))
+    r.cachedSize = sz
+    r.cacheDirty = true
+
+  if r.subCanvas.isNil:
+    # Backend doesn't support sub-canvases. Fall back to the slow
+    # path: paint the subtree directly. Correctness only, no caching.
+    ctx.paintChild(r.child, OffsetZero)
+    return
+
+  if r.cacheDirty:
+    r.subCanvas.clear(0x00000000'u32)
+    let subCtx = newPaintingContext(r.subCanvas, OffsetZero)
+    paint(r.child, subCtx, OffsetZero)
+    r.cacheDirty = false
+
+  ctx.canvas.compositeSubCanvas(r.subCanvas, offset, sz)
 
 method paint*(r: RenderTransform, ctx: PaintingContext, offset: Offset) =
   ## Applies a full Translate-Rotate-Scale on the canvas around this
