@@ -25,4 +25,5 @@ Semver. Bump before publishing user-facing changes. `flitVersion` lives in `cli/
 
 ## Version history
 
+- 0.2.0: showcase example. Six-tab demo app that exercises Material+Cupertino in one screen, every MainAxisAlignment, Stack+Positioned, every box decoration (solid/rounded/circle/border/shadow), gestureDetector pan+tap+hold, AnimationController with every built-in curve, theme toggling, and Keys.
 - 0.1.0: initial release. Widget framework, layout, painting, Material + Cupertino starter widgets, all five backends (SDL2 desktop, JS web, SDL2 mobile, framebuffer embedded), CLI with create/run/build/doctor/devices/clean/hot/pub-get/upgrade, examples (counter, gallery, todo, calculator), tests.

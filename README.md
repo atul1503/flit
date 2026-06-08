@@ -96,14 +96,32 @@ flit/
     platform/                  desktop/, web/, mobile/, embedded/ runners
     app.nim                    runApp(widget)
   cli/src/flit_cli.nim         the `flit` command-line tool
-  examples/                    counter, gallery, todo, calculator
+  examples/                    counter, gallery, todo, calculator, showcase
   tests/                       layout, widgets, state, painting
   docs/                        ARCHITECTURE.md, getting_started.md
 ```
 
+## The showcase example
+
+`examples/showcase/main.nim` is the broad sampler. Six tabs:
+
+- **Home**: stateful counter, two button styles, light/dark toggle.
+- **Layout**: every MainAxisAlignment value in a row, Expanded with flex weights, Stack + Positioned with a circle overlay.
+- **Style**: solid, rounded, circular, bordered and shadowed boxes; four border radii; four EdgeInsets variants; TextStyle variations.
+- **Inputs**: ElevatedButton + TextButton + FloatingActionButton, a draggable puck (`onPanUpdate`), and a press-and-hold charge bar (`onPanStart` / `onPanUpdate` / `onPanEnd`).
+- **Anim**: pick from six curves (linear, easeIn, easeOut, easeInOut, bounceOut, elasticIn), then drive a Tween via an AnimationController.
+- **Cupertino**: a CupertinoNavigationBar plus filled and plain CupertinoButtons living inside the same Material shell.
+
+Run it:
+
+```
+nim c -d:release -o:bin/showcase examples/showcase/main.nim
+./bin/showcase    # mac users may need DYLD_LIBRARY_PATH=/opt/homebrew/lib
+```
+
 ## Status
 
-0.1.0 is the initial slice: full widget framework, layout, painting, the Material/Cupertino starter libraries, all five backends, and the CLI. Not yet shipped: text editing, scroll views, image decoding, accessibility tree, true hot patching (today's `flit hot` restarts the process). PRs welcome.
+0.2.0 adds the showcase example. 0.1.0 was the initial slice: full widget framework, layout, painting, the Material/Cupertino starter libraries, all five backends, and the CLI. Not yet shipped: text editing, scroll views, image decoding, accessibility tree, true hot patching (today's `flit hot` restarts the process). PRs welcome.
 
 ## License
 
