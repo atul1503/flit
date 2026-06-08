@@ -29,7 +29,7 @@ import std/[strutils, math]
 
 type
   Tab* = enum
-    tabHome, tabLayout, tabStyle, tabInputs, tabAnimation, tabCupertino
+    tabHome, tabLayout, tabStyle, tabInputs, tabAnimation, tabState, tabCupertino
 
   Showcase* = ref object of StatefulWidget
 
@@ -43,13 +43,23 @@ type
     animController*: AnimationController
     animPos*: float32
     selectedCurve*: int
+    tapLog*: int   # surfaces onDoubleTap demo result
+
+# Module-level shared state for the "State" tab. Declared here (NOT
+# on ShowcaseState) so we can demonstrate that ValueNotifiers can
+# live anywhere - module scope, on a State, or anywhere else - and
+# that watchers find them via direct reference. These notifiers
+# persist across tab switches: incrementing the counter, switching
+# to another tab, and switching back will show the updated value.
+let sharedCount* = newValueNotifier(0)
+let sharedLabel* = newValueNotifier("Atul")
 
 method widgetTypeName*(w: Showcase): string = "Showcase"
 method createElement*(w: Showcase): Element = newElement(ekStateful, w)
 method createState*(w: Showcase): State =
   ShowcaseState(tab: tabHome, darkMode: false, counter: 0,
                 panOffset: Offset(dx: 120, dy: 60), holdProgress: 0,
-                animPos: 0, selectedCurve: 0)
+                animPos: 0, selectedCurve: 0, tapLog: 0)
 
 # ---------------------------------------------------------------------------
 # Shared helpers
@@ -62,6 +72,7 @@ proc tabLabel(tab: Tab): string =
   of tabStyle:     "Style"
   of tabInputs:    "Inputs"
   of tabAnimation: "Anim"
+  of tabState:     "State"
   of tabCupertino: "Cupertino"
 
 proc heading(s: string, size = 24.0'f32): Widget =
@@ -135,6 +146,7 @@ proc tabBar(s: ShowcaseState): Widget =
     tabPill(s, tabStyle),
     tabPill(s, tabInputs),
     tabPill(s, tabAnimation),
+    tabPill(s, tabState),
     tabPill(s, tabCupertino),
   ]
   padding(
@@ -347,6 +359,65 @@ proc styleTab(s: ShowcaseState): Widget =
           swatch("LTRB(2,4,24,16)", edgeInsetsLTRB(2, 4, 24, 16)),
         ]),
       divider(),
+      heading("AspectRatio"),
+      body("Each box has the SAME maxWidth=200 but a different ratio."),
+      sizedBox(height = 8),
+      row(mainAxisAlignment = maStart, crossAxisAlignment = caStart,
+          children = @[
+        Widget(sizedBox(width = 80, height = 80,
+          child = aspectRatio(
+            child = decoratedBox(decoration = boxDecoration(color = colorTeal,
+                                                            borderRadius = 4)),
+            aspectRatio = 1.0'f32))),
+        sizedBox(width = 8),
+        sizedBox(width = 120, height = 80,
+          child = aspectRatio(
+            child = decoratedBox(decoration = boxDecoration(color = colorIndigo,
+                                                            borderRadius = 4)),
+            aspectRatio = 2.0'f32)),
+        sizedBox(width = 8),
+        sizedBox(width = 60, height = 80,
+          child = aspectRatio(
+            child = decoratedBox(decoration = boxDecoration(color = colorOrange,
+                                                            borderRadius = 4)),
+            aspectRatio = 0.5'f32)),
+      ]),
+      sizedBox(height = 12),
+      body("ratios above: 1.0 (square), 2.0 (landscape), 0.5 (portrait)"),
+      divider(),
+      heading("Opacity"),
+      body("opacity 1.0 -> 0.6 -> 0.3 -> 0.1 applied to the same purple box."),
+      sizedBox(height = 8),
+      row(mainAxisAlignment = maStart, crossAxisAlignment = caCenter,
+          children = @[
+        Widget(opacity(child = sizedBox(width = 80, height = 50,
+          child = coloredBox(color = scheme.primary)), opacity = 1.0'f32)),
+        sizedBox(width = 12),
+        opacity(child = sizedBox(width = 80, height = 50,
+          child = coloredBox(color = scheme.primary)), opacity = 0.6'f32),
+        sizedBox(width = 12),
+        opacity(child = sizedBox(width = 80, height = 50,
+          child = coloredBox(color = scheme.primary)), opacity = 0.3'f32),
+        sizedBox(width = 12),
+        opacity(child = sizedBox(width = 80, height = 50,
+          child = coloredBox(color = scheme.primary)), opacity = 0.1'f32),
+      ]),
+      divider(),
+      heading("ClipRRect"),
+      body("Same orange child painted twice; right is clipped to a " &
+           "rounded rect with radius 24."),
+      sizedBox(height = 8),
+      row(mainAxisAlignment = maStart, crossAxisAlignment = caCenter,
+          children = @[
+        Widget(sizedBox(width = 100, height = 60,
+          child = coloredBox(color = colorOrange))),
+        sizedBox(width = 24),
+        clipRRect(
+          child = sizedBox(width = 100, height = 60,
+            child = coloredBox(color = colorOrange)),
+          radius = 24.0'f32),
+      ]),
+      divider(),
       heading("TextStyle"),
       sizedBox(height = 4),
       text("regular 14",         style = textStyle(fontSize = 14)),
@@ -385,6 +456,29 @@ proc inputsTab(s: ShowcaseState): Widget =
       ]),
       sizedBox(height = 8),
       body("Total taps across the three above: " & $s.panTapCount),
+      divider(),
+      heading("Double tap"),
+      body("Tap the box once (single tap log goes up). Tap it twice " &
+           "within 300ms - onDoubleTap fires and the second tap is " &
+           "CONSUMED (single-tap log does NOT increase a second time)."),
+      sizedBox(height = 8),
+      row(mainAxisSize = msMin, crossAxisAlignment = caCenter, children = @[
+        Widget(gestureDetector(
+          behavior = htOpaque,
+          onTap = (proc() = setState(s, proc() = inc s.panTapCount)),
+          onDoubleTap = (proc() = setState(s, proc() = s.tapLog += 100)),
+          child = sizedBox(width = 100, height = 60,
+            child = decoratedBox(
+              decoration = boxDecoration(color = scheme.primary,
+                                         borderRadius = 8),
+              child = center(child = text("tap me",
+                style = textStyle(fontSize = 14, color = colorWhite))))))),
+        sizedBox(width = 16),
+        column(mainAxisSize = msMin, crossAxisAlignment = caStart, children = @[
+          Widget(body("single taps: " & $s.panTapCount)),
+          body("double-taps (each adds 100): " & $s.tapLog),
+        ]),
+      ]),
       divider(),
       heading("Pan: drag the puck"),
       body("onPanStart / onPanUpdate / onPanEnd move the circle below."),
@@ -482,30 +576,212 @@ proc animationTab(s: ShowcaseState): Widget =
       sizedBox(height = 12),
       progressBar(s.animPos, height = 30.0'f32),
       sizedBox(height = 12),
-      row(mainAxisAlignment = maStart, children = @[
-        Widget(elevatedButton(
-          child = text("Run", style = textStyle(fontSize = 14, color = colorWhite)),
-          onPressed = proc() =
-            let curve = curveByName(curveNames[s.selectedCurve])
-            if s.animController.isNil:
-              s.animController = newAnimationController(durationSec = 1.2'f32)
-              s.animController.addListener(proc(v: float32) =
-                setState(s, proc() = s.animPos = v))
-            else:
-              s.animController.value = 0
-              s.animPos = 0
-            s.animController.forward(globalBinding, curve))),
-        sizedBox(width = 8),
-        textButton(child = text("Reset",
-          style = textStyle(fontSize = 14, color = scheme.primary)),
-          onPressed = proc() = setState(s, proc() = s.animPos = 0)),
-      ]),
+      block:
+        proc ensureCtrl(): AnimationController =
+          if s.animController.isNil:
+            s.animController = newAnimationController(durationSec = 1.2'f32)
+            s.animController.addListener(proc(v: float32) =
+              setState(s, proc() = s.animPos = v))
+          s.animController
+        row(mainAxisAlignment = maStart, children = @[
+          Widget(elevatedButton(
+            child = text("Run", style = textStyle(fontSize = 14, color = colorWhite)),
+            onPressed = (proc() =
+              let c = ensureCtrl()
+              c.value = 0
+              c.forward(globalBinding, curveByName(curveNames[s.selectedCurve]))))),
+          sizedBox(width = 6),
+          elevatedButton(
+            child = text("Reverse", style = textStyle(fontSize = 14, color = colorWhite)),
+            onPressed = (proc() =
+              let c = ensureCtrl()
+              if c.value < 0.01'f32: c.value = 1.0'f32
+              c.reverse(globalBinding, curveByName(curveNames[s.selectedCurve])))),
+          sizedBox(width = 6),
+          elevatedButton(
+            child = text("To 0.5", style = textStyle(fontSize = 14, color = colorWhite)),
+            onPressed = (proc() =
+              let c = ensureCtrl()
+              c.animateTo(globalBinding, 0.5'f32,
+                          curve = curveByName(curveNames[s.selectedCurve])))),
+          sizedBox(width = 6),
+          elevatedButton(
+            child = text("Repeat", style = textStyle(fontSize = 14, color = colorWhite)),
+            onPressed = (proc() =
+              let c = ensureCtrl()
+              c.repeat(globalBinding, curveByName(curveNames[s.selectedCurve]),
+                       reverse = true))),
+          sizedBox(width = 6),
+          elevatedButton(
+            child = text("Stop", style = textStyle(fontSize = 14, color = colorWhite)),
+            onPressed = (proc() =
+              if not s.animController.isNil: s.animController.stop())),
+          sizedBox(width = 6),
+          textButton(child = text("Reset",
+            style = textStyle(fontSize = 14, color = scheme.primary)),
+            onPressed = (proc() = setState(s, proc() = s.animPos = 0))),
+        ]),
       divider(),
       heading("Tween (manual)"),
       body("A Tween[float32] from 0 -> 360 evaluated at the animation value."),
       sizedBox(height = 4),
       body("current: " & formatFloat(
         lerp(0.0'f32, 360.0'f32, s.animPos), ffDecimal, 1) & " deg"),
+    ]))
+
+# ---------------------------------------------------------------------------
+# State tab: ValueNotifier + ListenableBuilder + InheritedWidget.
+# ---------------------------------------------------------------------------
+
+# A tiny InheritedWidget carrying a string label. Descendants that
+# call `dependOnInheritedOfType[LabelTheme](ctx)` will auto-rebuild
+# when this widget instance is replaced with a different label.
+type
+  LabelTheme = ref object of InheritedWidget
+    label: string
+
+method widgetTypeName(w: LabelTheme): string = "LabelTheme"
+method createElement(w: LabelTheme): Element = newElement(ekInherited, w)
+method updateShouldNotify(w: LabelTheme, old: InheritedWidget): bool =
+  LabelTheme(w).label != LabelTheme(old).label
+
+# A stateless widget that reads LabelTheme via dependOnInheritedOfType.
+# Two of these are placed in the tree to show that ALL dependents see
+# the new value when the ancestor's label is replaced.
+type
+  LabelReader = ref object of StatelessWidget
+    prefix: string
+
+method widgetTypeName(w: LabelReader): string = "LabelReader"
+method createElement(w: LabelReader): Element = newElement(ekStateless, w)
+method build(w: LabelReader, ctx: BuildContext): Widget =
+  let theme = dependOnInheritedOfType[LabelTheme](ctx)
+  let lbl = if theme.isNil: "(no theme)" else: theme.label
+  text(w.prefix & ": " & lbl,
+       style = textStyle(fontSize = 14,
+                         color = currentTheme().colorScheme.onSurface))
+
+proc stateTab(s: ShowcaseState): Widget =
+  let scheme = currentTheme().colorScheme
+  padding(
+    padding = edgeInsetsAll(16),
+    child = column(mainAxisSize = msMin, crossAxisAlignment = caStretch,
+                   children = @[
+      Widget(heading("ValueNotifier + ListenableBuilder")),
+      body("Two notifiers live at module scope. Both watchers below " &
+           "rebuild only when their notifier fires; the rest of this " &
+           "tab does not. Try switching tabs and coming back - the " &
+           "values persist because the notifiers outlive this tree."),
+      sizedBox(height = 12),
+
+      # Watcher 1: the int notifier
+      decoratedBox(
+        decoration = boxDecoration(color = scheme.primaryContainer,
+                                   borderRadius = 8,
+                                   border = Border(color: scheme.outline, width: 1)),
+        child = padding(padding = edgeInsetsAll(12),
+          child = column(mainAxisSize = msMin, crossAxisAlignment = caStart,
+                         children = @[
+            Widget(text("sharedCount (watcher A)",
+              style = textStyle(fontSize = 12, color = scheme.outline))),
+            sizedBox(height = 4),
+            listenableBuilder(sharedCount,
+              proc(ctx: BuildContext, v: int): Widget =
+                text("value = " & $v,
+                  style = textStyle(fontSize = 24, fontWeight = 700,
+                                    color = scheme.primary)))]))),
+      sizedBox(height = 8),
+
+      # Watcher 2: same notifier, different formatting. Both rebuild
+      # together on update.
+      decoratedBox(
+        decoration = boxDecoration(color = scheme.primaryContainer,
+                                   borderRadius = 8,
+                                   border = Border(color: scheme.outline, width: 1)),
+        child = padding(padding = edgeInsetsAll(12),
+          child = column(mainAxisSize = msMin, crossAxisAlignment = caStart,
+                         children = @[
+            Widget(text("sharedCount (watcher B, same notifier)",
+              style = textStyle(fontSize = 12, color = scheme.outline))),
+            sizedBox(height = 4),
+            listenableBuilder(sharedCount,
+              proc(ctx: BuildContext, v: int): Widget =
+                text("v * 2 = " & $(v * 2),
+                  style = textStyle(fontSize = 24, fontWeight = 700,
+                                    color = scheme.primary)))]))),
+      sizedBox(height = 12),
+
+      # Buttons that mutate the notifier from OUTSIDE any watcher.
+      # The buttons themselves are not watchers and don't rebuild
+      # when the value changes.
+      row(mainAxisSize = msMin, mainAxisAlignment = maStart, children = @[
+        Widget(elevatedButton(
+          child = text("Increment", style = textStyle(fontSize = 14, color = colorWhite)),
+          onPressed = (proc() = sharedCount.value = sharedCount.value + 1))),
+        sizedBox(width = 8),
+        elevatedButton(
+          child = text("Reset", style = textStyle(fontSize = 14, color = colorWhite)),
+          onPressed = (proc() = sharedCount.value = 0)),
+      ]),
+      sizedBox(height = 24),
+
+      # String notifier watcher
+      heading("Watcher of a string notifier"),
+      decoratedBox(
+        decoration = boxDecoration(color = scheme.primaryContainer,
+                                   borderRadius = 8,
+                                   border = Border(color: scheme.outline, width: 1)),
+        child = padding(padding = edgeInsetsAll(12),
+          child = listenableBuilder(sharedLabel,
+            proc(ctx: BuildContext, name: string): Widget =
+              text("name = '" & name & "'",
+                style = textStyle(fontSize = 18, fontWeight = 600,
+                                  color = scheme.primary))))),
+      sizedBox(height = 8),
+      row(mainAxisSize = msMin, children = @[
+        Widget(elevatedButton(child = text("Set to Atul",
+          style = textStyle(fontSize = 13, color = colorWhite)),
+          onPressed = (proc() = sharedLabel.value = "Atul"))),
+        sizedBox(width = 8),
+        elevatedButton(child = text("Set to Bob",
+          style = textStyle(fontSize = 13, color = colorWhite)),
+          onPressed = (proc() = sharedLabel.value = "Bob")),
+        sizedBox(width = 8),
+        elevatedButton(child = text("Set to Carol",
+          style = textStyle(fontSize = 13, color = colorWhite)),
+          onPressed = (proc() = sharedLabel.value = "Carol")),
+      ]),
+      sizedBox(height = 24),
+
+      # InheritedWidget demo.
+      heading("InheritedWidget + dependOnInheritedOfType"),
+      body("Both readers below subscribe to LabelTheme via " &
+           "dependOnInheritedOfType. When the parent rebuilds with " &
+           "a NEW label, updateShouldNotify returns true and only " &
+           "the registered dependents rebuild. The notifier above " &
+           "drives the label."),
+      sizedBox(height = 8),
+      listenableBuilder(sharedLabel,
+        proc(ctx: BuildContext, name: string): Widget =
+          # Pass the notifier's value through as the inherited
+          # widget's label. The inherited widget is re-emitted on
+          # every listenable rebuild, but updateShouldNotify only
+          # returns true when the label actually changed.
+          LabelTheme(label: name, child: decoratedBox(
+            decoration = boxDecoration(color = scheme.surface,
+                                       borderRadius = 8,
+                                       border = Border(color: scheme.outline, width: 1)),
+            child = padding(padding = edgeInsetsAll(12),
+              child = column(mainAxisSize = msMin, crossAxisAlignment = caStart,
+                             children = @[
+                Widget(LabelReader(prefix: "Reader 1 (Top of subtree)")),
+                sizedBox(height = 6),
+                LabelReader(prefix: "Reader 2 (nested deeper)"),
+                sizedBox(height = 6),
+                text("Static text - not a reader, NEVER rebuilds",
+                  style = textStyle(fontSize = 12, color = scheme.outline,
+                                    italic = true)),
+              ]))))),
     ]))
 
 # ---------------------------------------------------------------------------
@@ -574,6 +850,7 @@ proc currentTabContent(s: ShowcaseState): Widget =
     of tabStyle:     styleTab(s)
     of tabInputs:    inputsTab(s)
     of tabAnimation: animationTab(s)
+    of tabState:     stateTab(s)
     of tabCupertino: cupertinoTab(s)
   # Wrap every tab body in a vertical scroll view so content taller than
   # the window is reachable via mouse wheel / two-finger scroll.

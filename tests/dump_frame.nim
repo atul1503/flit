@@ -46,4 +46,5 @@ when isMainModule:
   renderFrame(tabStyle,     dark = false, path = "/tmp/flit_showcase_style.png")
   renderFrame(tabInputs,    dark = false, path = "/tmp/flit_showcase_inputs.png")
   renderFrame(tabAnimation, dark = false, path = "/tmp/flit_showcase_animation.png")
+  renderFrame(tabState,     dark = false, path = "/tmp/flit_showcase_state.png")
   renderFrame(tabCupertino, dark = false, path = "/tmp/flit_showcase_cupertino.png")
