@@ -108,6 +108,12 @@ type
     inheritedAncestors*: Table[string, Element]
     state*: State
     slot*: int
+    dependents*: seq[Element]
+      ## Only populated on `ekInherited` elements. Each entry is a
+      ## descendant that called `dependOnInheritedOfType[T](ctx)`
+      ## with this element's widget type and therefore wants to be
+      ## rebuilt when our widget instance changes and
+      ## `updateShouldNotify` returns true.
 
   State* = ref object of RootObj
     ## Mutable state attached to a `StatefulWidget`'s element.
@@ -356,16 +362,45 @@ proc findInheritedOfType*[T: InheritedWidget](e: Element): T =
   ## Walks the parent chain starting at `e` until it finds an
   ## `InheritedWidget` of exactly type `T`. Returns nil if none.
   ##
-  ## Note: in flit today this lookup is NOT cached and does NOT
-  ## register `e` as a dependent of the inherited widget. If the
-  ## inherited widget's data changes, callers must trigger a rebuild
-  ## themselves.
+  ## Read-only lookup: does NOT register `e` as a dependent. Use
+  ## `dependOnInheritedOfType[T](ctx)` to subscribe instead.
   var cur = e
   while not cur.isNil:
     if cur.widget of T:
       return T(cur.widget)
     cur = cur.parent
   nil
+
+proc dependOnInheritedOfType*[T: InheritedWidget](ctx: BuildContext): T =
+  ## Looks up the nearest `InheritedWidget` of type `T` above `ctx`
+  ## AND registers `ctx` as a dependent of that inherited element.
+  ## When the inherited widget is later replaced with a new instance
+  ## and its `updateShouldNotify(old, new)` returns true, every
+  ## registered dependent is marked dirty and rebuilt on the next
+  ## frame.
+  ##
+  ## Idempotent: calling this multiple times from the same `ctx` for
+  ## the same inherited element registers the dependency only once.
+  ##
+  ## Returns nil if no such ancestor exists.
+  var cur = ctx
+  while not cur.isNil:
+    if cur.widget of T:
+      if ctx notin cur.dependents:
+        cur.dependents.add(ctx)
+      return T(cur.widget)
+    cur = cur.parent
+  nil
+
+proc notifyInheritedDependents*(e: Element) =
+  ## Marks every element registered in `e.dependents` as dirty and
+  ## asks the runtime to rebuild them. Called by `reconcileChildren`
+  ## when an `ekInherited` element receives a new widget whose
+  ## `updateShouldNotify` returns true.
+  for dep in e.dependents:
+    if not dep.dirty:
+      dep.dirty = true
+      onSetStateRoot(dep)
 
 # Debug
 

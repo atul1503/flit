@@ -254,21 +254,32 @@ proc reconcileChildren(parent: Element, newWidgets: seq[Widget]) =
         if old.kind == ekStateful and not old.state.isNil:
           try: old.state.didUpdateWidget(StatefulWidget(oldWidget))
           except CatchableError: discard
+        if old.kind == ekInherited:
+          # If the inherited widget's value changed in a way it cares
+          # about, mark every dependent dirty so they pick up the new
+          # value on this frame.
+          if updateShouldNotify(InheritedWidget(nw), InheritedWidget(oldWidget)):
+            notifyInheritedDependents(old)
         old.dirty = true
         rebuildElement(old)
         newChildren[i] = old
       # else: same key but different type, fall through to positional
-  # Second pass: positional matches for slots not yet filled.
+  # Second pass: positional matches for slots not yet filled. We
+  # track which entries of `unusedOld` got claimed so we can unmount
+  # the ones that never matched, including any we walked past while
+  # looking for a compatible candidate.
+  var claimed = newSeq[bool](unusedOld.len)
   var oldIdx = 0
   for i, nw in newWidgets:
     if not newChildren[i].isNil: continue
-    # Find next unused old at this slot or later.
     var old: Element = nil
     while oldIdx < unusedOld.len:
-      let candidate = unusedOld[oldIdx]
+      let j = oldIdx
       oldIdx.inc
+      let candidate = unusedOld[j]
       if candidate.widget.key.isNil and canUpdate(candidate.widget, nw):
         old = candidate
+        claimed[j] = true
         break
     if not old.isNil:
       let oldWidget = old.widget
@@ -277,15 +288,21 @@ proc reconcileChildren(parent: Element, newWidgets: seq[Widget]) =
       if old.kind == ekStateful and not old.state.isNil:
         try: old.state.didUpdateWidget(StatefulWidget(oldWidget))
         except CatchableError: discard
+      if old.kind == ekInherited:
+        if updateShouldNotify(InheritedWidget(nw), InheritedWidget(oldWidget)):
+          notifyInheritedDependents(old)
       old.dirty = true
       rebuildElement(old)
       newChildren[i] = old
     else:
       newChildren[i] = mountElement(parent, nw, i)
 
-  # Anything left in unusedOld past our cursor needs to be unmounted.
-  for j in oldIdx ..< unusedOld.len:
-    unmount(unusedOld[j])
+  # Unmount anything we didn't claim - both elements skipped past
+  # during the positional walk AND elements past our cursor at the
+  # end. Without this skipped-past elements leak.
+  for j in 0 ..< unusedOld.len:
+    if not claimed[j]:
+      unmount(unusedOld[j])
   # Any leftover keyed children that didn't match also need unmounting.
   for _, v in keyMap:
     unmount(v)

@@ -31,6 +31,7 @@ import flit/foundation/color
 import flit/foundation/diagnostics
 import flit/foundation/binding
 import flit/foundation/runtime
+import flit/foundation/listenable
 import flit/rendering/text
 import flit/rendering/decoration
 import flit/rendering/proxy_box
@@ -45,5 +46,5 @@ import flit/cupertino/cupertino
 import flit/app
 
 export widget, key, render_object, geometry, color, diagnostics, binding,
-       runtime, text, decoration, proxy_box, flex, stack, basic, detector,
-       animation, material, theme, cupertino, app
+       runtime, listenable, text, decoration, proxy_box, flex, stack, basic,
+       detector, animation, material, theme, cupertino, app
