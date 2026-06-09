@@ -22,6 +22,7 @@ examples/*/calculator
 # Benchmark artifacts.
 benchmarks/flit/bench
 benchmarks/flit/verify
+benchmarks/flit/repro_*
 benchmarks/flutter/.dart_tool/
 benchmarks/flutter/.flutter-plugins
 benchmarks/flutter/.flutter-plugins-dependencies
