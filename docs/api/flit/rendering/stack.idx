@@ -1,0 +1,13 @@
+nimTitle	stack	flit/rendering/stack.html	module src/flit/rendering/stack		0
+nim	sfLoose	flit/rendering/stack.html#sfLoose	StackFit.sfLoose		14
+nim	sfExpand	flit/rendering/stack.html#sfExpand	StackFit.sfExpand		14
+nim	sfPassthrough	flit/rendering/stack.html#sfPassthrough	StackFit.sfPassthrough		14
+nim	StackFit	flit/rendering/stack.html#StackFit	enum StackFit		14
+nim	StackParentData	flit/rendering/stack.html#StackParentData	type StackParentData		21
+nim	RenderStackChild	flit/rendering/stack.html#RenderStackChild	type RenderStackChild		29
+nim	RenderStack	flit/rendering/stack.html#RenderStack	type RenderStack		34
+nim	unsetF	flit/rendering/stack.html#unsetF	const unsetF		42
+nim	newStackParentData	flit/rendering/stack.html#newStackParentData	proc newStackParentData(left = unsetF; top = unsetF; right = unsetF; bottom = unsetF;\n                   width = unsetF; height = unsetF): StackParentData		46
+nim	performLayout	flit/rendering/stack.html#performLayout.e,RenderStack	method performLayout(r: RenderStack)		58
+nim	paint	flit/rendering/stack.html#paint.e,RenderStack,PaintingContext,Offset	method paint(r: RenderStack; ctx: PaintingContext; offset: Offset)		117
+nim	hitTest	flit/rendering/stack.html#hitTest.e,RenderStack,HitTestResult,Offset	method hitTest(r: RenderStack; htResult: HitTestResult; position: Offset): bool		124

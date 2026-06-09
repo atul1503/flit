@@ -1,0 +1,18 @@
+nimTitle	key	flit/foundation/key.html	module src/flit/foundation/key		0
+nim	kkUnique	flit/foundation/key.html#kkUnique	KeyKind.kkUnique		14
+nim	kkValue	flit/foundation/key.html#kkValue	KeyKind.kkValue		14
+nim	kkGlobal	flit/foundation/key.html#kkGlobal	KeyKind.kkGlobal		14
+nim	kkObject	flit/foundation/key.html#kkObject	KeyKind.kkObject		14
+nim	KeyKind	flit/foundation/key.html#KeyKind	enum KeyKind		14
+nim	Key	flit/foundation/key.html#Key	type Key		25
+nim	ValueKey	flit/foundation/key.html#ValueKey	type ValueKey		37
+nim	GlobalKey	flit/foundation/key.html#GlobalKey	type GlobalKey		42
+nim	newUniqueKey	flit/foundation/key.html#newUniqueKey	proc newUniqueKey(): Key		51
+nim	newValueKey	flit/foundation/key.html#newValueKey,string	proc newValueKey(value: string): Key		57
+nim	newValueKey	flit/foundation/key.html#newValueKey,T	proc newValueKey[T](value: T): ValueKey[T]		62
+nim	newGlobalKey	flit/foundation/key.html#newGlobalKey,string	proc newGlobalKey(label: string = ""): GlobalKey		67
+nim	newObjectKey	flit/foundation/key.html#newObjectKey,pointer	proc newObjectKey(obj: pointer): Key		72
+nim	hash	flit/foundation/key.html#hash,Key	proc hash(k: Key): Hash		77
+nim	`==`	flit/foundation/key.html#==,Key,Key	proc `==`(a, b: Key): bool		89
+nim	`$`	flit/foundation/key.html#$,Key	proc `$`(k: Key): string		100
+nimgrp	newvaluekey	flit/foundation/key.html#newValueKey-procs-all	proc		57

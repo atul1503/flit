@@ -1,0 +1,11 @@
+nimTitle	glyph_atlas	flit/rendering/glyph_atlas.html	module src/flit/rendering/glyph_atlas		0
+nim	GlyphEntry	flit/rendering/glyph_atlas.html#GlyphEntry	type GlyphEntry		35
+nim	GlyphAtlas	flit/rendering/glyph_atlas.html#GlyphAtlas	type GlyphAtlas		43
+nim	hash	flit/rendering/glyph_atlas.html#hash,GlyphKey	proc hash(k: GlyphKey): Hash		59
+nim	`==`	flit/rendering/glyph_atlas.html#==,GlyphKey,GlyphKey	proc `==`(a, b: GlyphKey): bool		67
+nim	newGlyphAtlas	flit/rendering/glyph_atlas.html#newGlyphAtlas,RendererPtr,int	proc newGlyphAtlas(renderer: RendererPtr; maxEntries = 512): GlyphAtlas		71
+nim	registerHbFont	flit/rendering/glyph_atlas.html#registerHbFont,GlyphAtlas,int,string	proc registerHbFont(a: GlyphAtlas; fontHash: int; fontPath: string)		80
+nim	measureShaped	flit/rendering/glyph_atlas.html#measureShaped,GlyphAtlas,int,string,float32	proc measureShaped(a: GlyphAtlas; fontHash: int; text: string; fontSize: float32): tuple[\n    width, height: float32]		93
+nim	evictOldest	flit/rendering/glyph_atlas.html#evictOldest,GlyphAtlas	proc evictOldest(a: GlyphAtlas)		105
+nim	getOrRasterize	flit/rendering/glyph_atlas.html#getOrRasterize,GlyphAtlas,Font,string,float32,uint32,int	proc getOrRasterize(a: GlyphAtlas; font: Font; text: string; fontSize: float32;\n               color: uint32; fontHash: int): GlyphEntry		163
+nim	clear	flit/rendering/glyph_atlas.html#clear,GlyphAtlas	proc clear(a: GlyphAtlas)		191

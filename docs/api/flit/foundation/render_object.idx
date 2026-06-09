@@ -1,0 +1,39 @@
+nimTitle	render_object	flit/foundation/render_object.html	module src/flit/foundation/render_object		0
+nim	Canvas	flit/foundation/render_object.html#Canvas	type Canvas		14
+nim	PaintingContext	flit/foundation/render_object.html#PaintingContext	type PaintingContext		27
+nim	HitTestEntry	flit/foundation/render_object.html#HitTestEntry	object HitTestEntry		34
+nim	HitTestResult	flit/foundation/render_object.html#HitTestResult	type HitTestResult		41
+nim	RenderObject	flit/foundation/render_object.html#RenderObject	type RenderObject		46
+nim	currentOpacity	flit/foundation/render_object.html#currentOpacity,Canvas	proc currentOpacity(c: Canvas): float32		73
+nim	pushOpacity	flit/foundation/render_object.html#pushOpacity,Canvas,float32	proc pushOpacity(c: Canvas; alpha: float32)		78
+nim	popOpacity	flit/foundation/render_object.html#popOpacity,Canvas	proc popOpacity(c: Canvas)		85
+nim	applyOpacity	flit/foundation/render_object.html#applyOpacity,Canvas,uint32	proc applyOpacity(c: Canvas; color: uint32): uint32		90
+nim	paint	flit/foundation/render_object.html#paint.e,RenderObject,PaintingContext,Offset	method paint(r: RenderObject; ctx: PaintingContext; offset: Offset)		109
+nim	drawRect	flit/foundation/render_object.html#drawRect.e,Canvas,Rect,uint32	method drawRect(c: Canvas; r: Rect; fill: uint32)		113
+nim	drawRRect	flit/foundation/render_object.html#drawRRect.e,Canvas,RRect,uint32	method drawRRect(c: Canvas; r: RRect; fill: uint32)		117
+nim	drawCircle	flit/foundation/render_object.html#drawCircle.e,Canvas,Offset,float32,uint32	method drawCircle(c: Canvas; center: Offset; radius: float32; fill: uint32)		120
+nim	drawLine	flit/foundation/render_object.html#drawLine.e,Canvas,Offset,Offset,uint32,float32	method drawLine(c: Canvas; p0, p1: Offset; color: uint32; width: float32)		123
+nim	drawText	flit/foundation/render_object.html#drawText.e,Canvas,string,Offset,uint32,float32,string	method drawText(c: Canvas; text: string; pos: Offset; color: uint32; fontSize: float32;\n         fontFamily: string)		127
+nim	drawImage	flit/foundation/render_object.html#drawImage.e,Canvas,pointer,Rect,Rect	method drawImage(c: Canvas; image: pointer; src, dst: Rect)		133
+nim	clipRect	flit/foundation/render_object.html#clipRect.e,Canvas,Rect	method clipRect(c: Canvas; r: Rect)		137
+nim	save	flit/foundation/render_object.html#save.e,Canvas	method save(c: Canvas)		141
+nim	restore	flit/foundation/render_object.html#restore.e,Canvas	method restore(c: Canvas)		144
+nim	translate	flit/foundation/render_object.html#translate.e,Canvas,float32,float32	method translate(c: Canvas; dx, dy: float32)		147
+nim	scale	flit/foundation/render_object.html#scale.e,Canvas,float32,float32	method scale(c: Canvas; sx, sy: float32)		150
+nim	rotate	flit/foundation/render_object.html#rotate.e,Canvas,float32	method rotate(c: Canvas; radians: float32)		153
+nim	clear	flit/foundation/render_object.html#clear.e,Canvas,uint32	method clear(c: Canvas; color: uint32)		156
+nim	createSubCanvas	flit/foundation/render_object.html#createSubCanvas.e,Canvas,int,int	method createSubCanvas(c: Canvas; w, h: int): Canvas		168
+nim	compositeSubCanvas	flit/foundation/render_object.html#compositeSubCanvas.e,Canvas,Canvas,Offset,Size	method compositeSubCanvas(c: Canvas; sub: Canvas; offset: Offset; size: Size)		176
+nim	newPaintingContext	flit/foundation/render_object.html#newPaintingContext,Canvas	proc newPaintingContext(canvas: Canvas; offset = OffsetZero): PaintingContext		186
+nim	paintChild	flit/foundation/render_object.html#paintChild,PaintingContext,RenderObject,Offset	proc paintChild(ctx: PaintingContext; child: RenderObject; offset: Offset)		192
+nim	performLayout	flit/foundation/render_object.html#performLayout.e,RenderObject	method performLayout(r: RenderObject)		205
+nim	hitTest	flit/foundation/render_object.html#hitTest.e,RenderObject,HitTestResult,Offset	method hitTest(r: RenderObject; htResult: HitTestResult; position: Offset): bool		210
+nim	size	flit/foundation/render_object.html#size,RenderObject	proc size(r: RenderObject): Size		228
+nim	setSize	flit/foundation/render_object.html#setSize,RenderObject,Size	proc setSize(r: RenderObject; s: Size)		233
+nim	layout	flit/foundation/render_object.html#layout,RenderObject,Constraints	proc layout(r: RenderObject; c: Constraints)		242
+nim	markNeedsLayout	flit/foundation/render_object.html#markNeedsLayout,RenderObject	proc markNeedsLayout(r: RenderObject)		258
+nim	absorbPaintMark	flit/foundation/render_object.html#absorbPaintMark.e,RenderObject	method absorbPaintMark(r: RenderObject)		267
+nim	markNeedsPaint	flit/foundation/render_object.html#markNeedsPaint,RenderObject	proc markNeedsPaint(r: RenderObject)		274
+nim	attach	flit/foundation/render_object.html#attach,RenderObject	proc attach(r: RenderObject)		286
+nim	detach	flit/foundation/render_object.html#detach,RenderObject	proc detach(r: RenderObject)		291
+nim	debugDescribe	flit/foundation/render_object.html#debugDescribe,RenderObject	proc debugDescribe(r: RenderObject): DiagnosticsNode		295

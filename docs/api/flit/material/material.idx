@@ -1,0 +1,39 @@
+nimTitle	material	flit/material/material.html	module src/flit/material/material		0
+nim	MaterialApp	flit/material/material.html#MaterialApp	type MaterialApp		19
+nim	widgetTypeName	flit/material/material.html#widgetTypeName.e,MaterialApp	method widgetTypeName(w: MaterialApp): string		27
+nim	createElement	flit/material/material.html#createElement.e,MaterialApp	method createElement(w: MaterialApp): Element		28
+nim	build	flit/material/material.html#build.e,MaterialApp,BuildContext	method build(w: MaterialApp; ctx: BuildContext): Widget		29
+nim	materialApp	flit/material/material.html#materialApp,Widget,string,Key	proc materialApp(home: Widget; title = "Flit App"; theme = themeData();\n            key: Key = nil): MaterialApp		36
+nim	Scaffold	flit/material/material.html#Scaffold	type Scaffold		56
+nim	widgetTypeName	flit/material/material.html#widgetTypeName.e,Scaffold	method widgetTypeName(w: Scaffold): string		66
+nim	createElement	flit/material/material.html#createElement.e,Scaffold	method createElement(w: Scaffold): Element		67
+nim	build	flit/material/material.html#build.e,Scaffold,BuildContext	method build(w: Scaffold; ctx: BuildContext): Widget		68
+nim	scaffold	flit/material/material.html#scaffold,Widget,Widget,Widget,Key	proc scaffold(body: Widget; appBar: Widget = nil; floatingActionButton: Widget = nil;\n         backgroundColor = colorTransparent; hasBackgroundColor = false;\n         key: Key = nil): Scaffold		92
+nim	AppBar	flit/material/material.html#AppBar	type AppBar		120
+nim	widgetTypeName	flit/material/material.html#widgetTypeName.e,AppBar	method widgetTypeName(w: AppBar): string		130
+nim	createElement	flit/material/material.html#createElement.e,AppBar	method createElement(w: AppBar): Element		131
+nim	build	flit/material/material.html#build.e,AppBar,BuildContext	method build(w: AppBar; ctx: BuildContext): Widget		132
+nim	appBar	flit/material/material.html#appBar,Widget,seq[Widget],float32,Key	proc appBar(title: Widget; actions: seq[Widget] = @[];\n       backgroundColor = colorTransparent; hasBackgroundColor = false;\n       elevation = 4.0'f32; key: Key = nil): AppBar		152
+nim	ElevatedButton	flit/material/material.html#ElevatedButton	type ElevatedButton		181
+nim	widgetTypeName	flit/material/material.html#widgetTypeName.e,ElevatedButton	method widgetTypeName(w: ElevatedButton): string		190
+nim	createElement	flit/material/material.html#createElement.e,ElevatedButton	method createElement(w: ElevatedButton): Element		191
+nim	build	flit/material/material.html#build.e,ElevatedButton,BuildContext	method build(w: ElevatedButton; ctx: BuildContext): Widget		192
+nim	elevatedButton	flit/material/material.html#elevatedButton,Widget,TapCallback,Key	proc elevatedButton(child: Widget; onPressed: TapCallback = nil;\n               backgroundColor = colorTransparent;\n               foregroundColor = colorTransparent; hasColors = false;\n               key: Key = nil): ElevatedButton		210
+nim	TextButton	flit/material/material.html#TextButton	type TextButton		235
+nim	widgetTypeName	flit/material/material.html#widgetTypeName.e,TextButton	method widgetTypeName(w: TextButton): string		241
+nim	createElement	flit/material/material.html#createElement.e,TextButton	method createElement(w: TextButton): Element		242
+nim	build	flit/material/material.html#build.e,TextButton,BuildContext	method build(w: TextButton; ctx: BuildContext): Widget		243
+nim	textButton	flit/material/material.html#textButton,Widget,TapCallback,Key	proc textButton(child: Widget; onPressed: TapCallback = nil; key: Key = nil): TextButton		250
+nim	Card	flit/material/material.html#Card	type Card		266
+nim	widgetTypeName	flit/material/material.html#widgetTypeName.e,Card	method widgetTypeName(w: Card): string		274
+nim	createElement	flit/material/material.html#createElement.e,Card	method createElement(w: Card): Element		275
+nim	build	flit/material/material.html#build.e,Card,BuildContext	method build(w: Card; ctx: BuildContext): Widget		276
+nim	card	flit/material/material.html#card,Widget,float32,Key	proc card(child: Widget; elevation = 2.0'f32; margin = edgeInsetsAll(8);\n     key: Key = nil): Card		287
+nim	FloatingActionButton	flit/material/material.html#FloatingActionButton	type FloatingActionButton		306
+nim	widgetTypeName	flit/material/material.html#widgetTypeName.e,FloatingActionButton	method widgetTypeName(w: FloatingActionButton): string		312
+nim	createElement	flit/material/material.html#createElement.e,FloatingActionButton	method createElement(w: FloatingActionButton): Element		313
+nim	build	flit/material/material.html#build.e,FloatingActionButton,BuildContext	method build(w: FloatingActionButton; ctx: BuildContext): Widget		314
+nim	floatingActionButton	flit/material/material.html#floatingActionButton,Widget,TapCallback,Key	proc floatingActionButton(child: Widget; onPressed: TapCallback = nil; key: Key = nil): FloatingActionButton		327
+nimgrp	widgettypename	flit/material/material.html#widgetTypeName-methods-all	method		27
+nimgrp	createelement	flit/material/material.html#createElement-methods-all	method		28
+nimgrp	build	flit/material/material.html#build-methods-all	method		29

@@ -1,0 +1,34 @@
+nimTitle	color	flit/foundation/color.html	module src/flit/foundation/color		0
+nim	Color	flit/foundation/color.html#Color	object Color		11
+nim	color	flit/foundation/color.html#color,uint32	proc color(value: uint32): Color		17
+nim	rgba	flit/foundation/color.html#rgba,uint8,uint8,uint8,uint8	proc rgba(r, g, b, a: uint8): Color		21
+nim	rgb	flit/foundation/color.html#rgb,uint8,uint8,uint8	proc rgb(r, g, b: uint8): Color		26
+nim	fromARGB	flit/foundation/color.html#fromARGB,uint8,uint8,uint8,uint8	proc fromARGB(a, r, g, b: uint8): Color		29
+nim	fromHex	flit/foundation/color.html#fromHex,string	proc fromHex(hex: string): Color		32
+nim	alpha	flit/foundation/color.html#alpha,Color	proc alpha(c: Color): uint8		43
+nim	red	flit/foundation/color.html#red,Color	proc red(c: Color): uint8		45
+nim	green	flit/foundation/color.html#green,Color	proc green(c: Color): uint8		47
+nim	blue	flit/foundation/color.html#blue,Color	proc blue(c: Color): uint8		49
+nim	withAlpha	flit/foundation/color.html#withAlpha,Color,uint8	proc withAlpha(c: Color; a: uint8): Color		52
+nim	withOpacity	flit/foundation/color.html#withOpacity,Color,float32	proc withOpacity(c: Color; opacity: float32): Color		57
+nim	opacity	flit/foundation/color.html#opacity,Color	proc opacity(c: Color): float32		63
+nim	lerp	flit/foundation/color.html#lerp,Color,Color,float32	proc lerp(a, b: Color; t: float32): Color		66
+nim	`==`	flit/foundation/color.html#==,Color,Color	proc `==`(a, b: Color): bool		75
+nim	`$`	flit/foundation/color.html#$,Color	proc `$`(c: Color): string		77
+nim	colorTransparent	flit/foundation/color.html#colorTransparent	const colorTransparent		83
+nim	colorBlack	flit/foundation/color.html#colorBlack	const colorBlack		85
+nim	colorWhite	flit/foundation/color.html#colorWhite	const colorWhite		86
+nim	colorRed	flit/foundation/color.html#colorRed	const colorRed		87
+nim	colorGreen	flit/foundation/color.html#colorGreen	const colorGreen		89
+nim	colorBlue	flit/foundation/color.html#colorBlue	const colorBlue		91
+nim	colorYellow	flit/foundation/color.html#colorYellow	const colorYellow		93
+nim	colorOrange	flit/foundation/color.html#colorOrange	const colorOrange		94
+nim	colorPurple	flit/foundation/color.html#colorPurple	const colorPurple		95
+nim	colorPink	flit/foundation/color.html#colorPink	const colorPink		96
+nim	colorTeal	flit/foundation/color.html#colorTeal	const colorTeal		97
+nim	colorIndigo	flit/foundation/color.html#colorIndigo	const colorIndigo		98
+nim	colorCyan	flit/foundation/color.html#colorCyan	const colorCyan		99
+nim	colorAmber	flit/foundation/color.html#colorAmber	const colorAmber		100
+nim	colorGrey	flit/foundation/color.html#colorGrey	const colorGrey		101
+nim	colorBrown	flit/foundation/color.html#colorBrown	const colorBrown		102
+nim	colorBlueGrey	flit/foundation/color.html#colorBlueGrey	const colorBlueGrey		103

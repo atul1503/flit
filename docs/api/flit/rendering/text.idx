@@ -1,0 +1,15 @@
+nimTitle	text	flit/rendering/text.html	module src/flit/rendering/text		0
+nim	taLeft	flit/rendering/text.html#taLeft	TextAlign.taLeft		10
+nim	taRight	flit/rendering/text.html#taRight	TextAlign.taRight		10
+nim	taCenter	flit/rendering/text.html#taCenter	TextAlign.taCenter		10
+nim	taJustify	flit/rendering/text.html#taJustify	TextAlign.taJustify		10
+nim	taStart	flit/rendering/text.html#taStart	TextAlign.taStart		10
+nim	taEnd	flit/rendering/text.html#taEnd	TextAlign.taEnd		10
+nim	TextAlign	flit/rendering/text.html#TextAlign	enum TextAlign		10
+nim	TextStyle	flit/rendering/text.html#TextStyle	object TextStyle		16
+nim	RenderParagraph	flit/rendering/text.html#RenderParagraph	type RenderParagraph		36
+nim	defaultTextStyle	flit/rendering/text.html#defaultTextStyle	const defaultTextStyle		47
+nim	textStyle	flit/rendering/text.html#textStyle,float32,string,int,float32,float32	proc textStyle(color = colorBlack; fontSize = 14.0'f32; fontFamily = "system";\n          fontWeight = 400; italic = false; letterSpacing = 0.0'f32;\n          height = 1.2'f32): TextStyle		53
+nim	measureText	flit/rendering/text.html#measureText	var measureText		73
+nim	performLayout	flit/rendering/text.html#performLayout.e,RenderParagraph	method performLayout(r: RenderParagraph)		109
+nim	paint	flit/rendering/text.html#paint.e,RenderParagraph,PaintingContext,Offset	method paint(r: RenderParagraph; ctx: PaintingContext; offset: Offset)		131

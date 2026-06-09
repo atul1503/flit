@@ -3,8 +3,9 @@ bin/
 build/
 web/app.js
 web/app.js.map
-docs/api/*
-!docs/api/index.html
+# Generated nim doc output is committed so GitHub Pages can serve it.
+# Regenerate via `nimble docs`. The .idx files power the doc-search
+# index, so they ship too.
 tests/test_*
 tests/debug_dump
 tests/dump_frame

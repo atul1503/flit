@@ -1,0 +1,19 @@
+nimTitle	detector	flit/gestures/detector.html	module src/flit/gestures/detector		0
+nim	TapCallback	flit/gestures/detector.html#TapCallback	type TapCallback		15
+nim	DragUpdate	flit/gestures/detector.html#DragUpdate	type DragUpdate		19
+nim	PointerCallback	flit/gestures/detector.html#PointerCallback	type PointerCallback		24
+nim	RenderGestureDetector	flit/gestures/detector.html#RenderGestureDetector	type RenderGestureDetector		28
+nim	htDeferToChild	flit/gestures/detector.html#htDeferToChild	HitTestBehavior.htDeferToChild		48
+nim	htOpaque	flit/gestures/detector.html#htOpaque	HitTestBehavior.htOpaque		48
+nim	htTranslucent	flit/gestures/detector.html#htTranslucent	HitTestBehavior.htTranslucent		48
+nim	HitTestBehavior	flit/gestures/detector.html#HitTestBehavior	enum HitTestBehavior		48
+nim	hitTest	flit/gestures/detector.html#hitTest.e,RenderGestureDetector,HitTestResult,Offset	method hitTest(r: RenderGestureDetector; htResult: HitTestResult; position: Offset): bool		61
+nim	handleDown	flit/gestures/detector.html#handleDown,RenderGestureDetector,Offset	proc handleDown(r: RenderGestureDetector; p: Offset)		76
+nim	handleUp	flit/gestures/detector.html#handleUp,RenderGestureDetector,Offset	proc handleUp(r: RenderGestureDetector; p: Offset)		82
+nim	handleMove	flit/gestures/detector.html#handleMove,RenderGestureDetector,Offset,Offset	proc handleMove(r: RenderGestureDetector; p, delta: Offset)		103
+nim	GestureDetector	flit/gestures/detector.html#GestureDetector	type GestureDetector		117
+nim	widgetTypeName	flit/gestures/detector.html#widgetTypeName.e,GestureDetector	method widgetTypeName(w: GestureDetector): string		129
+nim	createElement	flit/gestures/detector.html#createElement.e,GestureDetector	method createElement(w: GestureDetector): Element		130
+nim	createRenderObject	flit/gestures/detector.html#createRenderObject.e,GestureDetector,BuildContext	method createRenderObject(w: GestureDetector; ctx: BuildContext): RenderObject		131
+nim	updateRenderObject	flit/gestures/detector.html#updateRenderObject.e,GestureDetector,BuildContext,RenderObject	method updateRenderObject(w: GestureDetector; ctx: BuildContext; r: RenderObject)		136
+nim	gestureDetector	flit/gestures/detector.html#gestureDetector,Widget,TapCallback,TapCallback,TapCallback,PointerCallback,DragUpdate,TapCallback,Key	proc gestureDetector(child: Widget; onTap: TapCallback = nil;\n                onDoubleTap: TapCallback = nil; onLongPress: TapCallback = nil;\n                onPanStart: PointerCallback = nil;\n                onPanUpdate: DragUpdate = nil; onPanEnd: TapCallback = nil;\n                behavior = htDeferToChild; key: Key = nil): GestureDetector		146

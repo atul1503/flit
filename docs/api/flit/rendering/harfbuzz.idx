@@ -1,0 +1,37 @@
+nimTitle	harfbuzz	flit/rendering/harfbuzz.html	module src/flit/rendering/harfbuzz		0
+nim	HbBlob	flit/rendering/harfbuzz.html#HbBlob	type HbBlob		25
+nim	HbFace	flit/rendering/harfbuzz.html#HbFace	type HbFace		26
+nim	HbFont	flit/rendering/harfbuzz.html#HbFont	type HbFont		27
+nim	HbBuffer	flit/rendering/harfbuzz.html#HbBuffer	type HbBuffer		28
+nim	HbDirection	flit/rendering/harfbuzz.html#HbDirection	enum HbDirection		30
+nim	HbScript	flit/rendering/harfbuzz.html#HbScript	type HbScript		37
+nim	HbMemoryMode	flit/rendering/harfbuzz.html#HbMemoryMode	enum HbMemoryMode		39
+nim	HbGlyphInfo	flit/rendering/harfbuzz.html#HbGlyphInfo	object HbGlyphInfo		45
+nim	HbGlyphPosition	flit/rendering/harfbuzz.html#HbGlyphPosition	object HbGlyphPosition		52
+nim	HbFeature	flit/rendering/harfbuzz.html#HbFeature	object HbFeature		59
+nim	hb_blob_create	flit/rendering/harfbuzz.html#hb_blob_create,cstring,cuint,HbMemoryMode,pointer,pointer	proc hb_blob_create(data: cstring; length: cuint; mode: HbMemoryMode;\n               userData: pointer; destroy: pointer): HbBlob		67
+nim	hb_blob_destroy	flit/rendering/harfbuzz.html#hb_blob_destroy,HbBlob	proc hb_blob_destroy(blob: HbBlob)		70
+nim	hb_face_create	flit/rendering/harfbuzz.html#hb_face_create,HbBlob,cuint	proc hb_face_create(blob: HbBlob; index: cuint): HbFace		74
+nim	hb_face_destroy	flit/rendering/harfbuzz.html#hb_face_destroy,HbFace	proc hb_face_destroy(face: HbFace)		76
+nim	hb_font_create	flit/rendering/harfbuzz.html#hb_font_create,HbFace	proc hb_font_create(face: HbFace): HbFont		78
+nim	hb_font_destroy	flit/rendering/harfbuzz.html#hb_font_destroy,HbFont	proc hb_font_destroy(font: HbFont)		79
+nim	hb_font_set_scale	flit/rendering/harfbuzz.html#hb_font_set_scale,HbFont,cint,cint	proc hb_font_set_scale(font: HbFont; xScale, yScale: cint)		80
+nim	hb_font_set_ppem	flit/rendering/harfbuzz.html#hb_font_set_ppem,HbFont,cuint,cuint	proc hb_font_set_ppem(font: HbFont; xPpem, yPpem: cuint)		82
+nim	hb_font_get_glyph_extents	flit/rendering/harfbuzz.html#hb_font_get_glyph_extents,HbFont,uint32,pointer	proc hb_font_get_glyph_extents(font: HbFont; glyph: uint32; extents: pointer): cint		84
+nim	hb_buffer_create	flit/rendering/harfbuzz.html#hb_buffer_create	proc hb_buffer_create(): HbBuffer		90
+nim	hb_buffer_destroy	flit/rendering/harfbuzz.html#hb_buffer_destroy,HbBuffer	proc hb_buffer_destroy(buf: HbBuffer)		91
+nim	hb_buffer_clear_contents	flit/rendering/harfbuzz.html#hb_buffer_clear_contents,HbBuffer	proc hb_buffer_clear_contents(buf: HbBuffer)		92
+nim	hb_buffer_add_utf8	flit/rendering/harfbuzz.html#hb_buffer_add_utf8,HbBuffer,cstring,cint,cuint,cint	proc hb_buffer_add_utf8(buf: HbBuffer; text: cstring; textLen: cint;\n                   itemOffset: cuint; itemLen: cint)		94
+nim	hb_buffer_set_direction	flit/rendering/harfbuzz.html#hb_buffer_set_direction,HbBuffer,HbDirection	proc hb_buffer_set_direction(buf: HbBuffer; dir: HbDirection)		97
+nim	hb_buffer_set_script	flit/rendering/harfbuzz.html#hb_buffer_set_script,HbBuffer,HbScript	proc hb_buffer_set_script(buf: HbBuffer; script: HbScript)		99
+nim	hb_buffer_set_language	flit/rendering/harfbuzz.html#hb_buffer_set_language,HbBuffer,pointer	proc hb_buffer_set_language(buf: HbBuffer; lang: pointer)		101
+nim	hb_buffer_guess_segment_properties	flit/rendering/harfbuzz.html#hb_buffer_guess_segment_properties,HbBuffer	proc hb_buffer_guess_segment_properties(buf: HbBuffer)		103
+nim	hb_buffer_get_length	flit/rendering/harfbuzz.html#hb_buffer_get_length,HbBuffer	proc hb_buffer_get_length(buf: HbBuffer): cuint		105
+nim	hb_buffer_get_glyph_infos	flit/rendering/harfbuzz.html#hb_buffer_get_glyph_infos,HbBuffer,ptr.cuint	proc hb_buffer_get_glyph_infos(buf: HbBuffer; length: ptr cuint): ptr HbGlyphInfo		107
+nim	hb_buffer_get_glyph_positions	flit/rendering/harfbuzz.html#hb_buffer_get_glyph_positions,HbBuffer,ptr.cuint	proc hb_buffer_get_glyph_positions(buf: HbBuffer; length: ptr cuint): ptr HbGlyphPosition		109
+nim	hb_shape	flit/rendering/harfbuzz.html#hb_shape,HbFont,HbBuffer,pointer,cuint	proc hb_shape(font: HbFont; buf: HbBuffer; features: pointer; numFeatures: cuint)		114
+nim	ShapedGlyph	flit/rendering/harfbuzz.html#ShapedGlyph	object ShapedGlyph		120
+nim	HarfBuzzAvailable	flit/rendering/harfbuzz.html#HarfBuzzAvailable	object HarfBuzzAvailable		134
+nim	isHarfBuzzAvailable	flit/rendering/harfbuzz.html#isHarfBuzzAvailable	proc isHarfBuzzAvailable(): bool		142
+nim	shapeUtf8	flit/rendering/harfbuzz.html#shapeUtf8,HbFont,string,float32	proc shapeUtf8(font: HbFont; text: string; fontSize: float32): seq[ShapedGlyph]		163
+nim	loadFontFromFile	flit/rendering/harfbuzz.html#loadFontFromFile,string	proc loadFontFromFile(path: string): HbFont		207

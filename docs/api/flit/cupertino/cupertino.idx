@@ -1,0 +1,25 @@
+nimTitle	cupertino	flit/cupertino/cupertino.html	module src/flit/cupertino/cupertino		0
+nim	CupertinoColors	flit/cupertino/cupertino.html#CupertinoColors	object CupertinoColors		13
+nim	cupertinoLight	flit/cupertino/cupertino.html#cupertinoLight	const cupertinoLight		22
+nim	cupertinoDark	flit/cupertino/cupertino.html#cupertinoDark	const cupertinoDark		30
+nim	CupertinoTheme	flit/cupertino/cupertino.html#CupertinoTheme	object CupertinoTheme		39
+nim	cupertinoTheme	flit/cupertino/cupertino.html#cupertinoTheme,string	proc cupertinoTheme(dark = false; fontFamily = "SF Pro"): CupertinoTheme		47
+nim	cupertinoCurrent	flit/cupertino/cupertino.html#cupertinoCurrent	var cupertinoCurrent		62
+nim	CupertinoApp	flit/cupertino/cupertino.html#CupertinoApp	type CupertinoApp		70
+nim	widgetTypeName	flit/cupertino/cupertino.html#widgetTypeName.e,CupertinoApp	method widgetTypeName(w: CupertinoApp): string		76
+nim	createElement	flit/cupertino/cupertino.html#createElement.e,CupertinoApp	method createElement(w: CupertinoApp): Element		77
+nim	build	flit/cupertino/cupertino.html#build.e,CupertinoApp,BuildContext	method build(w: CupertinoApp; ctx: BuildContext): Widget		78
+nim	cupertinoApp	flit/cupertino/cupertino.html#cupertinoApp,Widget,Key	proc cupertinoApp(home: Widget; theme = cupertinoTheme(); key: Key = nil): CupertinoApp		85
+nim	CupertinoNavigationBar	flit/cupertino/cupertino.html#CupertinoNavigationBar	type CupertinoNavigationBar		101
+nim	widgetTypeName	flit/cupertino/cupertino.html#widgetTypeName.e,CupertinoNavigationBar	method widgetTypeName(w: CupertinoNavigationBar): string		111
+nim	createElement	flit/cupertino/cupertino.html#createElement.e,CupertinoNavigationBar	method createElement(w: CupertinoNavigationBar): Element		112
+nim	build	flit/cupertino/cupertino.html#build.e,CupertinoNavigationBar,BuildContext	method build(w: CupertinoNavigationBar; ctx: BuildContext): Widget		113
+nim	cupertinoNavigationBar	flit/cupertino/cupertino.html#cupertinoNavigationBar,Widget,Widget,Widget,Key	proc cupertinoNavigationBar(middle: Widget; leading: Widget = nil;\n                       trailing: Widget = nil; key: Key = nil): CupertinoNavigationBar		128
+nim	CupertinoButton	flit/cupertino/cupertino.html#CupertinoButton	type CupertinoButton		146
+nim	widgetTypeName	flit/cupertino/cupertino.html#widgetTypeName.e,CupertinoButton	method widgetTypeName(w: CupertinoButton): string		154
+nim	createElement	flit/cupertino/cupertino.html#createElement.e,CupertinoButton	method createElement(w: CupertinoButton): Element		155
+nim	build	flit/cupertino/cupertino.html#build.e,CupertinoButton,BuildContext	method build(w: CupertinoButton; ctx: BuildContext): Widget		156
+nim	cupertinoButton	flit/cupertino/cupertino.html#cupertinoButton,Widget,TapCallback,Key	proc cupertinoButton(child: Widget; onPressed: TapCallback = nil; filled = false;\n                key: Key = nil): CupertinoButton		172
+nimgrp	widgettypename	flit/cupertino/cupertino.html#widgetTypeName-methods-all	method		76
+nimgrp	createelement	flit/cupertino/cupertino.html#createElement-methods-all	method		77
+nimgrp	build	flit/cupertino/cupertino.html#build-methods-all	method		78

@@ -1,0 +1,9 @@
+nimTitle	raster_pool	flit/rendering/raster_pool.html	module src/flit/rendering/raster_pool		0
+nim	RasterTask	flit/rendering/raster_pool.html#RasterTask	type RasterTask		30
+nim	RasterPoolImpl	flit/rendering/raster_pool.html#RasterPoolImpl	object RasterPoolImpl		32
+nim	RasterPool	flit/rendering/raster_pool.html#RasterPool	type RasterPool		36
+nim	newRasterPool	flit/rendering/raster_pool.html#newRasterPool,int	proc newRasterPool(nWorkers: int = 2): RasterPool		55
+nim	submit	flit/rendering/raster_pool.html#submit,RasterPool,RasterTask	proc submit(pool: RasterPool; task: RasterTask)		66
+nim	drain	flit/rendering/raster_pool.html#drain,RasterPool	proc drain(pool: RasterPool)		75
+nim	shutdown	flit/rendering/raster_pool.html#shutdown,RasterPool	proc shutdown(pool: RasterPool)		81
+nim	sharedRasterPool	flit/rendering/raster_pool.html#sharedRasterPool	proc sharedRasterPool(): RasterPool		103

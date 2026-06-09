@@ -1,0 +1,2 @@
+nimTitle	app	flit/app.html	module src/flit/app		0
+nim	runApp	flit/app.html#runApp,Widget	proc runApp(w: Widget; config = defaultDesktopConfig())		59

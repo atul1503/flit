@@ -1,0 +1,26 @@
+nimTitle	layer	flit/foundation/layer.html	module src/flit/foundation/layer		0
+nim	Layer	flit/foundation/layer.html#Layer	type Layer		19
+nim	ContainerLayer	flit/foundation/layer.html#ContainerLayer	type ContainerLayer		28
+nim	OffsetLayer	flit/foundation/layer.html#OffsetLayer	type OffsetLayer		32
+nim	OpacityLayer	flit/foundation/layer.html#OpacityLayer	type OpacityLayer		35
+nim	TransformLayer	flit/foundation/layer.html#TransformLayer	type TransformLayer		39
+nim	ClipRectLayer	flit/foundation/layer.html#ClipRectLayer	type ClipRectLayer		45
+nim	PictureLayer	flit/foundation/layer.html#PictureLayer	type PictureLayer		49
+nim	BoundaryLayer	flit/foundation/layer.html#BoundaryLayer	type BoundaryLayer		56
+nim	add	flit/foundation/layer.html#add,ContainerLayer,Layer	proc add(parent: ContainerLayer; child: Layer)		72
+nim	clearChildren	flit/foundation/layer.html#clearChildren,ContainerLayer	proc clearChildren(parent: ContainerLayer)		79
+nim	markBoundaryDirty	flit/foundation/layer.html#markBoundaryDirty,Layer	proc markBoundaryDirty(layer: Layer)		85
+nim	composite	flit/foundation/layer.html#composite.e,Layer,Canvas,Offset	method composite(l: Layer; canvas: Canvas; offset: Offset)		99
+nim	composite	flit/foundation/layer.html#composite.e,ContainerLayer,Canvas,Offset	method composite(l: ContainerLayer; canvas: Canvas; offset: Offset)		104
+nim	composite	flit/foundation/layer.html#composite.e,OffsetLayer,Canvas,Offset	method composite(l: OffsetLayer; canvas: Canvas; offset: Offset)		110
+nim	composite	flit/foundation/layer.html#composite.e,OpacityLayer,Canvas,Offset	method composite(l: OpacityLayer; canvas: Canvas; offset: Offset)		115
+nim	composite	flit/foundation/layer.html#composite.e,TransformLayer,Canvas,Offset	method composite(l: TransformLayer; canvas: Canvas; offset: Offset)		122
+nim	composite	flit/foundation/layer.html#composite.e,ClipRectLayer,Canvas,Offset	method composite(l: ClipRectLayer; canvas: Canvas; offset: Offset)		132
+nim	composite	flit/foundation/layer.html#composite.e,PictureLayer,Canvas,Offset	method composite(l: PictureLayer; canvas: Canvas; offset: Offset)		142
+nim	compositeBoundary	flit/foundation/layer.html#compositeBoundary.e,Canvas,Canvas,Offset,Size	method compositeBoundary(canvas: Canvas; sub: Canvas; offset: Offset; size: Size)		153
+nim	composite	flit/foundation/layer.html#composite.e,BoundaryLayer,Canvas,Offset	method composite(l: BoundaryLayer; canvas: Canvas; offset: Offset)		160
+nim	paintIntoSubCanvas	flit/foundation/layer.html#paintIntoSubCanvas,BoundaryLayer,proc(Canvas)	proc paintIntoSubCanvas(boundary: BoundaryLayer;\n                   paintFn: proc (sub: Canvas) {.closure.})		177
+nim	isDirty	flit/foundation/layer.html#isDirty,BoundaryLayer	proc isDirty(boundary: BoundaryLayer): bool		194
+nim	newPictureLayer	flit/foundation/layer.html#newPictureLayer,proc(Canvas,Offset),Size	proc newPictureLayer(paintFn: proc (canvas: Canvas; offset: Offset) {.closure.};\n                size: Size = SizeZero): PictureLayer		199
+nim	newBoundaryLayer	flit/foundation/layer.html#newBoundaryLayer,Size	proc newBoundaryLayer(size: Size): BoundaryLayer		205
+nimgrp	composite	flit/foundation/layer.html#composite-methods-all	method		99

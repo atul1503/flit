@@ -1,0 +1,13 @@
+nimTitle	runtime	flit/foundation/runtime.html	module src/flit/foundation/runtime		0
+nim	descendantRenderElement	flit/foundation/runtime.html#descendantRenderElement,Element	proc descendantRenderElement(e: Element): Element		30
+nim	attachChildRenders	flit/foundation/runtime.html#attachChildRenders,Element	proc attachChildRenders(e: Element)		46
+nim	mountElement	flit/foundation/runtime.html#mountElement,Element,Widget,int	proc mountElement(parent: Element; w: Widget; slot: int): Element		109
+nim	kindFor	flit/foundation/runtime.html#kindFor,Widget	proc kindFor(w: Widget): ElementKind		152
+nim	rebuildElement	flit/foundation/runtime.html#rebuildElement,Element	proc rebuildElement(e: Element)		208
+nim	unmountElement	flit/foundation/runtime.html#unmountElement,Element	proc unmountElement(e: Element)		223
+nim	descendantRenderObj	flit/foundation/runtime.html#descendantRenderObj,Element	proc descendantRenderObj(e: Element): RenderObject		229
+nim	runLayout	flit/foundation/runtime.html#runLayout,Element,Constraints	proc runLayout(root: Element; c: Constraints)		390
+nim	runPaint	flit/foundation/runtime.html#runPaint,Element,Canvas	proc runPaint(root: Element; canvas: Canvas)		398
+nim	EventDispatcher	flit/foundation/runtime.html#EventDispatcher	type EventDispatcher		410
+nim	globalDispatcher	flit/foundation/runtime.html#globalDispatcher	var globalDispatcher		419
+nim	processPointerEvents	flit/foundation/runtime.html#processPointerEvents,Binding	proc processPointerEvents(b: Binding)		434

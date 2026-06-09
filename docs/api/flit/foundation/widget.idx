@@ -1,0 +1,46 @@
+nimTitle	widget	flit/foundation/widget.html	module src/flit/foundation/widget		0
+nim	Widget	flit/foundation/widget.html#Widget	type Widget		30
+nim	StatelessWidget	flit/foundation/widget.html#StatelessWidget	type StatelessWidget		37
+nim	StatefulWidget	flit/foundation/widget.html#StatefulWidget	type StatefulWidget		41
+nim	RenderObjectWidget	flit/foundation/widget.html#RenderObjectWidget	type RenderObjectWidget		68
+nim	ProxyWidget	flit/foundation/widget.html#ProxyWidget	type ProxyWidget		72
+nim	InheritedWidget	flit/foundation/widget.html#InheritedWidget	type InheritedWidget		77
+nim	ekStateless	flit/foundation/widget.html#ekStateless	ElementKind.ekStateless		82
+nim	ekStateful	flit/foundation/widget.html#ekStateful	ElementKind.ekStateful		82
+nim	ekRender	flit/foundation/widget.html#ekRender	ElementKind.ekRender		82
+nim	ekProxy	flit/foundation/widget.html#ekProxy	ElementKind.ekProxy		82
+nim	ekInherited	flit/foundation/widget.html#ekInherited	ElementKind.ekInherited		82
+nim	ekRoot	flit/foundation/widget.html#ekRoot	ElementKind.ekRoot		82
+nim	ElementKind	flit/foundation/widget.html#ElementKind	enum ElementKind		82
+nim	Element	flit/foundation/widget.html#Element	type Element		86
+nim	State	flit/foundation/widget.html#State	type State		118
+nim	BuildContext	flit/foundation/widget.html#BuildContext	type BuildContext		153
+nim	createElement	flit/foundation/widget.html#createElement.e,Widget	method createElement(w: Widget): Element		160
+nim	widgetTypeName	flit/foundation/widget.html#widgetTypeName.e,Widget	method widgetTypeName(w: Widget): string		166
+nim	canUpdate	flit/foundation/widget.html#canUpdate.e,Widget,Widget	method canUpdate(oldW, newW: Widget): bool		172
+nim	build	flit/foundation/widget.html#build.e,StatelessWidget,BuildContext	method build(w: StatelessWidget; ctx: BuildContext): Widget		181
+nim	createState	flit/foundation/widget.html#createState.e,StatefulWidget	method createState(w: StatefulWidget): State		188
+nim	build	flit/foundation/widget.html#build.e,State,BuildContext	method build(s: State; ctx: BuildContext): Widget		194
+nim	initState	flit/foundation/widget.html#initState.e,State	method initState(s: State)		200
+nim	didChangeDependencies	flit/foundation/widget.html#didChangeDependencies.e,State	method didChangeDependencies(s: State)		205
+nim	dispose	flit/foundation/widget.html#dispose.e,State	method dispose(s: State)		210
+nim	didUpdateWidget	flit/foundation/widget.html#didUpdateWidget.e,State,StatefulWidget	method didUpdateWidget(s: State; old: StatefulWidget)		215
+nim	reassemble	flit/foundation/widget.html#reassemble.e,State	method reassemble(s: State)		221
+nim	createRenderObject	flit/foundation/widget.html#createRenderObject.e,RenderObjectWidget,BuildContext	method createRenderObject(w: RenderObjectWidget; ctx: BuildContext): RenderObject		225
+nim	updateRenderObject	flit/foundation/widget.html#updateRenderObject.e,RenderObjectWidget,BuildContext,RenderObject	method updateRenderObject(w: RenderObjectWidget; ctx: BuildContext; r: RenderObject)		230
+nim	child	flit/foundation/widget.html#child.e,ProxyWidget	method child(p: ProxyWidget): Widget		238
+nim	updateShouldNotify	flit/foundation/widget.html#updateShouldNotify.e,InheritedWidget,InheritedWidget	method updateShouldNotify(w: InheritedWidget; old: InheritedWidget): bool		241
+nim	newElement	flit/foundation/widget.html#newElement,ElementKind,Widget	proc newElement(kind: ElementKind; widget: Widget): Element		250
+nim	onSetStateRoot	flit/foundation/widget.html#onSetStateRoot	var onSetStateRoot		257
+nim	inBuildPhase	flit/foundation/widget.html#inBuildPhase	var inBuildPhase		261
+nim	setState	flit/foundation/widget.html#setState,State,proc)	proc setState(s: State; fn: proc ())		267
+nim	markNeedsBuild	flit/foundation/widget.html#markNeedsBuild,Element	proc markNeedsBuild(e: Element)		289
+nim	updateChild	flit/foundation/widget.html#updateChild,Element,Element,Widget,int	proc updateChild(parent: Element; oldChild: Element; newWidget: Widget; slot: int): Element		299
+nim	performRebuild	flit/foundation/widget.html#performRebuild.e,Element	method performRebuild(e: Element)		339
+nim	visit	flit/foundation/widget.html#visit,Element,proc(Element)	proc visit(e: Element; fn: proc (child: Element))		348
+nim	visitDeep	flit/foundation/widget.html#visitDeep,Element,proc(Element)	proc visitDeep(e: Element; fn: proc (child: Element))		353
+nim	findInheritedOfType	flit/foundation/widget.html#findInheritedOfType,Element	proc findInheritedOfType[T: InheritedWidget](e: Element): T		361
+nim	dependOnInheritedOfType	flit/foundation/widget.html#dependOnInheritedOfType,BuildContext	proc dependOnInheritedOfType[T: InheritedWidget](ctx: BuildContext): T		374
+nim	notifyInheritedDependents	flit/foundation/widget.html#notifyInheritedDependents,Element	proc notifyInheritedDependents(e: Element)		395
+nim	debugDescribe	flit/foundation/widget.html#debugDescribe,Element	proc debugDescribe(e: Element): DiagnosticsNode		407
+nimgrp	build	flit/foundation/widget.html#build-methods-all	method		181

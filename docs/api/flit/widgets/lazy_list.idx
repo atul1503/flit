@@ -1,0 +1,10 @@
+nimTitle	lazy_list	flit/widgets/lazy_list.html	module src/flit/widgets/lazy_list		0
+nim	ListViewBuilder	flit/widgets/lazy_list.html#ListViewBuilder	type ListViewBuilder		41
+nim	RenderLazyList	flit/widgets/lazy_list.html#RenderLazyList	type RenderLazyList		53
+nim	newRenderLazyList	flit/widgets/lazy_list.html#newRenderLazyList,proc(int),int,float32,Axis,proc(int),float32	proc newRenderLazyList(itemBuilder: proc (idx: int): Widget; itemCount: int;\n                  itemExtent: float32; direction: Axis;\n                  extentFor: proc (idx: int): float32 = nil;\n                  extentEstimate: float32 = 0.0): RenderLazyList		61
+nim	performLayout	flit/widgets/lazy_list.html#performLayout.e,RenderLazyList	method performLayout(r: RenderLazyList)		79
+nim	widgetTypeName	flit/widgets/lazy_list.html#widgetTypeName.e,ListViewBuilder	method widgetTypeName(w: ListViewBuilder): string		125
+nim	createElement	flit/widgets/lazy_list.html#createElement.e,ListViewBuilder	method createElement(w: ListViewBuilder): Element		126
+nim	createRenderObject	flit/widgets/lazy_list.html#createRenderObject.e,ListViewBuilder,BuildContext	method createRenderObject(w: ListViewBuilder; ctx: BuildContext): RenderObject		127
+nim	updateRenderObject	flit/widgets/lazy_list.html#updateRenderObject.e,ListViewBuilder,BuildContext,RenderObject	method updateRenderObject(w: ListViewBuilder; ctx: BuildContext; r: RenderObject)		130
+nim	listViewBuilder	flit/widgets/lazy_list.html#listViewBuilder,proc(int),int,float32,proc(int),float32,Axis,Key	proc listViewBuilder(itemBuilder: proc (idx: int): Widget; itemCount: int;\n                itemExtent: float32 = 0.0;\n                extentFor: proc (idx: int): float32 = nil;\n                extentEstimate: float32 = 0.0; direction: Axis = axVertical;\n                key: Key = nil): ListViewBuilder		151

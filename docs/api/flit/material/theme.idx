@@ -1,0 +1,16 @@
+nimTitle	theme	flit/material/theme.html	module src/flit/material/theme		0
+nim	bLight	flit/material/theme.html#bLight	Brightness.bLight		13
+nim	bDark	flit/material/theme.html#bDark	Brightness.bDark		13
+nim	Brightness	flit/material/theme.html#Brightness	enum Brightness		13
+nim	ColorScheme	flit/material/theme.html#ColorScheme	object ColorScheme		18
+nim	Typography	flit/material/theme.html#Typography	object Typography		34
+nim	ThemeData	flit/material/theme.html#ThemeData	object ThemeData		46
+nim	defaultLightScheme	flit/material/theme.html#defaultLightScheme	const defaultLightScheme		55
+nim	defaultDarkScheme	flit/material/theme.html#defaultDarkScheme	const defaultDarkScheme		66
+nim	defaultTypography	flit/material/theme.html#defaultTypography,string	proc defaultTypography(fontFamily = "system"): Typography		77
+nim	themeData	flit/material/theme.html#themeData,string,float32	proc themeData(brightness = bLight; fontFamily = "system"; defaultRadius = 12.0'f32): ThemeData		90
+nim	currentThemeVar	flit/material/theme.html#currentThemeVar	var currentThemeVar		111
+nim	currentTheme	flit/material/theme.html#currentTheme	proc currentTheme(): ThemeData		116
+nim	setTheme	flit/material/theme.html#setTheme,ThemeData	proc setTheme(t: ThemeData)		120
+nim	pushTheme	flit/material/theme.html#pushTheme,ThemeData	proc pushTheme(t: ThemeData)		127
+nim	popTheme	flit/material/theme.html#popTheme	proc popTheme()		131

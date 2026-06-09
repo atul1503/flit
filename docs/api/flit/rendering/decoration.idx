@@ -1,0 +1,16 @@
+nimTitle	decoration	flit/rendering/decoration.html	module src/flit/rendering/decoration		0
+nim	bsRectangle	flit/rendering/decoration.html#bsRectangle	BoxShape.bsRectangle		8
+nim	bsCircle	flit/rendering/decoration.html#bsCircle	BoxShape.bsCircle		8
+nim	BoxShape	flit/rendering/decoration.html#BoxShape	enum BoxShape		8
+nim	Border	flit/rendering/decoration.html#Border	object Border		14
+nim	BoxShadow	flit/rendering/decoration.html#BoxShadow	object BoxShadow		19
+nim	gkLinear	flit/rendering/decoration.html#gkLinear	GradientKind.gkLinear		29
+nim	gkRadial	flit/rendering/decoration.html#gkRadial	GradientKind.gkRadial		29
+nim	GradientKind	flit/rendering/decoration.html#GradientKind	enum GradientKind		29
+nim	Gradient	flit/rendering/decoration.html#Gradient	object Gradient		36
+nim	BoxDecoration	flit/rendering/decoration.html#BoxDecoration	object BoxDecoration		46
+nim	RenderDecoratedBox	flit/rendering/decoration.html#RenderDecoratedBox	type RenderDecoratedBox		68
+nim	boxDecoration	flit/rendering/decoration.html#boxDecoration,float32	proc boxDecoration(color = colorTransparent; borderRadius = 0.0'f32;\n              border = Border(color: colorTransparent, width: 0.0);\n              shape = bsRectangle): BoxDecoration		74
+nim	performLayout	flit/rendering/decoration.html#performLayout.e,RenderDecoratedBox	method performLayout(r: RenderDecoratedBox)		92
+nim	paint	flit/rendering/decoration.html#paint.e,RenderDecoratedBox,PaintingContext,Offset	method paint(r: RenderDecoratedBox; ctx: PaintingContext; offset: Offset)		106
+nim	hitTest	flit/rendering/decoration.html#hitTest.e,RenderDecoratedBox,HitTestResult,Offset	method hitTest(r: RenderDecoratedBox; htResult: HitTestResult; position: Offset): bool		148

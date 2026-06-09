@@ -1,0 +1,10 @@
+nimTitle	flex	flit/rendering/flex.html	module src/flit/rendering/flex		0
+nim	ffLoose	flit/rendering/flex.html#ffLoose	FlexFit.ffLoose		9
+nim	ffTight	flit/rendering/flex.html#ffTight	FlexFit.ffTight		9
+nim	FlexFit	flit/rendering/flex.html#FlexFit	enum FlexFit		9
+nim	FlexParentData	flit/rendering/flex.html#FlexParentData	type FlexParentData		15
+nim	RenderFlexChild	flit/rendering/flex.html#RenderFlexChild	type RenderFlexChild		22
+nim	RenderFlex	flit/rendering/flex.html#RenderFlex	type RenderFlex		28
+nim	performLayout	flit/rendering/flex.html#performLayout.e,RenderFlex	method performLayout(r: RenderFlex)		58
+nim	paint	flit/rendering/flex.html#paint.e,RenderFlex,PaintingContext,Offset	method paint(r: RenderFlex; ctx: PaintingContext; offset: Offset)		162
+nim	hitTest	flit/rendering/flex.html#hitTest.e,RenderFlex,HitTestResult,Offset	method hitTest(r: RenderFlex; htResult: HitTestResult; position: Offset): bool		170

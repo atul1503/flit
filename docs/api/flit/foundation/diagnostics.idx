@@ -1,0 +1,30 @@
+nimTitle	diagnostics	flit/foundation/diagnostics.html	module src/flit/foundation/diagnostics		0
+nim	dlHidden	flit/foundation/diagnostics.html#dlHidden	DiagnosticLevel.dlHidden		12
+nim	dlFine	flit/foundation/diagnostics.html#dlFine	DiagnosticLevel.dlFine		12
+nim	dlDebug	flit/foundation/diagnostics.html#dlDebug	DiagnosticLevel.dlDebug		12
+nim	dlInfo	flit/foundation/diagnostics.html#dlInfo	DiagnosticLevel.dlInfo		12
+nim	dlWarning	flit/foundation/diagnostics.html#dlWarning	DiagnosticLevel.dlWarning		12
+nim	dlHint	flit/foundation/diagnostics.html#dlHint	DiagnosticLevel.dlHint		12
+nim	dlSummary	flit/foundation/diagnostics.html#dlSummary	DiagnosticLevel.dlSummary		12
+nim	dlError	flit/foundation/diagnostics.html#dlError	DiagnosticLevel.dlError		12
+nim	DiagnosticLevel	flit/foundation/diagnostics.html#DiagnosticLevel	enum DiagnosticLevel		12
+nim	DiagnosticsNode	flit/foundation/diagnostics.html#DiagnosticsNode	type DiagnosticsNode		18
+nim	node	flit/foundation/diagnostics.html#node,string,string,DiagnosticLevel	proc node(name: string; value: string = ""; level: DiagnosticLevel = dlInfo): DiagnosticsNode		27
+nim	add	flit/foundation/diagnostics.html#add,DiagnosticsNode,DiagnosticsNode	proc add(parent: DiagnosticsNode; child: DiagnosticsNode)		32
+nim	add	flit/foundation/diagnostics.html#add,DiagnosticsNode,string,string	proc add(parent: DiagnosticsNode; name, value: string)		36
+nim	prettyPrint	flit/foundation/diagnostics.html#prettyPrint,DiagnosticsNode,int	proc prettyPrint(n: DiagnosticsNode; indent = 0): string		41
+nim	llTrace	flit/foundation/diagnostics.html#llTrace	LogLevel.llTrace		56
+nim	llDebug	flit/foundation/diagnostics.html#llDebug	LogLevel.llDebug		56
+nim	llInfo	flit/foundation/diagnostics.html#llInfo	LogLevel.llInfo		56
+nim	llWarn	flit/foundation/diagnostics.html#llWarn	LogLevel.llWarn		56
+nim	llError	flit/foundation/diagnostics.html#llError	LogLevel.llError		56
+nim	llFatal	flit/foundation/diagnostics.html#llFatal	LogLevel.llFatal		56
+nim	LogLevel	flit/foundation/diagnostics.html#LogLevel	enum LogLevel		56
+nim	minLogLevel	flit/foundation/diagnostics.html#minLogLevel	var minLogLevel		62
+nim	logf	flit/foundation/diagnostics.html#logf,LogLevel,string	proc logf(level: LogLevel; msg: string)		66
+nim	flog	flit/foundation/diagnostics.html#flog.t,LogLevel,varargs[string,]	template flog(level: LogLevel; args: varargs[string, `$`])		80
+nim	flogi	flit/foundation/diagnostics.html#flogi.t,varargs[string,]	template flogi(args: varargs[string, `$`])		84
+nim	flogd	flit/foundation/diagnostics.html#flogd.t,varargs[string,]	template flogd(args: varargs[string, `$`])		86
+nim	flogw	flit/foundation/diagnostics.html#flogw.t,varargs[string,]	template flogw(args: varargs[string, `$`])		88
+nim	floge	flit/foundation/diagnostics.html#floge.t,varargs[string,]	template floge(args: varargs[string, `$`])		90
+nimgrp	add	flit/foundation/diagnostics.html#add-procs-all	proc		32

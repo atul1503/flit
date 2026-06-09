@@ -1,0 +1,27 @@
+nimTitle	binding	flit/foundation/binding.html	module src/flit/foundation/binding		0
+nim	FrameCallback	flit/foundation/binding.html#FrameCallback	type FrameCallback		23
+nim	PostFrameCallback	flit/foundation/binding.html#PostFrameCallback	type PostFrameCallback		27
+nim	peDown	flit/foundation/binding.html#peDown	PointerEventKind.peDown		31
+nim	peMove	flit/foundation/binding.html#peMove	PointerEventKind.peMove		31
+nim	peUp	flit/foundation/binding.html#peUp	PointerEventKind.peUp		31
+nim	peCancel	flit/foundation/binding.html#peCancel	PointerEventKind.peCancel		31
+nim	peHoverEnter	flit/foundation/binding.html#peHoverEnter	PointerEventKind.peHoverEnter		31
+nim	peHoverExit	flit/foundation/binding.html#peHoverExit	PointerEventKind.peHoverExit		31
+nim	peScroll	flit/foundation/binding.html#peScroll	PointerEventKind.peScroll		31
+nim	PointerEventKind	flit/foundation/binding.html#PointerEventKind	enum PointerEventKind		31
+nim	PointerEvent	flit/foundation/binding.html#PointerEvent	object PointerEvent		38
+nim	keDown	flit/foundation/binding.html#keDown	KeyEventKind.keDown		52
+nim	keUp	flit/foundation/binding.html#keUp	KeyEventKind.keUp		52
+nim	keRepeat	flit/foundation/binding.html#keRepeat	KeyEventKind.keRepeat		52
+nim	KeyEventKind	flit/foundation/binding.html#KeyEventKind	enum KeyEventKind		52
+nim	KeyEvent	flit/foundation/binding.html#KeyEvent	object KeyEvent		56
+nim	Binding	flit/foundation/binding.html#Binding	type Binding		67
+nim	globalBinding	flit/foundation/binding.html#globalBinding	var globalBinding		103
+nim	newBinding	flit/foundation/binding.html#newBinding,Canvas,Size,float32	proc newBinding(canvas: Canvas; surfaceSize: Size; devicePixelRatio: float32 = 1.0): Binding		107
+nim	scheduleFrame	flit/foundation/binding.html#scheduleFrame,Binding,FrameCallback	proc scheduleFrame(b: Binding; cb: FrameCallback)		136
+nim	addPostFrameCallback	flit/foundation/binding.html#addPostFrameCallback,Binding,PostFrameCallback	proc addPostFrameCallback(b: Binding; cb: PostFrameCallback)		141
+nim	dispatchPointer	flit/foundation/binding.html#dispatchPointer,Binding,PointerEvent	proc dispatchPointer(b: Binding; ev: PointerEvent)		145
+nim	dispatchKey	flit/foundation/binding.html#dispatchKey,Binding,KeyEvent	proc dispatchKey(b: Binding; ev: KeyEvent)		150
+nim	currentTime	flit/foundation/binding.html#currentTime,Binding	proc currentTime(b: Binding): float		155
+nim	markRootDirty	flit/foundation/binding.html#markRootDirty,Binding,Element	proc markRootDirty(b: Binding; root: Element)		160
+nim	clearDirty	flit/foundation/binding.html#clearDirty,Binding	proc clearDirty(b: Binding)		166

@@ -1,0 +1,10 @@
+nimTitle	sliver_list	flit/rendering/sliver_list.html	module src/flit/rendering/sliver_list		0
+nim	RenderSliverList	flit/rendering/sliver_list.html#RenderSliverList	type RenderSliverList		17
+nim	rebuildPrefixSums	flit/rendering/sliver_list.html#rebuildPrefixSums,RenderSliverList	proc rebuildPrefixSums(r: RenderSliverList)		57
+nim	offsetOfIndex	flit/rendering/sliver_list.html#offsetOfIndex,RenderSliverList,int	proc offsetOfIndex(r: RenderSliverList; idx: int): float32		104
+nim	extentOfIndex	flit/rendering/sliver_list.html#extentOfIndex,RenderSliverList,int	proc extentOfIndex(r: RenderSliverList; idx: int): float32		114
+nim	newRenderSliverList	flit/rendering/sliver_list.html#newRenderSliverList,int,float32,Axis,proc(int),float32	proc newRenderSliverList(itemCount: int; itemExtent: float32;\n                    direction: Axis = axVertical;\n                    extentFor: proc (idx: int): float32 = nil;\n                    extentEstimate: float32 = 0.0): RenderSliverList		125
+nim	performLayout	flit/rendering/sliver_list.html#performLayout.e,RenderSliverList	method performLayout(r: RenderSliverList)		151
+nim	paint	flit/rendering/sliver_list.html#paint.e,RenderSliverList,PaintingContext,Offset	method paint(r: RenderSliverList; ctx: PaintingContext; offset: Offset)		259
+nim	hitTest	flit/rendering/sliver_list.html#hitTest.e,RenderSliverList,HitTestResult,Offset	method hitTest(r: RenderSliverList; htResult: HitTestResult; position: Offset): bool		302
+nim	updateVisibleItems	flit/rendering/sliver_list.html#updateVisibleItems,RenderSliverList,Table[int,RenderObject]	proc updateVisibleItems(r: RenderSliverList; builtItems: Table[int, RenderObject])		325

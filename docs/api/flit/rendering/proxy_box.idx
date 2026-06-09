@@ -1,0 +1,32 @@
+nimTitle	proxy_box	flit/rendering/proxy_box.html	module src/flit/rendering/proxy_box		0
+nim	RenderProxyBox	flit/rendering/proxy_box.html#RenderProxyBox	type RenderProxyBox		15
+nim	RenderConstrainedBox	flit/rendering/proxy_box.html#RenderConstrainedBox	type RenderConstrainedBox		21
+nim	RenderPadding	flit/rendering/proxy_box.html#RenderPadding	type RenderPadding		27
+nim	RenderAlign	flit/rendering/proxy_box.html#RenderAlign	type RenderAlign		31
+nim	RenderColoredBox	flit/rendering/proxy_box.html#RenderColoredBox	type RenderColoredBox		40
+nim	RenderOpacity	flit/rendering/proxy_box.html#RenderOpacity	type RenderOpacity		45
+nim	RenderTransform	flit/rendering/proxy_box.html#RenderTransform	type RenderTransform		51
+nim	RenderSizedBox	flit/rendering/proxy_box.html#RenderSizedBox	type RenderSizedBox		59
+nim	RenderAspectRatio	flit/rendering/proxy_box.html#RenderAspectRatio	type RenderAspectRatio		66
+nim	RenderClipRect	flit/rendering/proxy_box.html#RenderClipRect	type RenderClipRect		71
+nim	RenderClipRRect	flit/rendering/proxy_box.html#RenderClipRRect	type RenderClipRRect		75
+nim	RenderRepaintBoundary	flit/rendering/proxy_box.html#RenderRepaintBoundary	type RenderRepaintBoundary		82
+nim	performLayout	flit/rendering/proxy_box.html#performLayout.e,RenderProxyBox	method performLayout(r: RenderProxyBox)		102
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderProxyBox,PaintingContext,Offset	method paint(r: RenderProxyBox; ctx: PaintingContext; offset: Offset)		116
+nim	hitTest	flit/rendering/proxy_box.html#hitTest.e,RenderProxyBox,HitTestResult,Offset	method hitTest(r: RenderProxyBox; htResult: HitTestResult; position: Offset): bool		123
+nim	performLayout	flit/rendering/proxy_box.html#performLayout.e,RenderConstrainedBox	method performLayout(r: RenderConstrainedBox)		137
+nim	performLayout	flit/rendering/proxy_box.html#performLayout.e,RenderSizedBox	method performLayout(r: RenderSizedBox)		151
+nim	performLayout	flit/rendering/proxy_box.html#performLayout.e,RenderAspectRatio	method performLayout(r: RenderAspectRatio)		177
+nim	performLayout	flit/rendering/proxy_box.html#performLayout.e,RenderPadding	method performLayout(r: RenderPadding)		205
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderPadding,PaintingContext,Offset	method paint(r: RenderPadding; ctx: PaintingContext; offset: Offset)		221
+nim	performLayout	flit/rendering/proxy_box.html#performLayout.e,RenderAlign	method performLayout(r: RenderAlign)		229
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderAlign,PaintingContext,Offset	method paint(r: RenderAlign; ctx: PaintingContext; offset: Offset)		250
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderColoredBox,PaintingContext,Offset	method paint(r: RenderColoredBox; ctx: PaintingContext; offset: Offset)		257
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderOpacity,PaintingContext,Offset	method paint(r: RenderOpacity; ctx: PaintingContext; offset: Offset)		267
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderClipRect,PaintingContext,Offset	method paint(r: RenderClipRect; ctx: PaintingContext; offset: Offset)		280
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderClipRRect,PaintingContext,Offset	method paint(r: RenderClipRRect; ctx: PaintingContext; offset: Offset)		290
+nim	absorbPaintMark	flit/rendering/proxy_box.html#absorbPaintMark.e,RenderRepaintBoundary	method absorbPaintMark(r: RenderRepaintBoundary)		307
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderRepaintBoundary,PaintingContext,Offset	method paint(r: RenderRepaintBoundary; ctx: PaintingContext; offset: Offset)		310
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderTransform,PaintingContext,Offset	method paint(r: RenderTransform; ctx: PaintingContext; offset: Offset)		340
+nimgrp	paint	flit/rendering/proxy_box.html#paint-methods-all	method		116
+nimgrp	performlayout	flit/rendering/proxy_box.html#performLayout-methods-all	method		102

@@ -1,0 +1,105 @@
+nimTitle	geometry	flit/foundation/geometry.html	module src/flit/foundation/geometry		0
+nim	Offset	flit/foundation/geometry.html#Offset	object Offset		12
+nim	Size	flit/foundation/geometry.html#Size	object Size		17
+nim	Rect	flit/foundation/geometry.html#Rect	object Rect		22
+nim	Radius	flit/foundation/geometry.html#Radius	object Radius		28
+nim	RRect	flit/foundation/geometry.html#RRect	object RRect		33
+nim	EdgeInsets	flit/foundation/geometry.html#EdgeInsets	object EdgeInsets		39
+nim	Alignment	flit/foundation/geometry.html#Alignment	object Alignment		44
+nim	axHorizontal	flit/foundation/geometry.html#axHorizontal	Axis.axHorizontal		51
+nim	axVertical	flit/foundation/geometry.html#axVertical	Axis.axVertical		51
+nim	Axis	flit/foundation/geometry.html#Axis	enum Axis		51
+nim	maStart	flit/foundation/geometry.html#maStart	MainAxisAlignment.maStart		55
+nim	maEnd	flit/foundation/geometry.html#maEnd	MainAxisAlignment.maEnd		55
+nim	maCenter	flit/foundation/geometry.html#maCenter	MainAxisAlignment.maCenter		55
+nim	maSpaceBetween	flit/foundation/geometry.html#maSpaceBetween	MainAxisAlignment.maSpaceBetween		55
+nim	maSpaceAround	flit/foundation/geometry.html#maSpaceAround	MainAxisAlignment.maSpaceAround		55
+nim	maSpaceEvenly	flit/foundation/geometry.html#maSpaceEvenly	MainAxisAlignment.maSpaceEvenly		55
+nim	MainAxisAlignment	flit/foundation/geometry.html#MainAxisAlignment	enum MainAxisAlignment		55
+nim	caStart	flit/foundation/geometry.html#caStart	CrossAxisAlignment.caStart		64
+nim	caEnd	flit/foundation/geometry.html#caEnd	CrossAxisAlignment.caEnd		64
+nim	caCenter	flit/foundation/geometry.html#caCenter	CrossAxisAlignment.caCenter		64
+nim	caStretch	flit/foundation/geometry.html#caStretch	CrossAxisAlignment.caStretch		64
+nim	caBaseline	flit/foundation/geometry.html#caBaseline	CrossAxisAlignment.caBaseline		64
+nim	CrossAxisAlignment	flit/foundation/geometry.html#CrossAxisAlignment	enum CrossAxisAlignment		64
+nim	msMin	flit/foundation/geometry.html#msMin	MainAxisSize.msMin		71
+nim	msMax	flit/foundation/geometry.html#msMax	MainAxisSize.msMax		71
+nim	MainAxisSize	flit/foundation/geometry.html#MainAxisSize	enum MainAxisSize		71
+nim	tdLtr	flit/foundation/geometry.html#tdLtr	TextDirection.tdLtr		76
+nim	tdRtl	flit/foundation/geometry.html#tdRtl	TextDirection.tdRtl		76
+nim	TextDirection	flit/foundation/geometry.html#TextDirection	enum TextDirection		76
+nim	vdUp	flit/foundation/geometry.html#vdUp	VerticalDirection.vdUp		81
+nim	vdDown	flit/foundation/geometry.html#vdDown	VerticalDirection.vdDown		81
+nim	VerticalDirection	flit/foundation/geometry.html#VerticalDirection	enum VerticalDirection		81
+nim	Constraints	flit/foundation/geometry.html#Constraints	object Constraints		85
+nim	OffsetZero	flit/foundation/geometry.html#OffsetZero	const OffsetZero		94
+nim	SizeZero	flit/foundation/geometry.html#SizeZero	const SizeZero		96
+nim	RectZero	flit/foundation/geometry.html#RectZero	const RectZero		98
+nim	offset	flit/foundation/geometry.html#offset,float32,float32	proc offset(dx, dy: float32): Offset		103
+nim	`+`	flit/foundation/geometry.html#+,Offset,Offset	proc `+`(a, b: Offset): Offset		107
+nim	`-`	flit/foundation/geometry.html#-,Offset,Offset	proc `-`(a, b: Offset): Offset		110
+nim	`*`	flit/foundation/geometry.html#*,Offset,float32	proc `*`(a: Offset; s: float32): Offset		113
+nim	distance	flit/foundation/geometry.html#distance,Offset	proc distance(a: Offset): float32		117
+nim	hash	flit/foundation/geometry.html#hash,Offset	proc hash(o: Offset): Hash		121
+nim	size	flit/foundation/geometry.html#size,float32,float32	proc size(w, h: float32): Size		128
+nim	area	flit/foundation/geometry.html#area,Size	proc area(s: Size): float32		132
+nim	isFinite	flit/foundation/geometry.html#isFinite,Size	proc isFinite(s: Size): bool		136
+nim	rect	flit/foundation/geometry.html#rect,float32,float32,float32,float32	proc rect(left, top, right, bottom: float32): Rect		142
+nim	rectFromLTWH	flit/foundation/geometry.html#rectFromLTWH,float32,float32,float32,float32	proc rectFromLTWH(l, t, w, h: float32): Rect		146
+nim	rectFromOffsetSize	flit/foundation/geometry.html#rectFromOffsetSize,Offset,Size	proc rectFromOffsetSize(o: Offset; s: Size): Rect		150
+nim	width	flit/foundation/geometry.html#width,Rect	proc width(r: Rect): float32		154
+nim	height	flit/foundation/geometry.html#height,Rect	proc height(r: Rect): float32		156
+nim	topLeft	flit/foundation/geometry.html#topLeft,Rect	proc topLeft(r: Rect): Offset		158
+nim	bottomRight	flit/foundation/geometry.html#bottomRight,Rect	proc bottomRight(r: Rect): Offset		160
+nim	center	flit/foundation/geometry.html#center,Rect	proc center(r: Rect): Offset		163
+nim	contains	flit/foundation/geometry.html#contains,Rect,Offset	proc contains(r: Rect; p: Offset): bool		167
+nim	shift	flit/foundation/geometry.html#shift,Rect,Offset	proc shift(r: Rect; o: Offset): Rect		173
+nim	inflate	flit/foundation/geometry.html#inflate,Rect,float32	proc inflate(r: Rect; d: float32): Rect		178
+nim	deflate	flit/foundation/geometry.html#deflate,Rect,float32	proc deflate(r: Rect; d: float32): Rect		182
+nim	intersect	flit/foundation/geometry.html#intersect,Rect,Rect	proc intersect(a, b: Rect): Rect		185
+nim	radius	flit/foundation/geometry.html#radius,float32	proc radius(r: float32): Radius		193
+nim	radiusElliptical	flit/foundation/geometry.html#radiusElliptical,float32,float32	proc radiusElliptical(x, y: float32): Radius		196
+nim	rrect	flit/foundation/geometry.html#rrect,Rect,float32	proc rrect(r: Rect; all: float32): RRect		200
+nim	edgeInsetsAll	flit/foundation/geometry.html#edgeInsetsAll,float32	proc edgeInsetsAll(v: float32): EdgeInsets		208
+nim	edgeInsetsSymmetric	flit/foundation/geometry.html#edgeInsetsSymmetric,float32,float32	proc edgeInsetsSymmetric(horizontal, vertical: float32): EdgeInsets		213
+nim	edgeInsetsOnly	flit/foundation/geometry.html#edgeInsetsOnly,float32,float32,float32,float32	proc edgeInsetsOnly(left = 0.0'f32; top = 0.0'f32; right = 0.0'f32; bottom = 0.0'f32): EdgeInsets		218
+nim	edgeInsetsLTRB	flit/foundation/geometry.html#edgeInsetsLTRB,float32,float32,float32,float32	proc edgeInsetsLTRB(l, t, r, b: float32): EdgeInsets		222
+nim	horizontal	flit/foundation/geometry.html#horizontal,EdgeInsets	proc horizontal(e: EdgeInsets): float32		226
+nim	vertical	flit/foundation/geometry.html#vertical,EdgeInsets	proc vertical(e: EdgeInsets): float32		228
+nim	topLeftOffset	flit/foundation/geometry.html#topLeftOffset,EdgeInsets	proc topLeftOffset(e: EdgeInsets): Offset		230
+nim	deflateRect	flit/foundation/geometry.html#deflateRect,EdgeInsets,Rect	proc deflateRect(e: EdgeInsets; r: Rect): Rect		234
+nim	deflateSize	flit/foundation/geometry.html#deflateSize,EdgeInsets,Size	proc deflateSize(e: EdgeInsets; s: Size): Size		239
+nim	alignment	flit/foundation/geometry.html#alignment,float32,float32	proc alignment(x, y: float32): Alignment		247
+nim	alignTopLeft	flit/foundation/geometry.html#alignTopLeft	const alignTopLeft		252
+nim	alignTopCenter	flit/foundation/geometry.html#alignTopCenter	const alignTopCenter		254
+nim	alignTopRight	flit/foundation/geometry.html#alignTopRight	const alignTopRight		256
+nim	alignCenterLeft	flit/foundation/geometry.html#alignCenterLeft	const alignCenterLeft		258
+nim	alignCenter	flit/foundation/geometry.html#alignCenter	const alignCenter		260
+nim	alignCenterRight	flit/foundation/geometry.html#alignCenterRight	const alignCenterRight		262
+nim	alignBottomLeft	flit/foundation/geometry.html#alignBottomLeft	const alignBottomLeft		264
+nim	alignBottomCenter	flit/foundation/geometry.html#alignBottomCenter	const alignBottomCenter		266
+nim	alignBottomRight	flit/foundation/geometry.html#alignBottomRight	const alignBottomRight		268
+nim	resolveOffset	flit/foundation/geometry.html#resolveOffset,Alignment,Size,Size	proc resolveOffset(a: Alignment; parent, child: Size): Offset		271
+nim	constraints	flit/foundation/geometry.html#constraints,float32,float32,float32,float32	proc constraints(minW, maxW, minH, maxH: float32): Constraints		281
+nim	tightFor	flit/foundation/geometry.html#tightFor,float32,float32	proc tightFor(w, h: float32): Constraints		286
+nim	tightFor	flit/foundation/geometry.html#tightFor,Size	proc tightFor(s: Size): Constraints		291
+nim	looseFor	flit/foundation/geometry.html#looseFor,Size	proc looseFor(s: Size): Constraints		294
+nim	unbounded	flit/foundation/geometry.html#unbounded	proc unbounded(): Constraints		299
+nim	hasBoundedWidth	flit/foundation/geometry.html#hasBoundedWidth,Constraints	proc hasBoundedWidth(c: Constraints): bool		304
+nim	hasBoundedHeight	flit/foundation/geometry.html#hasBoundedHeight,Constraints	proc hasBoundedHeight(c: Constraints): bool		306
+nim	isTight	flit/foundation/geometry.html#isTight,Constraints	proc isTight(c: Constraints): bool		308
+nim	constrain	flit/foundation/geometry.html#constrain,Constraints,Size	proc constrain(c: Constraints; s: Size): Size		312
+nim	enforce	flit/foundation/geometry.html#enforce,Constraints,Constraints	proc enforce(c, parent: Constraints): Constraints		318
+nim	loosen	flit/foundation/geometry.html#loosen,Constraints	proc loosen(c: Constraints): Constraints		329
+nim	deflate	flit/foundation/geometry.html#deflate,Constraints,EdgeInsets	proc deflate(c: Constraints; e: EdgeInsets): Constraints		334
+nim	lerp	flit/foundation/geometry.html#lerp,Offset,Offset,float32	proc lerp(a, b: Offset; t: float32): Offset		348
+nim	lerp	flit/foundation/geometry.html#lerp,Size,Size,float32	proc lerp(a, b: Size; t: float32): Size		354
+nim	lerp	flit/foundation/geometry.html#lerp,EdgeInsets,EdgeInsets,float32	proc lerp(a, b: EdgeInsets; t: float32): EdgeInsets		359
+nim	`$`	flit/foundation/geometry.html#$,Size	proc `$`(s: Size): string		367
+nim	`$`	flit/foundation/geometry.html#$,Offset	proc `$`(o: Offset): string		369
+nim	`$`	flit/foundation/geometry.html#$,Rect	proc `$`(r: Rect): string		371
+nim	`$`	flit/foundation/geometry.html#$,Constraints	proc `$`(c: Constraints): string		374
+nimgrp	deflate	flit/foundation/geometry.html#deflate-procs-all	proc		182
+nimgrp	$	flit/foundation/geometry.html#$-procs-all	proc		367
+nimgrp	tightfor	flit/foundation/geometry.html#tightFor-procs-all	proc		286
+nimgrp	lerp	flit/foundation/geometry.html#lerp-procs-all	proc		348
