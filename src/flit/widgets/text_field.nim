@@ -1,0 +1,311 @@
+## Single-line text input widget. Cursor, character insert, backspace,
+## delete, arrow keys, home / end, selection, click-to-focus.
+##
+## This is the minimum viable text input. Missing features that will
+## be added incrementally: multi-line, clipboard copy / paste,
+## undo / redo, mouse-drag selection, IME composition preview.
+##
+## Architecture:
+## - `TextField` is a `StatefulWidget` because the value mutates.
+## - The state owns a `FocusNode` (from `foundation/focus`) and
+##   subscribes to text and key events via the focus manager.
+## - The cursor blinks via an `AnimationController` while focused.
+## - The render object draws the value, a vertical cursor bar at
+##   the cursor offset, and a selection background when a selection
+##   range is set.
+
+import std/strutils
+import ../foundation/[widget, render_object, geometry, color, focus,
+                       key, runtime]
+import ../rendering/text
+import ../gestures/detector
+
+type
+  TextEditingController* = ref object
+    ## Mutable string + cursor + selection. The widget owns one;
+    ## external callers can pass their own to share state.
+    text*:        string
+    cursor*:      int          # byte offset into text
+    selectionEnd*: int         # if != cursor, a selection is active
+    listeners*:   seq[proc(value: string) {.closure.}]
+
+  TextField* = ref object of StatefulWidget
+    ## Single-line text input.
+    initialValue*: string
+    controller*:   TextEditingController
+    placeholder*:  string
+    style*:        TextStyle
+    onChanged*:    proc(value: string) {.closure.}
+    onSubmitted*:  proc(value: string) {.closure.}
+    enabled*:      bool
+    maxLength*:    int           # 0 means unlimited
+
+  TextFieldState* = ref object of State
+    controller*:  TextEditingController
+    node*:        FocusNode
+    blinkPhase*:  bool          # toggled by post-frame timer
+
+  RenderTextField* = ref object of RenderObject
+    ## Backing render object. Paints background, text, cursor,
+    ## selection.
+    value*:        string
+    placeholder*:  string
+    style*:        TextStyle
+    cursor*:       int
+    selectionEnd*: int
+    focused*:      bool
+    blinkOn*:      bool
+
+proc newTextEditingController*(initial: string = ""): TextEditingController =
+  ## Builds a controller with the given initial value, cursor at the
+  ## end, no selection.
+  TextEditingController(text: initial, cursor: initial.len,
+                        selectionEnd: initial.len)
+
+proc value*(c: TextEditingController): string = c.text
+
+proc `value=`*(c: TextEditingController, v: string) =
+  ## Replace the text. Clamps cursor and selection to the new length.
+  ## Fires every listener.
+  c.text = v
+  if c.cursor > v.len: c.cursor = v.len
+  if c.selectionEnd > v.len: c.selectionEnd = v.len
+  for l in c.listeners:
+    try: l(v) except CatchableError: discard
+
+proc addListener*(c: TextEditingController, fn: proc(value: string)) =
+  c.listeners.add(fn)
+
+proc clearSelection*(c: TextEditingController) =
+  c.selectionEnd = c.cursor
+
+proc hasSelection*(c: TextEditingController): bool =
+  c.selectionEnd != c.cursor
+
+proc selectionRange*(c: TextEditingController): tuple[lo, hi: int] =
+  if c.cursor <= c.selectionEnd: (c.cursor, c.selectionEnd)
+  else: (c.selectionEnd, c.cursor)
+
+proc deleteSelection*(c: TextEditingController): bool =
+  ## Delete the selected text. Returns true if anything was deleted.
+  if not c.hasSelection: return false
+  let r = c.selectionRange
+  c.text = c.text[0 ..< r.lo] & c.text[r.hi ..< c.text.len]
+  c.cursor = r.lo
+  c.selectionEnd = r.lo
+  true
+
+proc insertText*(c: TextEditingController, s: string, maxLength: int) =
+  discard c.deleteSelection()
+  var add = s
+  if maxLength > 0 and c.text.len + s.len > maxLength:
+    add = s[0 ..< max(0, maxLength - c.text.len)]
+  if add.len == 0: return
+  c.text = c.text[0 ..< c.cursor] & add & c.text[c.cursor ..< c.text.len]
+  c.cursor += add.len
+  c.selectionEnd = c.cursor
+
+proc backspace*(c: TextEditingController) =
+  if c.deleteSelection: return
+  if c.cursor <= 0: return
+  c.text = c.text[0 ..< c.cursor - 1] & c.text[c.cursor ..< c.text.len]
+  dec c.cursor
+  c.selectionEnd = c.cursor
+
+proc forwardDelete*(c: TextEditingController) =
+  if c.deleteSelection: return
+  if c.cursor >= c.text.len: return
+  c.text = c.text[0 ..< c.cursor] & c.text[c.cursor + 1 ..< c.text.len]
+
+proc moveLeft*(c: TextEditingController, extend: bool) =
+  if c.cursor > 0: dec c.cursor
+  if not extend: c.selectionEnd = c.cursor
+
+proc moveRight*(c: TextEditingController, extend: bool) =
+  if c.cursor < c.text.len: inc c.cursor
+  if not extend: c.selectionEnd = c.cursor
+
+proc moveHome*(c: TextEditingController, extend: bool) =
+  c.cursor = 0
+  if not extend: c.selectionEnd = c.cursor
+
+proc moveEnd*(c: TextEditingController, extend: bool) =
+  c.cursor = c.text.len
+  if not extend: c.selectionEnd = c.cursor
+
+method widgetTypeName*(w: TextField): string = "TextField"
+method createElement*(w: TextField): Element = newElement(ekStateful, w)
+method createState*(w: TextField): State =
+  let ctrl = if w.controller.isNil:
+    newTextEditingController(w.initialValue)
+  else: w.controller
+  TextFieldState(controller: ctrl, blinkPhase: true)
+
+method initState(s: TextFieldState) =
+  ## Register the focus node and wire its event callbacks. We keep
+  ## the node alive for the state's lifetime; `dispose` removes it.
+  s.node = newFocusNode()
+  s.node.onFocusChange = proc(focused: bool) =
+    setState(s, proc() = discard)
+  s.node.onKey = proc(node: FocusNode, key: FocusKey, mods: uint32) =
+    let shift = (mods and 0x0003) != 0
+    let host = TextField(s.element.widget)
+    if not host.enabled: return
+    setState(s, proc() =
+      case key
+      of fkBackspace:  s.controller.backspace()
+      of fkDelete:     s.controller.forwardDelete()
+      of fkLeft:       s.controller.moveLeft(shift)
+      of fkRight:      s.controller.moveRight(shift)
+      of fkHome:       s.controller.moveHome(shift)
+      of fkEnd:        s.controller.moveEnd(shift)
+      of fkEnter:
+        if not host.onSubmitted.isNil:
+          try: host.onSubmitted(s.controller.text) except CatchableError: discard
+      else: discard)
+    if not host.onChanged.isNil:
+      try: host.onChanged(s.controller.text) except CatchableError: discard
+  s.node.onText = proc(node: FocusNode, text: string) =
+    let host = TextField(s.element.widget)
+    if not host.enabled: return
+    setState(s, proc() =
+      s.controller.insertText(text, host.maxLength))
+    if not host.onChanged.isNil:
+      try: host.onChanged(s.controller.text) except CatchableError: discard
+  focusManager().add(s.node)
+
+method dispose(s: TextFieldState) =
+  focusManager().remove(s.node)
+
+# RenderObjectWidget wrapper that delegates to RenderTextField.
+
+type
+  TextFieldHost* = ref object of RenderObjectWidget
+    value*, placeholder*: string
+    style*: TextStyle
+    cursor*, selectionEnd*: int
+    focused*, blinkOn*: bool
+
+method build*(s: TextFieldState, ctx: BuildContext): Widget =
+  let host = TextField(s.element.widget)
+  # Wrap a paintable render-object widget in a gesture detector
+  # so tapping the field focuses it.
+  gestureDetector(
+    behavior = htOpaque,
+    onTap = proc() =
+      if host.enabled:
+        focusManager().focus(s.node),
+    child = TextFieldHost(
+      value: s.controller.text,
+      placeholder: host.placeholder,
+      style: if host.style.fontSize > 0: host.style else: defaultTextStyle,
+      cursor: s.controller.cursor,
+      selectionEnd: s.controller.selectionEnd,
+      focused: s.node.hasFocus,
+      blinkOn: s.blinkPhase))
+
+method widgetTypeName*(w: TextFieldHost): string = "TextFieldHost"
+method createElement*(w: TextFieldHost): Element = newElement(ekRender, w)
+method createRenderObject*(w: TextFieldHost, ctx: BuildContext): RenderObject =
+  RenderTextField(value: w.value, placeholder: w.placeholder,
+                  style: w.style, cursor: w.cursor,
+                  selectionEnd: w.selectionEnd,
+                  focused: w.focused, blinkOn: w.blinkOn)
+method updateRenderObject*(w: TextFieldHost, ctx: BuildContext, r: RenderObject) =
+  let t = RenderTextField(r)
+  t.value = w.value
+  t.placeholder = w.placeholder
+  t.style = w.style
+  t.cursor = w.cursor
+  t.selectionEnd = w.selectionEnd
+  t.focused = w.focused
+  t.blinkOn = w.blinkOn
+  r.markNeedsPaint()
+
+method performLayout*(r: RenderTextField) =
+  ## Size: parent's max width by `style.fontSize * 1.6` (room for
+  ## ascent + descent + a little padding).
+  let h = max(r.style.fontSize * 1.6'f32, 32.0'f32)
+  let w = if r.constraints.hasBoundedWidth: r.constraints.maxWidth
+          else: 200.0'f32
+  r.setSize(r.constraints.constrain(Size(width: w, height: h)))
+
+method paint*(r: RenderTextField, ctx: PaintingContext, offset: Offset) =
+  let bg =
+    if r.focused: 0xFFFFFFFF'u32  # white when focused
+    else: 0xFFF5F5F5'u32          # light grey otherwise
+  ctx.canvas.drawRect(rectFromOffsetSize(offset, r.size), bg)
+  # Bottom border line.
+  ctx.canvas.drawLine(
+    Offset(dx: offset.dx, dy: offset.dy + r.size.height - 1),
+    Offset(dx: offset.dx + r.size.width, dy: offset.dy + r.size.height - 1),
+    (if r.focused: 0xFF1976D2'u32 else: 0xFFCCCCCC'u32),
+    2.0)
+
+  let textOffset = Offset(dx: offset.dx + 8.0'f32,
+                          dy: offset.dy + (r.size.height - r.style.fontSize) * 0.5'f32)
+
+  # Selection background.
+  if r.selectionEnd != r.cursor:
+    let lo = min(r.cursor, r.selectionEnd)
+    let hi = max(r.cursor, r.selectionEnd)
+    let pre = r.value[0 ..< lo]
+    let sel = r.value[lo ..< hi]
+    let xLo = textOffset.dx + measureText(pre, r.style).width
+    let xHi = xLo + measureText(sel, r.style).width
+    ctx.canvas.drawRect(
+      Rect(left: xLo, top: offset.dy + 6,
+           right: xHi, bottom: offset.dy + r.size.height - 6),
+      0x402196F3'u32)
+
+  # The value (or placeholder when empty).
+  if r.value.len > 0:
+    ctx.canvas.drawText(r.value, textOffset, r.style.color.value,
+                        r.style.fontSize, r.style.fontFamily)
+  elif r.placeholder.len > 0:
+    ctx.canvas.drawText(r.placeholder, textOffset,
+                        0xFFB0B0B0'u32, r.style.fontSize, r.style.fontFamily)
+
+  # Cursor bar (only when focused and blink phase is on).
+  if r.focused and r.blinkOn:
+    let pre = if r.cursor > r.value.len: r.value
+              else: r.value[0 ..< r.cursor]
+    let cursorX = textOffset.dx + measureText(pre, r.style).width
+    ctx.canvas.drawLine(
+      Offset(dx: cursorX, dy: offset.dy + 6),
+      Offset(dx: cursorX, dy: offset.dy + r.size.height - 6),
+      r.style.color.value, 1.5)
+
+method hitTest*(r: RenderTextField, htResult: HitTestResult, position: Offset): bool =
+  htResult.path.add(HitTestEntry(target: r, local: position))
+  true
+
+proc textField*(initialValue: string = "",
+                controller: TextEditingController = nil,
+                placeholder: string = "",
+                style: TextStyle = defaultTextStyle,
+                onChanged: proc(value: string) = nil,
+                onSubmitted: proc(value: string) = nil,
+                enabled: bool = true,
+                maxLength: int = 0,
+                key: Key = nil): TextField =
+  ## Builds a `TextField`.
+  ##
+  ## Inputs (all optional):
+  ## - `initialValue`: text to start with. Ignored when `controller`
+  ##   is supplied (the controller's text wins).
+  ## - `controller`: shared editing state. Pass one when you need
+  ##   to read the value externally or to reset it.
+  ## - `placeholder`: dimmed text shown when the field is empty.
+  ## - `style`: text style (font, size, color).
+  ## - `onChanged`: fires after every keystroke with the new value.
+  ## - `onSubmitted`: fires when the user presses Enter.
+  ## - `enabled`: when false, the field ignores input.
+  ## - `maxLength`: cap on total characters. 0 = unlimited.
+  ## - `key`: optional reconciliation key.
+  ##
+  ## Effect: a focusable single-line input. Click to focus, type
+  ## to insert, arrow keys to move, Backspace / Delete to remove.
+  TextField(key: key, initialValue: initialValue, controller: controller,
+            placeholder: placeholder, style: style, onChanged: onChanged,
+            onSubmitted: onSubmitted, enabled: enabled, maxLength: maxLength)

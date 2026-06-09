@@ -14,23 +14,24 @@ nim	translate	flit/rendering/canvas_sdl.html#translate.e,SdlCanvas,float32,float
 nim	scale	flit/rendering/canvas_sdl.html#scale.e,SdlCanvas,float32,float32	method scale(c: SdlCanvas; sx, sy: float32)		128
 nim	rotate	flit/rendering/canvas_sdl.html#rotate.e,SdlCanvas,float32	method rotate(c: SdlCanvas; radians: float32)		129
 nim	clipRect	flit/rendering/canvas_sdl.html#clipRect.e,SdlCanvas,	method clipRect(c: SdlCanvas; r: geom.Rect)		130
-nim	SdlSubCanvas	flit/rendering/canvas_sdl.html#SdlSubCanvas	type SdlSubCanvas		138
-nim	newSdlSubCanvas	flit/rendering/canvas_sdl.html#newSdlSubCanvas,SdlCanvas,int,int	proc newSdlSubCanvas(parent: SdlCanvas; w, h: int): SdlSubCanvas		154
-nim	clear	flit/rendering/canvas_sdl.html#clear.e,SdlSubCanvas,uint32	method clear(s: SdlSubCanvas; color: uint32)		175
-nim	drawRect	flit/rendering/canvas_sdl.html#drawRect.e,SdlSubCanvas,,uint32	method drawRect(s: SdlSubCanvas; r: geom.Rect; fill: uint32)		180
-nim	drawRRect	flit/rendering/canvas_sdl.html#drawRRect.e,SdlSubCanvas,,uint32	method drawRRect(s: SdlSubCanvas; r: geom.RRect; fill: uint32)		185
-nim	drawCircle	flit/rendering/canvas_sdl.html#drawCircle.e,SdlSubCanvas,,float32,uint32	method drawCircle(s: SdlSubCanvas; center: geom.Offset; radius: float32; fill: uint32)		193
-nim	drawLine	flit/rendering/canvas_sdl.html#drawLine.e,SdlSubCanvas,,,uint32,float32	method drawLine(s: SdlSubCanvas; p0, p1: geom.Offset; color: uint32; width: float32)		200
-nim	drawText	flit/rendering/canvas_sdl.html#drawText.e,SdlSubCanvas,string,,uint32,float32,string	method drawText(s: SdlSubCanvas; text: string; pos: geom.Offset; color: uint32;\n         fontSize: float32; fontFamily: string)		209
-nim	save	flit/rendering/canvas_sdl.html#save.e,SdlSubCanvas	method save(s: SdlSubCanvas)		219
-nim	restore	flit/rendering/canvas_sdl.html#restore.e,SdlSubCanvas	method restore(s: SdlSubCanvas)		220
-nim	translate	flit/rendering/canvas_sdl.html#translate.e,SdlSubCanvas,float32,float32	method translate(s: SdlSubCanvas; dx, dy: float32)		221
-nim	scale	flit/rendering/canvas_sdl.html#scale.e,SdlSubCanvas,float32,float32	method scale(s: SdlSubCanvas; sx, sy: float32)		222
-nim	rotate	flit/rendering/canvas_sdl.html#rotate.e,SdlSubCanvas,float32	method rotate(s: SdlSubCanvas; radians: float32)		223
-nim	clipRect	flit/rendering/canvas_sdl.html#clipRect.e,SdlSubCanvas,	method clipRect(s: SdlSubCanvas; r: geom.Rect)		224
-nim	createSubCanvas	flit/rendering/canvas_sdl.html#createSubCanvas.e,SdlCanvas,int,int	method createSubCanvas(c: SdlCanvas; w, h: int): Canvas		235
-nim	compositeSubCanvas	flit/rendering/canvas_sdl.html#compositeSubCanvas.e,SdlCanvas,Canvas,,	method compositeSubCanvas(c: SdlCanvas; sub: Canvas; offset: geom.Offset;\n                   size: geom.Size)		238
-nim	present	flit/rendering/canvas_sdl.html#present,SdlCanvas	proc present(c: SdlCanvas)		316
+nim	drawImage	flit/rendering/canvas_sdl.html#drawImage.e,SdlCanvas,pointer,,	method drawImage(c: SdlCanvas; image: pointer; src, dst: geom.Rect)		135
+nim	SdlSubCanvas	flit/rendering/canvas_sdl.html#SdlSubCanvas	type SdlSubCanvas		157
+nim	newSdlSubCanvas	flit/rendering/canvas_sdl.html#newSdlSubCanvas,SdlCanvas,int,int	proc newSdlSubCanvas(parent: SdlCanvas; w, h: int): SdlSubCanvas		173
+nim	clear	flit/rendering/canvas_sdl.html#clear.e,SdlSubCanvas,uint32	method clear(s: SdlSubCanvas; color: uint32)		194
+nim	drawRect	flit/rendering/canvas_sdl.html#drawRect.e,SdlSubCanvas,,uint32	method drawRect(s: SdlSubCanvas; r: geom.Rect; fill: uint32)		199
+nim	drawRRect	flit/rendering/canvas_sdl.html#drawRRect.e,SdlSubCanvas,,uint32	method drawRRect(s: SdlSubCanvas; r: geom.RRect; fill: uint32)		204
+nim	drawCircle	flit/rendering/canvas_sdl.html#drawCircle.e,SdlSubCanvas,,float32,uint32	method drawCircle(s: SdlSubCanvas; center: geom.Offset; radius: float32; fill: uint32)		212
+nim	drawLine	flit/rendering/canvas_sdl.html#drawLine.e,SdlSubCanvas,,,uint32,float32	method drawLine(s: SdlSubCanvas; p0, p1: geom.Offset; color: uint32; width: float32)		219
+nim	drawText	flit/rendering/canvas_sdl.html#drawText.e,SdlSubCanvas,string,,uint32,float32,string	method drawText(s: SdlSubCanvas; text: string; pos: geom.Offset; color: uint32;\n         fontSize: float32; fontFamily: string)		228
+nim	save	flit/rendering/canvas_sdl.html#save.e,SdlSubCanvas	method save(s: SdlSubCanvas)		238
+nim	restore	flit/rendering/canvas_sdl.html#restore.e,SdlSubCanvas	method restore(s: SdlSubCanvas)		239
+nim	translate	flit/rendering/canvas_sdl.html#translate.e,SdlSubCanvas,float32,float32	method translate(s: SdlSubCanvas; dx, dy: float32)		240
+nim	scale	flit/rendering/canvas_sdl.html#scale.e,SdlSubCanvas,float32,float32	method scale(s: SdlSubCanvas; sx, sy: float32)		241
+nim	rotate	flit/rendering/canvas_sdl.html#rotate.e,SdlSubCanvas,float32	method rotate(s: SdlSubCanvas; radians: float32)		242
+nim	clipRect	flit/rendering/canvas_sdl.html#clipRect.e,SdlSubCanvas,	method clipRect(s: SdlSubCanvas; r: geom.Rect)		243
+nim	createSubCanvas	flit/rendering/canvas_sdl.html#createSubCanvas.e,SdlCanvas,int,int	method createSubCanvas(c: SdlCanvas; w, h: int): Canvas		254
+nim	compositeSubCanvas	flit/rendering/canvas_sdl.html#compositeSubCanvas.e,SdlCanvas,Canvas,,	method compositeSubCanvas(c: SdlCanvas; sub: Canvas; offset: geom.Offset;\n                   size: geom.Size)		257
+nim	present	flit/rendering/canvas_sdl.html#present,SdlCanvas	proc present(c: SdlCanvas)		335
 nimgrp	drawrrect	flit/rendering/canvas_sdl.html#drawRRect-methods-all	method		93
 nimgrp	scale	flit/rendering/canvas_sdl.html#scale-methods-all	method		128
 nimgrp	drawcircle	flit/rendering/canvas_sdl.html#drawCircle-methods-all	method		100

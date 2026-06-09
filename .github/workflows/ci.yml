@@ -1,0 +1,115 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: '2.2.x'
+
+      - name: Install system deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libharfbuzz-dev pkg-config
+
+      - name: Install system deps (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install sdl2 harfbuzz pkg-config
+
+      - name: Install nim deps
+        run: nimble install -y --depsOnly
+
+      - name: Run tests
+        run: nimble test
+
+  build-examples:
+    name: build examples (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: '2.2.x'
+
+      - name: Install system deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libharfbuzz-dev pkg-config
+
+      - name: Install system deps (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install sdl2 harfbuzz pkg-config
+
+      - name: Install nim deps
+        run: nimble install -y --depsOnly
+
+      - name: Compile examples
+        run: |
+          nim c --hints:off -c examples/counter/main.nim
+          nim c --hints:off -c examples/todo/main.nim
+          nim c --hints:off -c examples/calculator/main.nim
+          nim c --hints:off -c examples/gallery/main.nim
+          nim c --hints:off -c examples/showcase/main.nim
+
+  docs:
+    name: regenerate API docs
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: '2.2.x'
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libharfbuzz-dev pkg-config
+
+      - name: Install nim deps
+        run: nimble install -y --depsOnly
+
+      - name: Regenerate docs
+        run: nimble docs
+
+      - name: Commit refreshed docs if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain docs/api)" ]; then
+            git add docs/api
+            git commit -m "docs: regenerate API reference [skip ci]"
+            git push
+          else
+            echo "API docs unchanged; nothing to commit."
+          fi

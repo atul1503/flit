@@ -1,0 +1,17 @@
+nimTitle	navigator	flit/widgets/navigator.html	module src/flit/widgets/navigator		0
+nim	RouteBuilder	flit/widgets/navigator.html#RouteBuilder	type RouteBuilder		23
+nim	NavigatorWidget	flit/widgets/navigator.html#NavigatorWidget	type NavigatorWidget		25
+nim	NavigatorState	flit/widgets/navigator.html#NavigatorState	type NavigatorState		28
+nim	NavigatorHandle	flit/widgets/navigator.html#NavigatorHandle	type NavigatorHandle		32
+nim	activeNavigator	flit/widgets/navigator.html#activeNavigator	var activeNavigator		38
+nim	widgetTypeName	flit/widgets/navigator.html#widgetTypeName.e,NavigatorWidget	method widgetTypeName(w: NavigatorWidget): string		44
+nim	createElement	flit/widgets/navigator.html#createElement.e,NavigatorWidget	method createElement(w: NavigatorWidget): Element		45
+nim	createState	flit/widgets/navigator.html#createState.e,NavigatorWidget	method createState(w: NavigatorWidget): State		46
+nim	build	flit/widgets/navigator.html#build.e,NavigatorState,BuildContext	method build(s: NavigatorState; ctx: BuildContext): Widget		56
+nim	push	flit/widgets/navigator.html#push,NavigatorHandle,RouteBuilder,proc(pointer)	proc push(h: NavigatorHandle; route: RouteBuilder;\n     onResult: proc (value: pointer) = nil)		62
+nim	pop	flit/widgets/navigator.html#pop,NavigatorHandle,pointer	proc pop(h: NavigatorHandle; value: pointer = nil)		71
+nim	popUntil	flit/widgets/navigator.html#popUntil,NavigatorHandle,int	proc popUntil(h: NavigatorHandle; depth: int)		83
+nim	pushReplacement	flit/widgets/navigator.html#pushReplacement,NavigatorHandle,RouteBuilder	proc pushReplacement(h: NavigatorHandle; route: RouteBuilder)		95
+nim	depth	flit/widgets/navigator.html#depth,NavigatorHandle	proc depth(h: NavigatorHandle): int		105
+nim	currentNavigator	flit/widgets/navigator.html#currentNavigator	proc currentNavigator(): NavigatorHandle		109
+nim	navigator	flit/widgets/navigator.html#navigator,RouteBuilder,Key	proc navigator(initial: RouteBuilder; key: Key = nil): NavigatorWidget		115

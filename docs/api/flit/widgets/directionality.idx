@@ -1,0 +1,7 @@
+nimTitle	directionality	flit/widgets/directionality.html	module src/flit/widgets/directionality		0
+nim	Directionality	flit/widgets/directionality.html#Directionality	type Directionality		18
+nim	widgetTypeName	flit/widgets/directionality.html#widgetTypeName.e,Directionality	method widgetTypeName(w: Directionality): string		24
+nim	createElement	flit/widgets/directionality.html#createElement.e,Directionality	method createElement(w: Directionality): Element		25
+nim	updateShouldNotify	flit/widgets/directionality.html#updateShouldNotify.e,Directionality,Directionality	method updateShouldNotify(new, old: Directionality): bool		26
+nim	directionality	flit/widgets/directionality.html#directionality,TextDirection,Widget,Key	proc directionality(direction: TextDirection; child: Widget; key: Key = nil): Directionality		29
+nim	textDirectionOf	flit/widgets/directionality.html#textDirectionOf,BuildContext	proc textDirectionOf(ctx: BuildContext): TextDirection		39

@@ -11,7 +11,7 @@ when defined(js):
 import sdl2
 import std/[times, os]
 import ../../foundation/[widget, render_object, binding, geometry,
-                          runtime, diagnostics]
+                          runtime, diagnostics, focus]
 import ../../rendering/canvas_sdl
 
 type
@@ -58,6 +58,11 @@ proc runDesktop*(rootWidget: Widget,
   if sdl2.init(INIT_VIDEO or INIT_EVENTS) != SdlSuccess:
     echo "SDL_Init failed: ", getError()
     return
+
+  # Enable SDL text-input events so keyboard typing reaches the
+  # focus manager. The TextInput event fires for printable
+  # characters and IME composition output.
+  startTextInput()
 
   var flags: uint32 = SDL_WINDOW_SHOWN
   if config.resizable: flags = flags or SDL_WINDOW_RESIZABLE
@@ -167,16 +172,36 @@ proc runDesktop*(rootWidget: Widget,
           timestamp: binding.currentTime))
       of KeyDown:
         let ke = cast[KeyboardEventPtr](addr ev)
-        binding.dispatchKey(KeyEvent(
+        let kev = KeyEvent(
           kind: keDown, keyCode: int(ke.keysym.sym),
           scancode: int(ke.keysym.scancode),
-          modifiers: uint32(ke.keysym.modstate)))
+          modifiers: uint32(ke.keysym.modstate))
+        binding.dispatchKey(kev)
+        # Route control keys (Tab, Backspace, arrows, Enter, etc.)
+        # through the focus manager. Printable characters arrive
+        # via the TextInput event instead.
+        if focusManager().handleKeyEvent(kev):
+          binding.needsRepaint = true
       of KeyUp:
         let ke = cast[KeyboardEventPtr](addr ev)
         binding.dispatchKey(KeyEvent(
           kind: keUp, keyCode: int(ke.keysym.sym),
           scancode: int(ke.keysym.scancode),
           modifiers: uint32(ke.keysym.modstate)))
+      of TextInput:
+        let te = cast[TextInputEventPtr](addr ev)
+        # The text is a NUL-terminated UTF-8 string in a fixed
+        # 32-byte buffer.
+        var s = newString(0)
+        for i in 0 ..< 32:
+          let c = te.text[i]
+          if c == '\0': break
+          s.add(c)
+        if s.len > 0:
+          let kev = KeyEvent(kind: keDown, text: s)
+          binding.dispatchKey(kev)
+          if focusManager().handleKeyEvent(kev):
+            binding.needsRepaint = true
       else: discard
 
     # Drain pointer events into gesture detectors. May enqueue dirty roots

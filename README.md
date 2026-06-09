@@ -1,31 +1,31 @@
 # flit
 
-A Flutter-inspired cross-platform UI toolkit for Nim. Write your UI in idiomatic, declarative Nim once; ship the same codebase to macOS, Linux, Windows, iOS, Android, the web, and embedded Linux.
+A Flutter-inspired UI toolkit for Nim. Declarative widgets, real GPU
+rendering, single codebase for desktop, mobile, web, and embedded
+Linux.
 
-```
-                                  +-------------+
-                                  |   flit app  |
-                                  +------+------+
-              +--------+--------+--------+--------+--------+
-              |        |        |                 |        |
-            macOS    Linux   Windows  iOS  Android  Web  Embedded
-              |        |        |     |     |       |       |
-                  SDL2 + Pixie               JS canvas    framebuffer
-```
+[![ci](https://github.com/gs-attripathi/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/gs-attripathi/flit/actions/workflows/ci.yml)
+[![docs](https://img.shields.io/badge/docs-gs--attripathi.github.io%2Fflit-blue)](https://gs-attripathi.github.io/flit/)
+[![version](https://img.shields.io/badge/version-0.8.0-orange)](#)
+[![license](https://img.shields.io/badge/license-BSD--3--Clause-green)](#license)
 
-## Highlights
+## Status
 
-- Three-tree architecture: Widget (config), Element (instance), RenderObject (layout and paint), exactly like Flutter.
-- Declarative composition: `column(children = @[...])`, `row(...)`, `padding(...)`, `center(...)`, `stack(...)`.
-- Stateful widgets with `setState`, mount/unmount lifecycle, didChangeDependencies, dispose.
-- Constraint-based layout with `Constraints`, `tightFor`, `loosen`, `deflate`, flex children, positioned children.
-- Material 3 (`materialApp`, `scaffold`, `appBar`, `elevatedButton`, `card`, `floatingActionButton`) and Cupertino (`cupertinoApp`, `cupertinoNavigationBar`, `cupertinoButton`) widget libraries.
-- Hot reload via `flit hot` (file watcher + restart). Inspector via `debugDescribe(root)`.
-- Animation primitives: `AnimationController`, `Tween`, curves (`curveEaseInOut`, `curveBounceOut`, etc.).
-- Gestures: `gestureDetector` with onTap, onPanStart/Update/End, onLongPress.
-- A `flit` CLI that mirrors `flutter`: `flit create`, `flit run`, `flit build apk|ipa|web|macos|linux|windows`, `flit doctor`, `flit devices`.
+**Pre-1.0.** The framework compiles, the test suite is green
+(200+ assertions across 30 test files), the examples run on macOS and
+Linux. It is **not** production-tested by any real-world app yet. If
+that matters to you, watch the repo and revisit at 1.0.
 
-## Hello, counter
+## Why
+
+Nim is the right language for desktop and embedded UIs that need
+small binaries, low memory, and no garbage-collection pauses. It just
+didn't have a usable framework for declarative, cross-platform UIs.
+flit fills that gap with a familiar API (widgets, state, layout) and
+real performance primitives (GPU shaders, layer caching, lazy lists,
+HarfBuzz text shaping).
+
+## Hello
 
 ```nim
 import flit
@@ -38,28 +38,36 @@ type
 method widgetTypeName(w: Counter): string = "Counter"
 method createElement(w: Counter): Element = newElement(ekStateful, w)
 method createState(w: Counter): State = CounterState(count: 0)
-
 method build(s: CounterState, ctx: BuildContext): Widget =
   materialApp(home = scaffold(
-    appBar = appBar(title = text("flit demo")),
+    appBar = appBar(title = text("Hello flit")),
     body = center(child = column(mainAxisAlignment = maCenter, children = @[
-      Widget(text("You pressed the button:")),
-      text($s.count, style = textStyle(fontSize: 48))])),
-    floatingActionButton = floatingActionButton(
-      child = text("+", style = textStyle(fontSize: 28, color: colorWhite)),
-      onPressed = proc() = setState(s, proc() = inc s.count))))
+      Widget(text("You tapped " & $s.count & " times.")),
+      elevatedButton(child = text("Tap me"),
+        onPressed = proc() = setState(s, proc() = inc s.count))])))
 
-when isMainModule: runApp(Counter())
+when isMainModule:
+  runApp(Counter())
 ```
 
-Build and run for the host:
+Run it:
 
 ```
+nim c -r hello.nim
+```
+
+## Install
+
+```
+brew install nim sdl2 harfbuzz                       # macOS
+sudo apt install nim libsdl2-dev libharfbuzz-dev    # Debian / Ubuntu
+
+git clone https://github.com/gs-attripathi/flit
+cd flit
 nimble install
-nim c -d:release -r examples/counter/main.nim
 ```
 
-Or, with the CLI:
+`nimble install` puts the `flit` CLI on your path.
 
 ```
 flit create my_app
@@ -67,61 +75,118 @@ cd my_app
 flit run
 ```
 
-## Targets
+## What you get
 
-| Target  | Backend            | Command                                            |
-|---------|--------------------|----------------------------------------------------|
-| macOS   | SDL2 + Pixie       | `flit build macos`                                 |
-| Linux   | SDL2 + Pixie       | `flit build linux`                                 |
-| Windows | SDL2 + Pixie       | `flit build windows`                               |
-| iOS     | SDL2 (mobile)      | `flit build ipa`                                   |
-| Android | SDL2 (mobile)      | `flit build apk`                                   |
-| Web     | HTMLCanvas (nim js)| `flit build web`                                   |
-| Embed   | framebuffer        | `nim c -d:flitPlatform=embedded examples/embed.nim`|
+Core framework:
 
-## Project layout
+- Three widget kinds (Stateless, Stateful, RenderObject) and the
+  Element + RenderObject + Canvas architecture you know from Flutter
+- Constraints-based layout with Row / Column / Stack / Expanded /
+  Flexible / Positioned
+- Material and Cupertino design system widgets
+- Reconciliation with key-based stability across reorders
+- State lifecycle (initState, didUpdateWidget, dispose)
+
+Inputs and forms:
+
+- TextField with cursor, selection, focus, IME integration
+- FocusNode + FocusManager with Tab traversal
+- Form, FormField, and built-in validators (required, minLength, email)
+- GestureDetector with tap, double-tap, pan
+
+Navigation and structure:
+
+- Navigator with push, pop, popUntil, pushReplacement
+- Directionality for LTR / RTL support
+- InheritedWidget for dependency injection
+
+State management:
+
+- setState for local state
+- ValueNotifier + ListenableBuilder for shared mutable state
+- InheritedWidget + dependOnInheritedOfType for tree-scoped state
+
+Performance:
+
+- RepaintBoundary with GPU texture caching
+- GpuCanvas: SDL_Renderer-based hardware draws
+- GlCanvas: OpenGL 3.3 SDF shaders for paths
+- GlyphAtlas for cached rasterized text
+- HarfBuzz bindings for ligatures and kerning
+- ListView.builder with fixed and variable item extents
+- RasterPool for off-main-thread paint work
+- Identity short-circuit in reconciliation
+
+Animations:
+
+- AnimationController with forward, reverse, animateTo, repeat, stop
+- Tween for float, int, Color, Offset, Size, EdgeInsets
+- Built-in curves: easeIn, easeOut, easeInOut, bounceOut, elasticIn
+
+Images:
+
+- Image widget with PNG / JPEG / BMP / GIF loading via Pixie
+- Multiple fit modes: contain, cover, fill, none
+
+Tooling:
+
+- `flit` CLI: create, run, build, doctor, devices, clean, hot, pub get
+- Per-target build commands for desktop, web (JS backend), mobile, embedded
+- API documentation via `nim doc`
+
+## Platforms
+
+| Platform | Status |
+|----------|--------|
+| macOS | working, tested |
+| Linux | working, tested in CI |
+| Windows | implemented, CI not yet set up for Windows |
+| Web (JS) | implemented via Nim's JS backend; not extensively tested |
+| iOS | binary compiles; needs Xcode wrapper |
+| Android | binary compiles; needs Android Studio wrapper |
+| Embedded Linux | framebuffer backend implemented |
+
+## Documentation
+
+- **Guide:** [guide/](guide/)
+- **API reference:** [gs-attripathi.github.io/flit](https://gs-attripathi.github.io/flit/)
+- **Examples:** [`examples/`](examples/)
+
+Start with `guide/01-quickstart.md`.
+
+## What's missing
+
+Pre-1.0 means real gaps. The honest list:
+
+- **Battle-testing**: no real apps shipped with flit yet
+- **Mobile and embedded backends**: implemented but not exercised
+  end-to-end
+- **Accessibility**: no screen reader support, no semantic tree
+- **Clipboard, undo/redo, mouse-drag selection** in TextField
+- **HTTP / network**: out of scope; bring your own
+- **Animations on Navigator transitions** (push and pop are instant)
+- **Drag and drop**: outside scope today
+
+PRs welcome on any of these.
+
+## Contributing
 
 ```
-flit/
-  src/flit.nim                 top-level umbrella import
-  src/flit/
-    foundation/                Key, Widget, Element, RenderObject, geometry, color
-    rendering/                 RenderProxyBox, RenderFlex, RenderStack, RenderDecoratedBox,
-                               text, canvas backends
-    widgets/basic.nim          Container, Row, Column, Stack, Text, Padding, Align, ...
-    material/                  MaterialApp, Scaffold, AppBar, ElevatedButton, Card, ...
-    cupertino/                 CupertinoApp, CupertinoNavigationBar, CupertinoButton
-    gestures/                  GestureDetector
-    animation/                 AnimationController, Tween, curves, Ticker
-    platform/                  desktop/, web/, mobile/, embedded/ runners
-    app.nim                    runApp(widget)
-  cli/src/flit_cli.nim         the `flit` command-line tool
-  examples/                    counter, gallery, todo, calculator, showcase
-  tests/                       layout, widgets, state, painting
-  docs/                        ARCHITECTURE.md, getting_started.md
+# Run the test suite
+nimble test
+
+# Run the examples
+nim c -r examples/showcase/main.nim
+
+# Regenerate API docs
+nimble docs
 ```
 
-## The showcase example
+CI runs the test suite + builds the examples on macOS and Linux for
+every PR. New code should land with tests.
 
-`examples/showcase/main.nim` is the broad sampler. Six tabs:
-
-- **Home**: stateful counter, two button styles, light/dark toggle.
-- **Layout**: every MainAxisAlignment value in a row, Expanded with flex weights, Stack + Positioned with a circle overlay.
-- **Style**: solid, rounded, circular, bordered and shadowed boxes; four border radii; four EdgeInsets variants; TextStyle variations.
-- **Inputs**: ElevatedButton + TextButton + FloatingActionButton, a draggable puck (`onPanUpdate`), and a press-and-hold charge bar (`onPanStart` / `onPanUpdate` / `onPanEnd`).
-- **Anim**: pick from six curves (linear, easeIn, easeOut, easeInOut, bounceOut, elasticIn), then drive a Tween via an AnimationController.
-- **Cupertino**: a CupertinoNavigationBar plus filled and plain CupertinoButtons living inside the same Material shell.
-
-Run it:
-
-```
-nim c -d:release -o:bin/showcase examples/showcase/main.nim
-./bin/showcase    # mac users may need DYLD_LIBRARY_PATH=/opt/homebrew/lib
-```
-
-## Status
-
-0.2.0 adds the showcase example. 0.1.0 was the initial slice: full widget framework, layout, painting, the Material/Cupertino starter libraries, all five backends, and the CLI. Not yet shipped: text editing, scroll views, image decoding, accessibility tree, true hot patching (today's `flit hot` restarts the process). PRs welcome.
+Commit message style: `version: summary` for version bumps,
+`area: summary` for everything else. See `git log` for examples.
 
 ## License
 

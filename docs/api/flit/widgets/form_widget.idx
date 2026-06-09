@@ -1,0 +1,26 @@
+nimTitle	form_widget	flit/widgets/form_widget.html	module src/flit/widgets/form_widget		0
+nim	FieldValidator	flit/widgets/form_widget.html#FieldValidator	type FieldValidator		25
+nim	FormFieldState	flit/widgets/form_widget.html#FormFieldState	type FormFieldState		28
+nim	FormState	flit/widgets/form_widget.html#FormState	type FormState		38
+nim	FormHandle	flit/widgets/form_widget.html#FormHandle	type FormHandle		45
+nim	FormScope	flit/widgets/form_widget.html#FormScope	type FormScope		50
+nim	FormFieldWidget	flit/widgets/form_widget.html#FormFieldWidget	type FormFieldWidget		53
+nim	widgetTypeName	flit/widgets/form_widget.html#widgetTypeName.e,FormScope	method widgetTypeName(w: FormScope): string		66
+nim	createElement	flit/widgets/form_widget.html#createElement.e,FormScope	method createElement(w: FormScope): Element		67
+nim	createState	flit/widgets/form_widget.html#createState.e,FormScope	method createState(w: FormScope): State		68
+nim	build	flit/widgets/form_widget.html#build.e,FormState,BuildContext	method build(s: FormState; ctx: BuildContext): Widget		72
+nim	validate	flit/widgets/form_widget.html#validate,FormHandle	proc validate(h: FormHandle): bool		82
+nim	reset	flit/widgets/form_widget.html#reset,FormHandle	proc reset(h: FormHandle)		97
+nim	fields	flit/widgets/form_widget.html#fields,FormHandle	proc fields(h: FormHandle): seq[FormFieldState]		107
+nim	valueOf	flit/widgets/form_widget.html#valueOf,FormHandle,string	proc valueOf(h: FormHandle; name: string): string		112
+nim	widgetTypeName	flit/widgets/form_widget.html#widgetTypeName.e,FormFieldWidget	method widgetTypeName(w: FormFieldWidget): string		123
+nim	createElement	flit/widgets/form_widget.html#createElement.e,FormFieldWidget	method createElement(w: FormFieldWidget): Element		124
+nim	build	flit/widgets/form_widget.html#build.e,FormFieldWidget,BuildContext	method build(w: FormFieldWidget; ctx: BuildContext): Widget		125
+nim	formScope	flit/widgets/form_widget.html#formScope,Widget,Key	proc formScope(child: Widget; key: Key = nil): FormScope		174
+nim	formField	flit/widgets/form_widget.html#formField,string,string,string,FieldValidator,proc(string),Key	proc formField(name: string; initial: string = ""; placeholder: string = "";\n          validator: FieldValidator = nil;\n          onChanged: proc (value: string) = nil; key: Key = nil): FormFieldWidget		188
+nim	validatorRequired	flit/widgets/form_widget.html#validatorRequired,string	proc validatorRequired(message: string = "Required"): FieldValidator		212
+nim	validatorMinLength	flit/widgets/form_widget.html#validatorMinLength,int,string	proc validatorMinLength(min: int; message: string = ""): FieldValidator		217
+nim	validatorEmail	flit/widgets/form_widget.html#validatorEmail,string	proc validatorEmail(message: string = "Invalid email"): FieldValidator		224
+nimgrp	widgettypename	flit/widgets/form_widget.html#widgetTypeName-methods-all	method		66
+nimgrp	createelement	flit/widgets/form_widget.html#createElement-methods-all	method		67
+nimgrp	build	flit/widgets/form_widget.html#build-methods-all	method		72

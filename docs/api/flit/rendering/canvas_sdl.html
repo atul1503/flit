@@ -132,6 +132,10 @@
 <li><a class="reference" href="#drawCircle.e%2CSdlSubCanvas%2C%2Cfloat32%2Cuint32" title="drawCircle(s: SdlSubCanvas; center: geom.Offset; radius: float32; fill: uint32)">drawCircle(s: SdlSubCanvas; center: geom.Offset; radius: float32; fill: uint32)</a></li>
 
 </ul>
+<ul class="simple nested-toc-section">drawImage
+  <li><a class="reference" href="#drawImage.e%2CSdlCanvas%2Cpointer%2C%2C" title="drawImage(c: SdlCanvas; image: pointer; src, dst: geom.Rect)">drawImage(c: SdlCanvas; image: pointer; src, dst: geom.Rect)</a></li>
+
+</ul>
 <ul class="simple nested-toc-section">drawLine
   <li><a class="reference" href="#drawLine.e%2CSdlCanvas%2C%2C%2Cuint32%2Cfloat32" title="drawLine(c: SdlCanvas; p0, p1: geom.Offset; color: uint32; width: float32)">drawLine(c: SdlCanvas; p0, p1: geom.Offset; color: uint32; width: float32)</a></li>
 <li><a class="reference" href="#drawLine.e%2CSdlSubCanvas%2C%2C%2Cuint32%2Cfloat32" title="drawLine(s: SdlSubCanvas; p0, p1: geom.Offset; color: uint32; width: float32)">drawLine(s: SdlSubCanvas; p0, p1: geom.Offset; color: uint32; width: float32)</a></li>
@@ -392,6 +396,18 @@
 </div>
 
 </div>
+<div id="drawImage-methods-all">
+  <div id="drawImage.e,SdlCanvas,pointer,,">
+  <dt><pre><span class="Keyword">method</span> <a href="#drawImage.e%2CSdlCanvas%2Cpointer%2C%2C"><span class="Identifier">drawImage</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlCanvas"><span class="Identifier">SdlCanvas</span></a><span class="Other">;</span> <span class="Identifier">image</span><span class="Other">:</span> <span class="Identifier">pointer</span><span class="Other">;</span> <span class="Identifier">src</span><span class="Other">,</span> <span class="Identifier">dst</span><span class="Other">:</span> <span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Rect</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Draws a Pixie image from the <tt class="docutils literal"><span class="pre"><span class="Identifier">image</span></span></tt> pointer (cast from a Pixie <tt class="docutils literal"><span class="pre"><span class="Identifier">Image</span></span></tt> ref) into the <tt class="docutils literal"><span class="pre"><span class="Identifier">dst</span></span></tt> rect, taking the <tt class="docutils literal"><span class="pre"><span class="Identifier">src</span></span></tt> sub-rect. Uses Pixie's draw with a translate+scale matrix to handle non-1:1 scaling.
+    
+  </dd>
+</div>
+
+</div>
 <div id="drawLine-methods-all">
   <div id="drawLine.e,SdlCanvas,,,uint32,float32">
   <dt><pre><span class="Keyword">method</span> <a href="#drawLine.e%2CSdlCanvas%2C%2C%2Cuint32%2Cfloat32"><span class="Identifier">drawLine</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlCanvas"><span class="Identifier">SdlCanvas</span></a><span class="Other">;</span> <span class="Identifier">p0</span><span class="Other">,</span> <span class="Identifier">p1</span><span class="Other">:</span> <span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Offset</span><span class="Other">;</span> <span class="Identifier">color</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">;</span> <span class="Identifier">width</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">)</span> {.
@@ -591,7 +607,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 04:30:19 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 04:58:23 UTC</small>
       </div>
     </div>
   </div>

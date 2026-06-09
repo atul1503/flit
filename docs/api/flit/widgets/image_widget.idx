@@ -1,0 +1,19 @@
+nimTitle	image_widget	flit/widgets/image_widget.html	module src/flit/widgets/image_widget		0
+nim	ifFill	flit/widgets/image_widget.html#ifFill	ImageFit.ifFill		22
+nim	ifContain	flit/widgets/image_widget.html#ifContain	ImageFit.ifContain		22
+nim	ifCover	flit/widgets/image_widget.html#ifCover	ImageFit.ifCover		22
+nim	ifNone	flit/widgets/image_widget.html#ifNone	ImageFit.ifNone		22
+nim	ImageFit	flit/widgets/image_widget.html#ImageFit	enum ImageFit		22
+nim	ImageWidget	flit/widgets/image_widget.html#ImageWidget	type ImageWidget		30
+nim	RenderImage	flit/widgets/image_widget.html#RenderImage	type RenderImage		38
+nim	loadImage	flit/widgets/image_widget.html#loadImage,string,string	proc loadImage(path, bytes: string): auto		58
+nim	clearImageCache	flit/widgets/image_widget.html#clearImageCache	proc clearImageCache()		80
+nim	widgetTypeName	flit/widgets/image_widget.html#widgetTypeName.e,ImageWidget	method widgetTypeName(w: ImageWidget): string		86
+nim	createElement	flit/widgets/image_widget.html#createElement.e,ImageWidget	method createElement(w: ImageWidget): Element		87
+nim	createRenderObject	flit/widgets/image_widget.html#createRenderObject.e,ImageWidget,BuildContext	method createRenderObject(w: ImageWidget; ctx: BuildContext): RenderObject		88
+nim	updateRenderObject	flit/widgets/image_widget.html#updateRenderObject.e,ImageWidget,BuildContext,RenderObject	method updateRenderObject(w: ImageWidget; ctx: BuildContext; r: RenderObject)		95
+nim	performLayout	flit/widgets/image_widget.html#performLayout.e,RenderImage	method performLayout(r: RenderImage)		107
+nim	paint	flit/widgets/image_widget.html#paint.e,RenderImage,PaintingContext,Offset	method paint(r: RenderImage; ctx: PaintingContext; offset: Offset)		137
+nim	hitTest	flit/widgets/image_widget.html#hitTest.e,RenderImage,HitTestResult,Offset	method hitTest(r: RenderImage; htResult: HitTestResult; position: Offset): bool		182
+nim	image	flit/widgets/image_widget.html#image,string,ImageFit,float32,float32,Key	proc image(path: string; fit: ImageFit = ifContain; width: float32 = 0.0;\n      height: float32 = 0.0; key: Key = nil): ImageWidget		186
+nim	imageMemory	flit/widgets/image_widget.html#imageMemory,string,ImageFit,float32,float32,Key	proc imageMemory(bytes: string; fit: ImageFit = ifContain; width: float32 = 0.0;\n            height: float32 = 0.0; key: Key = nil): ImageWidget		205

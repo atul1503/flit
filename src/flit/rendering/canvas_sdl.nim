@@ -132,6 +132,25 @@ when not defined(js):
     pixie.rect(path, pixie.rect(r.left, r.top, r.width, r.height))
     c.ctx.clip(path)
 
+  method drawImage*(c: SdlCanvas, image: pointer, src, dst: geom.Rect) =
+    ## Draws a Pixie image from the `image` pointer (cast from a
+    ## Pixie `Image` ref) into the `dst` rect, taking the `src`
+    ## sub-rect. Uses Pixie's draw with a translate+scale matrix
+    ## to handle non-1:1 scaling.
+    if image.isNil: return
+    let img = cast[pixie.Image](image)
+    let srcW = src.right - src.left
+    let srcH = src.bottom - src.top
+    let dstW = dst.right - dst.left
+    let dstH = dst.bottom - dst.top
+    if srcW <= 0 or srcH <= 0 or dstW <= 0 or dstH <= 0: return
+    let sx = dstW / srcW
+    let sy = dstH / srcH
+    var mat = translate(vec2(dst.left, dst.top)) *
+              pixie.scale(vec2(sx, sy)) *
+              translate(vec2(-src.left, -src.top))
+    c.image.draw(img, mat)
+
   # --- Sub-canvas (RepaintBoundary backing) ---
 
   type
