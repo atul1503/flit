@@ -30,6 +30,11 @@ type
   TextHandler* = proc(node: FocusNode, text: string) {.closure.}
   ShortcutHandler* = proc(node: FocusNode, keysym: int, modifiers: uint32): bool {.closure.}
     ## Returns true if the shortcut was consumed.
+  ComposingHandler* = proc(node: FocusNode, composing: string, cursorPos: int) {.closure.}
+    ## Called during IME composition. `composing` is the in-progress
+    ## text (e.g. partial CJK input); `cursorPos` is the byte offset
+    ## within `composing` where the IME cursor is. Empty string
+    ## means composition ended.
 
   FocusNode* = ref object
     ## A focusable target. The owner widget creates one in `initState`,
@@ -41,6 +46,7 @@ type
     onKey*:         KeyHandler
     onText*:        TextHandler
     onShortcut*:    ShortcutHandler
+    onComposing*:   ComposingHandler
     onFocusChange*: proc(focused: bool) {.closure.}
     hasFocus*:      bool
     enabled*:       bool
@@ -151,6 +157,14 @@ proc prev*(m: FocusManager) =
     if candidate.enabled:
       m.focus(candidate)
       return
+
+proc handleComposingEvent*(m: FocusManager, composing: string, cursorPos: int) =
+  ## Routes an IME composition update to the focused node's
+  ## `onComposing` callback. Empty string ends composition.
+  if m.current.isNil: return
+  if m.current.onComposing.isNil: return
+  try: m.current.onComposing(m.current, composing, cursorPos)
+  except CatchableError: discard
 
 proc handleKeyEvent*(m: FocusManager, ev: KeyEvent): bool =
   ## Routes `ev` to the focused node. Returns true if the event was

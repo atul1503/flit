@@ -14,6 +14,7 @@ import ../../foundation/[widget, render_object, binding, geometry,
                           runtime, diagnostics, focus]
 import ../../rendering/canvas_sdl
 import ../../widgets/text_field
+import ../../widgets/drag_drop
 
 type
   DesktopWindowConfig* = object
@@ -199,6 +200,22 @@ proc runDesktop*(rootWidget: Widget,
           kind: keUp, keyCode: int(ke.keysym.sym),
           scancode: int(ke.keysym.scancode),
           modifiers: uint32(ke.keysym.modstate)))
+      of TextEditing:
+        let te = cast[TextEditingEventPtr](addr ev)
+        var s = newString(0)
+        for i in 0 ..< 32:
+          let c = te.text[i]
+          if c == '\0': break
+          s.add(c)
+        focusManager().handleComposingEvent(s, int(te.start))
+        binding.needsRepaint = true
+      of DropFile:
+        let de = cast[DropEventPtr](addr ev)
+        if not de.file.isNil:
+          let path = $de.file
+          dispatchFileDrop(path)
+          # SDL allocates the string; we free it.
+          sdl2.freeClipboardText(de.file)
       of TextInput:
         let te = cast[TextInputEventPtr](addr ev)
         # The text is a NUL-terminated UTF-8 string in a fixed

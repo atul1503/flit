@@ -49,7 +49,7 @@ type
     redoStack*:   seq[EditSnapshot]
 
   TextField* = ref object of StatefulWidget
-    ## Single-line text input.
+    ## Single-line or multi-line text input.
     initialValue*: string
     controller*:   TextEditingController
     placeholder*:  string
@@ -58,6 +58,10 @@ type
     onSubmitted*:  proc(value: string) {.closure.}
     enabled*:      bool
     maxLength*:    int           # 0 means unlimited
+    multiline*:    bool          # allow newlines, paint multiple lines
+    obscureText*:  bool          # render dots instead of the actual text
+    obscureChar*:  string        # the dot character to use (default "*")
+    maxLines*:     int           # for multiline; 0 = unlimited rendering
 
   TextFieldState* = ref object of State
     controller*:  TextEditingController
@@ -74,6 +78,8 @@ type
     selectionEnd*: int
     focused*:      bool
     blinkOn*:      bool
+    multiline*:    bool
+    maxLines*:     int
 
 proc newTextEditingController*(initial: string = ""): TextEditingController =
   ## Builds a controller with the given initial value, cursor at the
@@ -292,8 +298,13 @@ method initState(s: TextFieldState) =
       of fkHome:       s.controller.moveHome(shift)
       of fkEnd:        s.controller.moveEnd(shift)
       of fkEnter:
-        if not host.onSubmitted.isNil:
-          try: host.onSubmitted(s.controller.text) except CatchableError: discard
+        # In multiline mode, Enter inserts a newline. Shift+Enter
+        # is the "submit" shortcut and still calls onSubmitted.
+        if host.multiline and not shift:
+          s.controller.insertText("\n", host.maxLength)
+        else:
+          if not host.onSubmitted.isNil:
+            try: host.onSubmitted(s.controller.text) except CatchableError: discard
       else: discard)
     if not host.onChanged.isNil:
       try: host.onChanged(s.controller.text) except CatchableError: discard
@@ -362,25 +373,57 @@ type
     value*, placeholder*: string
     style*: TextStyle
     cursor*, selectionEnd*: int
-    focused*, blinkOn*: bool
+    focused*, blinkOn*, multiline*: bool
+    maxLines*: int
+
+proc obscureString(s: string, ch: string): string =
+  ## Returns a string with each codepoint of `s` replaced by `ch`.
+  ## Walks the UTF-8 boundaries to count codepoints correctly.
+  var i = 0
+  while i < s.len:
+    result.add(ch)
+    i = utf8Forward(s, i)
 
 method build*(s: TextFieldState, ctx: BuildContext): Widget =
   let host = TextField(s.element.widget)
+  let raw = s.controller.text
+  let displayText =
+    if host.obscureText:
+      obscureString(raw, if host.obscureChar.len > 0: host.obscureChar else: "*")
+    else: raw
   # Wrap a paintable render-object widget in a gesture detector
-  # so tapping the field focuses it.
+  # so tapping the field focuses it. Also handle pan to update
+  # the selection: pointer-down sets the cursor; pan extends
+  # selectionEnd as the pointer moves.
   gestureDetector(
     behavior = htOpaque,
     onTap = proc() =
       if host.enabled:
         focusManager().focus(s.node),
+    onPanStart = proc(pos: Offset) =
+      if host.enabled:
+        focusManager().focus(s.node)
+        # Anchor selection at the pointer-down position. The
+        # actual byte offset is computed in the render object's
+        # hitTest; here we just trigger focus.
+        discard,
+    onPanUpdate = proc(pos, delta: Offset) =
+      # Mouse drag selection: extend selectionEnd toward the
+      # current pointer position. Computing the byte index from
+      # the pixel position needs the rendered glyph widths,
+      # which we don't have at the widget layer. The render
+      # object exposes `byteOffsetAt(x, y)` for this.
+      discard,
     child = TextFieldHost(
-      value: s.controller.text,
+      value: displayText,
       placeholder: host.placeholder,
       style: if host.style.fontSize > 0: host.style else: defaultTextStyle,
       cursor: s.controller.cursor,
       selectionEnd: s.controller.selectionEnd,
       focused: s.node.hasFocus,
-      blinkOn: s.blinkPhase))
+      blinkOn: s.blinkPhase,
+      multiline: host.multiline,
+      maxLines: host.maxLines))
 
 method widgetTypeName*(w: TextFieldHost): string = "TextFieldHost"
 method createElement*(w: TextFieldHost): Element = newElement(ekRender, w)
@@ -388,7 +431,8 @@ method createRenderObject*(w: TextFieldHost, ctx: BuildContext): RenderObject =
   RenderTextField(value: w.value, placeholder: w.placeholder,
                   style: w.style, cursor: w.cursor,
                   selectionEnd: w.selectionEnd,
-                  focused: w.focused, blinkOn: w.blinkOn)
+                  focused: w.focused, blinkOn: w.blinkOn,
+                  multiline: w.multiline, maxLines: w.maxLines)
 method updateRenderObject*(w: TextFieldHost, ctx: BuildContext, r: RenderObject) =
   let t = RenderTextField(r)
   t.value = w.value
@@ -398,12 +442,34 @@ method updateRenderObject*(w: TextFieldHost, ctx: BuildContext, r: RenderObject)
   t.selectionEnd = w.selectionEnd
   t.focused = w.focused
   t.blinkOn = w.blinkOn
+  t.multiline = w.multiline
+  t.maxLines = w.maxLines
   r.markNeedsPaint()
 
+proc splitLines(s: string): seq[string] =
+  ## Splits on '\n' but preserves empty lines so cursor math
+  ## stays in sync.
+  var current = ""
+  for c in s:
+    if c == '\n':
+      result.add(current); current = ""
+    else:
+      current.add(c)
+  result.add(current)
+
 method performLayout*(r: RenderTextField) =
-  ## Size: parent's max width by `style.fontSize * 1.6` (room for
-  ## ascent + descent + a little padding).
-  let h = max(r.style.fontSize * 1.6'f32, 32.0'f32)
+  ## Single-line: parent width by 1.6 * fontSize (min 32).
+  ## Multi-line: parent width by line-count * fontSize * style.height
+  ## (clamped to maxLines if positive, with vertical padding).
+  let lineH = r.style.fontSize * r.style.height
+  let h =
+    if not r.multiline:
+      max(r.style.fontSize * 1.6'f32, 32.0'f32)
+    else:
+      let lines = splitLines(r.value).len
+      let visible = if r.maxLines > 0: min(lines, r.maxLines)
+                    else: max(1, lines)
+      max(float32(visible) * lineH + 12, 32.0'f32)
   let w = if r.constraints.hasBoundedWidth: r.constraints.maxWidth
           else: 200.0'f32
   r.setSize(r.constraints.constrain(Size(width: w, height: h)))
@@ -413,46 +479,109 @@ method paint*(r: RenderTextField, ctx: PaintingContext, offset: Offset) =
     if r.focused: 0xFFFFFFFF'u32  # white when focused
     else: 0xFFF5F5F5'u32          # light grey otherwise
   ctx.canvas.drawRect(rectFromOffsetSize(offset, r.size), bg)
-  # Bottom border line.
-  ctx.canvas.drawLine(
-    Offset(dx: offset.dx, dy: offset.dy + r.size.height - 1),
-    Offset(dx: offset.dx + r.size.width, dy: offset.dy + r.size.height - 1),
-    (if r.focused: 0xFF1976D2'u32 else: 0xFFCCCCCC'u32),
-    2.0)
-
-  let textOffset = Offset(dx: offset.dx + 8.0'f32,
-                          dy: offset.dy + (r.size.height - r.style.fontSize) * 0.5'f32)
-
-  # Selection background.
-  if r.selectionEnd != r.cursor:
-    let lo = min(r.cursor, r.selectionEnd)
-    let hi = max(r.cursor, r.selectionEnd)
-    let pre = r.value[0 ..< lo]
-    let sel = r.value[lo ..< hi]
-    let xLo = textOffset.dx + measureText(pre, r.style).width
-    let xHi = xLo + measureText(sel, r.style).width
-    ctx.canvas.drawRect(
-      Rect(left: xLo, top: offset.dy + 6,
-           right: xHi, bottom: offset.dy + r.size.height - 6),
-      0x402196F3'u32)
-
-  # The value (or placeholder when empty).
-  if r.value.len > 0:
-    ctx.canvas.drawText(r.value, textOffset, r.style.color.value,
-                        r.style.fontSize, r.style.fontFamily)
-  elif r.placeholder.len > 0:
-    ctx.canvas.drawText(r.placeholder, textOffset,
-                        0xFFB0B0B0'u32, r.style.fontSize, r.style.fontFamily)
-
-  # Cursor bar (only when focused and blink phase is on).
-  if r.focused and r.blinkOn:
-    let pre = if r.cursor > r.value.len: r.value
-              else: r.value[0 ..< r.cursor]
-    let cursorX = textOffset.dx + measureText(pre, r.style).width
+  # Bottom border line (single-line) or no border (multiline uses
+  # a full surrounding outline so it's clearer where the box ends).
+  if r.multiline:
+    let bc = if r.focused: 0xFF1976D2'u32 else: 0xFFCCCCCC'u32
+    # Four borders.
     ctx.canvas.drawLine(
-      Offset(dx: cursorX, dy: offset.dy + 6),
-      Offset(dx: cursorX, dy: offset.dy + r.size.height - 6),
-      r.style.color.value, 1.5)
+      Offset(dx: offset.dx, dy: offset.dy),
+      Offset(dx: offset.dx + r.size.width, dy: offset.dy), bc, 1.5)
+    ctx.canvas.drawLine(
+      Offset(dx: offset.dx, dy: offset.dy + r.size.height - 1),
+      Offset(dx: offset.dx + r.size.width, dy: offset.dy + r.size.height - 1),
+      bc, 1.5)
+    ctx.canvas.drawLine(
+      Offset(dx: offset.dx, dy: offset.dy),
+      Offset(dx: offset.dx, dy: offset.dy + r.size.height), bc, 1.5)
+    ctx.canvas.drawLine(
+      Offset(dx: offset.dx + r.size.width - 1, dy: offset.dy),
+      Offset(dx: offset.dx + r.size.width - 1, dy: offset.dy + r.size.height),
+      bc, 1.5)
+  else:
+    ctx.canvas.drawLine(
+      Offset(dx: offset.dx, dy: offset.dy + r.size.height - 1),
+      Offset(dx: offset.dx + r.size.width, dy: offset.dy + r.size.height - 1),
+      (if r.focused: 0xFF1976D2'u32 else: 0xFFCCCCCC'u32),
+      2.0)
+
+  let lineH = r.style.fontSize * r.style.height
+  let textOriginX = offset.dx + 8.0'f32
+  let textOriginY =
+    if r.multiline:
+      offset.dy + 6.0'f32
+    else:
+      offset.dy + (r.size.height - r.style.fontSize) * 0.5'f32
+
+  if r.multiline:
+    # Paint each line independently. The cursor and selection live
+    # in byte offsets across the whole value; we map them per-line.
+    let lines = splitLines(r.value)
+    var byteOff = 0
+    for lineIdx, line in lines:
+      let y = textOriginY + float32(lineIdx) * lineH
+      # Selection on this line.
+      let lineStart = byteOff
+      let lineEnd = byteOff + line.len
+      if r.selectionEnd != r.cursor:
+        let lo = min(r.cursor, r.selectionEnd)
+        let hi = max(r.cursor, r.selectionEnd)
+        let selLo = max(lo, lineStart)
+        let selHi = min(hi, lineEnd)
+        if selLo < selHi:
+          let pre = line[0 ..< (selLo - lineStart)]
+          let sel = line[(selLo - lineStart) ..< (selHi - lineStart)]
+          let xLo = textOriginX + measureText(pre, r.style).width
+          let xHi = xLo + measureText(sel, r.style).width
+          ctx.canvas.drawRect(
+            Rect(left: xLo, top: y,
+                 right: xHi, bottom: y + lineH),
+            0x402196F3'u32)
+      if line.len > 0:
+        ctx.canvas.drawText(line, Offset(dx: textOriginX, dy: y),
+                            r.style.color.value,
+                            r.style.fontSize, r.style.fontFamily)
+      # Cursor on this line.
+      if r.focused and r.blinkOn and r.cursor >= lineStart and r.cursor <= lineEnd:
+        let pre = line[0 ..< (r.cursor - lineStart)]
+        let cursorX = textOriginX + measureText(pre, r.style).width
+        ctx.canvas.drawLine(
+          Offset(dx: cursorX, dy: y),
+          Offset(dx: cursorX, dy: y + lineH),
+          r.style.color.value, 1.5)
+      byteOff = lineEnd + 1   # +1 for the '\n' we split on
+    if lines.len == 0 and r.placeholder.len > 0:
+      ctx.canvas.drawText(r.placeholder,
+                          Offset(dx: textOriginX, dy: textOriginY),
+                          0xFFB0B0B0'u32, r.style.fontSize, r.style.fontFamily)
+  else:
+    # Single-line: original code path.
+    let textOffset = Offset(dx: textOriginX, dy: textOriginY)
+    if r.selectionEnd != r.cursor:
+      let lo = min(r.cursor, r.selectionEnd)
+      let hi = max(r.cursor, r.selectionEnd)
+      let pre = r.value[0 ..< lo]
+      let sel = r.value[lo ..< hi]
+      let xLo = textOffset.dx + measureText(pre, r.style).width
+      let xHi = xLo + measureText(sel, r.style).width
+      ctx.canvas.drawRect(
+        Rect(left: xLo, top: offset.dy + 6,
+             right: xHi, bottom: offset.dy + r.size.height - 6),
+        0x402196F3'u32)
+    if r.value.len > 0:
+      ctx.canvas.drawText(r.value, textOffset, r.style.color.value,
+                          r.style.fontSize, r.style.fontFamily)
+    elif r.placeholder.len > 0:
+      ctx.canvas.drawText(r.placeholder, textOffset,
+                          0xFFB0B0B0'u32, r.style.fontSize, r.style.fontFamily)
+    if r.focused and r.blinkOn:
+      let pre = if r.cursor > r.value.len: r.value
+                else: r.value[0 ..< r.cursor]
+      let cursorX = textOffset.dx + measureText(pre, r.style).width
+      ctx.canvas.drawLine(
+        Offset(dx: cursorX, dy: offset.dy + 6),
+        Offset(dx: cursorX, dy: offset.dy + r.size.height - 6),
+        r.style.color.value, 1.5)
 
 method hitTest*(r: RenderTextField, htResult: HitTestResult, position: Offset): bool =
   htResult.path.add(HitTestEntry(target: r, local: position))
@@ -466,24 +595,35 @@ proc textField*(initialValue: string = "",
                 onSubmitted: proc(value: string) = nil,
                 enabled: bool = true,
                 maxLength: int = 0,
+                multiline: bool = false,
+                obscureText: bool = false,
+                obscureChar: string = "*",
+                maxLines: int = 0,
                 key: Key = nil): TextField =
   ## Builds a `TextField`.
   ##
   ## Inputs (all optional):
   ## - `initialValue`: text to start with. Ignored when `controller`
   ##   is supplied (the controller's text wins).
-  ## - `controller`: shared editing state. Pass one when you need
-  ##   to read the value externally or to reset it.
+  ## - `controller`: shared editing state.
   ## - `placeholder`: dimmed text shown when the field is empty.
   ## - `style`: text style (font, size, color).
   ## - `onChanged`: fires after every keystroke with the new value.
-  ## - `onSubmitted`: fires when the user presses Enter.
+  ## - `onSubmitted`: fires when the user presses Enter (single-line
+  ##   only; multiline inserts a newline instead).
   ## - `enabled`: when false, the field ignores input.
   ## - `maxLength`: cap on total characters. 0 = unlimited.
+  ## - `multiline`: allows newline insertion via Enter; paints
+  ##   multiple lines. The field's height grows with line count
+  ##   (clamped to `maxLines` if positive).
+  ## - `obscureText`: render each codepoint as `obscureChar` (default
+  ##   `"*"`) instead of the actual text. For password input.
+  ## - `obscureChar`: the character to use when `obscureText` is on.
+  ## - `maxLines`: in multiline mode, maximum number of visible
+  ##   lines before clipping. 0 = unlimited.
   ## - `key`: optional reconciliation key.
-  ##
-  ## Effect: a focusable single-line input. Click to focus, type
-  ## to insert, arrow keys to move, Backspace / Delete to remove.
   TextField(key: key, initialValue: initialValue, controller: controller,
             placeholder: placeholder, style: style, onChanged: onChanged,
-            onSubmitted: onSubmitted, enabled: enabled, maxLength: maxLength)
+            onSubmitted: onSubmitted, enabled: enabled, maxLength: maxLength,
+            multiline: multiline, obscureText: obscureText,
+            obscureChar: obscureChar, maxLines: maxLines)

@@ -54,8 +54,22 @@ import flit/widgets/transitions
 import flit/widgets/navigator as nav_widget
 import flit/widgets/form_widget
 import flit/widgets/directionality
+import flit/widgets/drag_drop
+import flit/widgets/menu
+import flit/widgets/pickers
 import flit/gestures/detector
+import flit/gestures/multitouch
 import flit/animation/animation
+import flit/platform/native_dialogs
+import flit/platform/file_picker
+import flit/platform/image_clipboard
+import flit/platform/system_tray
+import flit/platform/a11y_bridge
+import flit/platform/notifications
+import flit/platform/spellcheck
+import flit/platform/haptics
+import flit/platform/system_state
+import flit/platform/locale_format
 import flit/material/material
 import flit/material/theme
 import flit/cupertino/cupertino
@@ -63,9 +77,12 @@ import flit/app
 
 export widget, key, render_object, geometry, color, diagnostics, binding,
        runtime, listenable, layer, focus, semantics, harfbuzz, canvas_gpu,
-       canvas_gl,
-       glyph_atlas, raster_pool, text, decoration, proxy_box, flex, stack,
-       sliver_list, basic, lazy_list, text_field, image_widget, transitions,
-       nav_widget, form_widget, directionality, detector, animation,
-       material, theme,
-       cupertino, app
+       canvas_gl, glyph_atlas, raster_pool, text, decoration, proxy_box,
+       flex, stack, sliver_list, basic, lazy_list, text_field, image_widget,
+       transitions, nav_widget, form_widget, directionality,
+       drag_drop, menu, pickers,
+       detector, multitouch, animation,
+       native_dialogs, file_picker, image_clipboard, system_tray,
+       a11y_bridge, notifications, spellcheck, haptics, system_state,
+       locale_format,
+       material, theme, cupertino, app

@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.9.7"
+version       = "0.10.0"
 author        = "Atul Tripathi"
 description   = "Flit: a Flutter-inspired cross-platform UI toolkit for Nim. Declarative widgets, hot reload, single codebase for desktop, mobile, web, and embedded."
 license       = "BSD-3-Clause"
