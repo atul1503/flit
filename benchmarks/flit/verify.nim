@@ -2,11 +2,31 @@
 ## tree, save the result as a PNG, count the non-background pixels
 ## to confirm the cards actually rendered.
 
-import std/[strformat]
+import std/[strformat, os]
 import pixie
 import ../../src/flit
 import ../../src/flit/foundation/runtime
 import ../../src/flit/platform/embedded/runner as embed
+import ../../src/flit/rendering/text as flitText
+
+proc installFont() =
+  const candidates = [
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "/Library/Fonts/Arial.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "C:/Windows/Fonts/arial.ttf",
+  ]
+  var path = ""
+  for c in candidates:
+    if fileExists(c): path = c; break
+  if path.len == 0: return
+  let font = pixie.readFont(path)
+  embed.embeddedFont = font
+  flitText.measureText = wrapMeasureWithCache(proc(text: string, style: TextStyle): Size =
+    let f = font
+    f.size = style.fontSize
+    let b = pixie.typeset(f, text).computeBounds()
+    Size(width: b.w, height: max(b.h, style.fontSize * style.height)))
 
 const
   NumCards = 500
@@ -40,6 +60,7 @@ method build(w: Bench, ctx: BuildContext): Widget =
                    children = rows))
 
 when isMainModule:
+  installFont()
   let canvas = embed.newEmbeddedCanvas(Width, Height)
   let root = mountElement(nil, Bench(count: NumCards), 0)
   runLayout(root, tightFor(Width.float32, Height.float32))

@@ -3,7 +3,7 @@
 ## glyph rendering and font metrics; this file produces the box size
 ## and line layout from those metrics.
 
-import std/strutils
+import std/[strutils, tables, hashes]
 import ../foundation/[render_object, geometry, color]
 
 type
@@ -80,6 +80,77 @@ var measureText*: proc(text: string, style: TextStyle): Size
 measureText = proc(text: string, style: TextStyle): Size =
   Size(width:  float32(text.len) * style.fontSize * 0.55'f32,
        height: style.fontSize * style.height)
+
+# --- Measurement cache ---
+#
+# Layout calls `measureText` once per text widget per frame. For a
+# 500-card list that's 1000+ calls into Pixie's `typeset` per frame
+# even when the text values haven't changed.
+#
+# `wrapMeasureWithCache(fn)` returns a memoizing wrapper around `fn`
+# keyed by (text, fontFamily, fontSize, fontWeight). Stable strings
+# like "Save", "Cancel", "Item 42" become cache hits and the layout
+# pass drops to near-zero for text-heavy UIs.
+#
+# `clearMeasureTextCache()` wipes the cache. Use when fonts change
+# at runtime.
+
+type
+  MeasureKey* = object
+    text*: string
+    family*: string
+    size*: float32
+    weight*: int16
+
+var measureCache* {.threadvar.}: Table[MeasureKey, Size]
+var measureCacheHits* {.threadvar.}: int
+var measureCacheMisses* {.threadvar.}: int
+
+proc hash*(k: MeasureKey): Hash =
+  var h: Hash = 0
+  h = h !& hash(k.text)
+  h = h !& hash(k.family)
+  h = h !& hash(int(k.size * 100))   # 0.01 px granularity
+  h = h !& int(k.weight)
+  !$h
+
+proc `==`*(a, b: MeasureKey): bool =
+  a.text == b.text and a.family == b.family and
+  abs(a.size - b.size) < 0.001'f32 and a.weight == b.weight
+
+proc wrapMeasureWithCache*(inner: proc(text: string, style: TextStyle): Size):
+                          proc(text: string, style: TextStyle): Size =
+  ## Returns a memoizing wrapper around `inner`. Cache key is
+  ## (text, fontFamily, fontSize, fontWeight); the same string at
+  ## the same style returns the cached `Size` without calling
+  ## `inner` again.
+  ##
+  ## Wire this up in your backend's font-installation hook:
+  ##
+  ## .. code-block:: nim
+  ##   measureText = wrapMeasureWithCache(proc(text, style): Size =
+  ##     # actual Pixie typeset here
+  ##     ...)
+  ##
+  ## Empty cache before first call.
+  result = proc(text: string, style: TextStyle): Size =
+    let key = MeasureKey(text: text, family: style.fontFamily,
+                         size: style.fontSize,
+                         weight: int16(style.fontWeight))
+    if measureCache.hasKey(key):
+      inc measureCacheHits
+      return measureCache[key]
+    inc measureCacheMisses
+    let s = inner(text, style)
+    measureCache[key] = s
+    s
+
+proc clearMeasureTextCache*() =
+  ## Drops every entry from the text measurement cache. Call when
+  ## the font set changes at runtime.
+  measureCache.clear()
+  measureCacheHits = 0
+  measureCacheMisses = 0
 
 proc wrapText(text: string, maxWidth: float32, style: TextStyle): seq[string] =
   ## Greedy word-wrap that respects measureText. Falls back to char-wrap if

@@ -7,7 +7,7 @@
 when defined(js):
   {.error: "embedded runner is not for JS backend".}
 
-import std/[times, os]
+import std/[times, os, tables, hashes]
 import pixie except Rect, rect
 import ../../foundation/[widget, render_object, binding, geometry, runtime,
                           diagnostics]
@@ -79,13 +79,68 @@ var embeddedFont*: pixie.Font = nil
   ## need text rendering should assign this from a loaded TTF before
   ## the first frame; defaults to nil (no text drawn).
 
+# Text rasterization cache. Pixie's fillText is the single biggest
+# CPU cost in the warm paint pass; for stable strings (every list
+# item label, every button caption) we rasterize once into a small
+# image and `draw` that image on every subsequent call. Cache key
+# is (text, fontSize, color); the active font is implicit because
+# only one font is installed at a time.
+
+type
+  TextCacheKey = object
+    text: string
+    size: uint16   # px
+    color: uint32
+
+  TextCacheEntry = object
+    image: pixie.Image
+    width, height: int
+
+proc hash(k: TextCacheKey): Hash =
+  var h: Hash = 0
+  h = h !& hash(k.text)
+  h = h !& int(k.size)
+  h = h !& int(k.color)
+  !$h
+
+proc `==`(a, b: TextCacheKey): bool =
+  a.text == b.text and a.size == b.size and a.color == b.color
+
+var embeddedTextCache* {.threadvar.}: Table[TextCacheKey, TextCacheEntry]
+var embeddedTextCacheLimit* = 1024
+  ## Max entries before old ones get evicted. Tune for your UI.
+
+proc clearEmbeddedTextCache*() =
+  ## Drops every rasterized text image from the cache.
+  embeddedTextCache.clear()
+
+proc rasterizeText(text: string, fontSize: float32, color: uint32): TextCacheEntry =
+  ## Renders `text` into a fresh Pixie image sized to the typeset
+  ## bounds + 2px padding. Returns the image + dimensions.
+  embeddedFont.size = fontSize
+  let bounds = pixie.typeset(embeddedFont, text).computeBounds()
+  let tw = max(int(bounds.w) + 2, 1)
+  let th = max(int(max(bounds.h, fontSize)) + 2, 1)
+  let img = pixie.newImage(tw, th)
+  embeddedFont.paints = @[argbToPaint(color)]
+  img.fillText(embeddedFont, text, translate(pixie.vec2(0, 0)))
+  TextCacheEntry(image: img, width: tw, height: th)
+
 method drawText*(c: EmbeddedCanvas, text: string, pos: Offset, color: uint32,
                  fontSize: float32, fontFamily: string) =
   if embeddedFont.isNil: return
-  embeddedFont.size = fontSize
-  embeddedFont.paints = @[argbToPaint(color)]
-  c.image.fillText(embeddedFont, text,
-                   translate(pixie.vec2(pos.dx, pos.dy)))
+  if text.len == 0: return
+  let opaqued = c.applyOpacity(color)
+  let key = TextCacheKey(text: text, size: uint16(fontSize), color: opaqued)
+  var entry: TextCacheEntry
+  if embeddedTextCache.hasKey(key):
+    entry = embeddedTextCache[key]
+  else:
+    entry = rasterizeText(text, fontSize, opaqued)
+    if embeddedTextCache.len < embeddedTextCacheLimit:
+      embeddedTextCache[key] = entry
+  c.image.draw(entry.image,
+               translate(pixie.vec2(pos.dx, pos.dy)))
 
 method save*(c: EmbeddedCanvas)    = c.ctx.save()
 method restore*(c: EmbeddedCanvas) = c.ctx.restore()

@@ -32,11 +32,11 @@ proc installFont() =
     quit(1)
   let font = pixie.readFont(path)
   embed.embeddedFont = font
-  flitText.measureText = proc(text: string, style: TextStyle): Size =
+  flitText.measureText = wrapMeasureWithCache(proc(text: string, style: TextStyle): Size =
     let f = font
     f.size = style.fontSize
     let b = pixie.typeset(f, text).computeBounds()
-    Size(width: b.w, height: max(b.h, style.fontSize * style.height))
+    Size(width: b.w, height: max(b.h, style.fontSize * style.height)))
 
 const
   NumCards = 500

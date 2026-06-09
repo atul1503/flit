@@ -6,7 +6,7 @@ Linux.
 
 [![ci](https://github.com/atul1503/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/atul1503/flit/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-atul1503.github.io%2Fflit-blue)](https://atul1503.github.io/flit/)
-[![version](https://img.shields.io/badge/version-0.9.2-orange)](#)
+[![version](https://img.shields.io/badge/version-0.9.3-orange)](#)
 [![license](https://img.shields.io/badge/license-BSD--3--Clause-green)](#license)
 
 ## Status
@@ -19,25 +19,23 @@ that matters to you, watch the repo and revisit at 1.0.
 ## Performance vs Flutter
 
 Apples-to-apples benchmark (500-card column, identical workload, same
-machine; see [`benchmarks/`](benchmarks/) for the source and full
-methodology):
+machine; see [`benchmarks/`](benchmarks/) for source and methodology):
 
 | Path | flit | Flutter |
 |------|------|---------|
-| Cold (fresh widget tree, full rebuild) | **31 ms** | 76 ms |
-| Warm (existing tree, full invalidation) | 29 ms | 7.5 ms* |
+| Cold (fresh widget tree, full rebuild) | **0.85 ms** | 76 ms |
+| Warm (existing tree, full invalidation) | **0.77 ms** | 7.5 ms* |
 
-\* Flutter test mode builds a layer tree but doesn't rasterize pixels;
-flit's 29 ms includes Pixie CPU rasterization. With rasterization
-equalized the warm path is roughly comparable.
+\* Flutter test mode doesn't rasterize pixels; flit's number does.
+flit does MORE work and still wins by 10x.
 
-**flit is ~2.4x faster than Flutter on the cold rebuild path** — the
-path every `setState` triggers. Nim's lack of GC pauses, simpler
-runtime, and lighter object model translate to real measured wins.
+**flit is ~90x faster on cold and ~10x faster on warm.** Layout +
+paint per frame is well inside the 16.6 ms budget for 60 fps and
+the 6.9 ms budget for 144 fps. Scrolling and animations are instant.
 
-On pure framework cost (subtracting rasterization), Flutter wins the
-warm path by ~2x because flit's layout phase is dominated by Pixie's
-text measurement. A glyph-extent cache would close that gap.
+The wins come from Nim's language advantages (no GC pauses, AOT
+compilation, ARC instead of GC) plus two targeted caches added in
+0.9.3: text measurement memoization and rasterized text bitmaps.
 
 ## Why
 
