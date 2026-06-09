@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +32,17 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install sdl2 harfbuzz pkg-config
+
+      - name: Install system deps (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install -y sdl2
+          # HarfBuzz on Windows ships with msys2 / vcpkg. We install
+          # via vcpkg here because choco doesn't have a stable hb
+          # package. Skip if it fails; tests that don't touch
+          # HarfBuzz still pass.
+          vcpkg install harfbuzz:x64-windows || Write-Host "HarfBuzz install skipped"
 
       - name: Install nim deps
         run: nimble install -y --depsOnly
@@ -45,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
 
@@ -64,6 +75,13 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install sdl2 harfbuzz pkg-config
+
+      - name: Install system deps (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install -y sdl2
+          vcpkg install harfbuzz:x64-windows || Write-Host "HarfBuzz install skipped"
 
       - name: Install nim deps
         run: nimble install -y --depsOnly

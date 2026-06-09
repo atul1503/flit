@@ -67,10 +67,13 @@
 <li><a class="reference" href="#FocusNode" title="FocusNode = ref object
   onKey*: KeyHandler
   onText*: TextHandler
+  onShortcut*: ShortcutHandler
   onFocusChange*: proc (focused: bool) {.closure.}
   hasFocus*: bool
   enabled*: bool">FocusNode</a></li>
 <li><a class="reference" href="#KeyHandler" title="KeyHandler = proc (node: FocusNode; key: FocusKey; modifiers: uint32) {.closure.}">KeyHandler</a></li>
+<li><a class="reference" href="#ShortcutHandler" title="ShortcutHandler = proc (node: FocusNode; keysym: int; modifiers: uint32): bool {.
+    closure.}">ShortcutHandler</a></li>
 <li><a class="reference" href="#TextHandler" title="TextHandler = proc (node: FocusNode; text: string) {.closure.}">TextHandler</a></li>
 
     </ul>
@@ -106,8 +109,10 @@
 
 </ul>
 <ul class="simple nested-toc-section">newFocusNode
-  <li><a class="reference" href="#newFocusNode%2CKeyHandler%2CTextHandler%2Cproc%28bool%29" title="newFocusNode(onKey: KeyHandler = nil; onText: TextHandler = nil;
+  <li><a class="reference" href="#newFocusNode%2CKeyHandler%2CTextHandler%2CShortcutHandler%2Cproc%28bool%29" title="newFocusNode(onKey: KeyHandler = nil; onText: TextHandler = nil;
+             onShortcut: ShortcutHandler = nil;
              onFocusChange: proc (focused: bool) = nil): FocusNode">newFocusNode(onKey: KeyHandler = nil; onText: TextHandler = nil;
+             onShortcut: ShortcutHandler = nil;
              onFocusChange: proc (focused: bool) = nil): FocusNode</a></li>
 
 </ul>
@@ -176,12 +181,13 @@
   <dt><pre><a href="focus.html#FocusNode"><span class="Identifier">FocusNode</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">onKey</span><span class="Operator">*</span><span class="Other">:</span> <a href="focus.html#KeyHandler"><span class="Identifier">KeyHandler</span></a>
   <span class="Identifier">onText</span><span class="Operator">*</span><span class="Other">:</span> <a href="focus.html#TextHandler"><span class="Identifier">TextHandler</span></a>
+  <span class="Identifier">onShortcut</span><span class="Operator">*</span><span class="Other">:</span> <a href="focus.html#ShortcutHandler"><span class="Identifier">ShortcutHandler</span></a>
   <span class="Identifier">onFocusChange</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">focused</span><span class="Other">:</span> <span class="Identifier">bool</span><span class="Other">)</span> {.<span class="Identifier">closure</span>.}
   <span class="Identifier">hasFocus</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
   <span class="Identifier">enabled</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span></pre></dt>
   <dd>
     
-    <p>A focusable target. The owner widget creates one in <tt class="docutils literal"><span class="pre"><span class="Identifier">initState</span></span></tt>, registers it via <tt class="docutils literal"><span class="pre"><span class="Identifier">manager</span><span class="Operator">.</span><span class="Identifier">add</span></span></tt>, and supplies <tt class="docutils literal"><span class="pre"><span class="Identifier">onKey</span></span></tt> and <tt class="docutils literal"><span class="pre"><span class="Identifier">onText</span></span></tt> callbacks to receive input.</p>
+    <p>A focusable target. The owner widget creates one in <tt class="docutils literal"><span class="pre"><span class="Identifier">initState</span></span></tt>, registers it via <tt class="docutils literal"><span class="pre"><span class="Identifier">manager</span><span class="Operator">.</span><span class="Identifier">add</span></span></tt>, and supplies <tt class="docutils literal"><span class="pre"><span class="Identifier">onKey</span></span></tt>, <tt class="docutils literal"><span class="pre"><span class="Identifier">onText</span></span></tt>, and (optionally) <tt class="docutils literal"><span class="pre"><span class="Identifier">onShortcut</span></span></tt> callbacks to receive input.</p>
 <p><tt class="docutils literal"><span class="pre"><span class="Identifier">hasFocus</span></span></tt> is true while this node is the manager's <tt class="docutils literal"><span class="pre"><span class="Identifier">current</span></span></tt>. <tt class="docutils literal"><span class="pre"><span class="Identifier">onFocusChange</span></span></tt> fires whenever that transitions.</p>
 
     
@@ -192,6 +198,15 @@
   <dd>
     
     
+    
+  </dd>
+</div>
+<div id="ShortcutHandler">
+  <dt><pre><a href="focus.html#ShortcutHandler"><span class="Identifier">ShortcutHandler</span></a> <span class="Other">=</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">node</span><span class="Other">:</span> <a href="focus.html#FocusNode"><span class="Identifier">FocusNode</span></a><span class="Other">;</span> <span class="Identifier">keysym</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">;</span> <span class="Identifier">modifiers</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.
+    <span class="Identifier">closure</span>.}</pre></dt>
+  <dd>
+    
+    Returns true if the shortcut was consumed.
     
   </dd>
 </div>
@@ -260,7 +275,8 @@
 <div id="handleKeyEvent-procs-all">
   <div id="handleKeyEvent,FocusManager,KeyEvent">
   <dt><pre><span class="Keyword">proc</span> <a href="#handleKeyEvent%2CFocusManager%2CKeyEvent"><span class="Identifier">handleKeyEvent</span></a><span class="Other">(</span><span class="Identifier">m</span><span class="Other">:</span> <a href="focus.html#FocusManager"><span class="Identifier">FocusManager</span></a><span class="Other">;</span> <span class="Identifier">ev</span><span class="Other">:</span> <a href="binding.html#KeyEvent"><span class="Identifier">KeyEvent</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     <p>Routes <tt class="docutils literal"><span class="pre"><span class="Identifier">ev</span></span></tt> to the focused node. Returns true if the event was consumed by focus traversal or by the focused node. Returns false if no node was focused or the event should propagate elsewhere.</p>
@@ -272,8 +288,9 @@
 
 </div>
 <div id="newFocusNode-procs-all">
-  <div id="newFocusNode,KeyHandler,TextHandler,proc(bool)">
-  <dt><pre><span class="Keyword">proc</span> <a href="#newFocusNode%2CKeyHandler%2CTextHandler%2Cproc%28bool%29"><span class="Identifier">newFocusNode</span></a><span class="Other">(</span><span class="Identifier">onKey</span><span class="Other">:</span> <a href="focus.html#KeyHandler"><span class="Identifier">KeyHandler</span></a> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">;</span> <span class="Identifier">onText</span><span class="Other">:</span> <a href="focus.html#TextHandler"><span class="Identifier">TextHandler</span></a> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">;</span>
+  <div id="newFocusNode,KeyHandler,TextHandler,ShortcutHandler,proc(bool)">
+  <dt><pre><span class="Keyword">proc</span> <a href="#newFocusNode%2CKeyHandler%2CTextHandler%2CShortcutHandler%2Cproc%28bool%29"><span class="Identifier">newFocusNode</span></a><span class="Other">(</span><span class="Identifier">onKey</span><span class="Other">:</span> <a href="focus.html#KeyHandler"><span class="Identifier">KeyHandler</span></a> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">;</span> <span class="Identifier">onText</span><span class="Other">:</span> <a href="focus.html#TextHandler"><span class="Identifier">TextHandler</span></a> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">;</span>
+                  <span class="Identifier">onShortcut</span><span class="Other">:</span> <a href="focus.html#ShortcutHandler"><span class="Identifier">ShortcutHandler</span></a> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">;</span>
                   <span class="Identifier">onFocusChange</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">focused</span><span class="Other">:</span> <span class="Identifier">bool</span><span class="Other">)</span> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">)</span><span class="Other">:</span> <a href="focus.html#FocusNode"><span class="Identifier">FocusNode</span></a> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -342,7 +359,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 04:58:21 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:16:10 UTC</small>
       </div>
     </div>
   </div>

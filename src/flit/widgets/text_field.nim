@@ -20,14 +20,33 @@ import ../foundation/[widget, render_object, geometry, color, focus,
 import ../rendering/text
 import ../gestures/detector
 
+# Clipboard hook. The platform runner installs a real
+# implementation (backed by SDL_GetClipboardText / SetClipboardText
+# on desktop). Tests can install a fake. nil means "no clipboard"
+# and copy / paste become no-ops.
+
+var clipboardGet*: proc(): string {.gcsafe.}
+var clipboardSet*: proc(text: string) {.gcsafe.}
+
 type
+  EditSnapshot* = object
+    ## Snapshot of editing state for undo / redo.
+    text*:          string
+    cursor*:        int
+    selectionEnd*:  int
+
   TextEditingController* = ref object
     ## Mutable string + cursor + selection. The widget owns one;
     ## external callers can pass their own to share state.
+    ##
+    ## Maintains an undo / redo history. `pushUndo` records the
+    ## current state; `undo` and `redo` walk the history.
     text*:        string
     cursor*:      int          # byte offset into text
     selectionEnd*: int         # if != cursor, a selection is active
     listeners*:   seq[proc(value: string) {.closure.}]
+    undoStack*:   seq[EditSnapshot]
+    redoStack*:   seq[EditSnapshot]
 
   TextField* = ref object of StatefulWidget
     ## Single-line text input.
@@ -76,6 +95,51 @@ proc `value=`*(c: TextEditingController, v: string) =
 proc addListener*(c: TextEditingController, fn: proc(value: string)) =
   c.listeners.add(fn)
 
+proc snapshot*(c: TextEditingController): EditSnapshot =
+  ## Captures the current editing state. Used by undo / redo and
+  ## by external callers that want to compare states.
+  EditSnapshot(text: c.text, cursor: c.cursor, selectionEnd: c.selectionEnd)
+
+proc restore*(c: TextEditingController, s: EditSnapshot) =
+  ## Restores editing state from a snapshot. Fires every listener
+  ## with the restored text. Does NOT touch the undo / redo
+  ## stacks.
+  c.text = s.text
+  c.cursor = s.cursor
+  c.selectionEnd = s.selectionEnd
+  for l in c.listeners:
+    try: l(c.text) except CatchableError: discard
+
+proc pushUndo*(c: TextEditingController) =
+  ## Records the current state for undo. Clears the redo stack
+  ## (any new edit invalidates the redo branch). Cap the undo
+  ## history at 256 to bound memory; the oldest entries get
+  ## dropped past that point.
+  c.undoStack.add(c.snapshot)
+  c.redoStack.setLen(0)
+  if c.undoStack.len > 256:
+    c.undoStack.delete(0)
+
+proc undo*(c: TextEditingController): bool =
+  ## Walks back one step. Pushes the current state onto the redo
+  ## stack so `redo` can return to it. Returns true if anything
+  ## was undone.
+  if c.undoStack.len == 0: return false
+  c.redoStack.add(c.snapshot)
+  let prev = c.undoStack.pop()
+  c.restore(prev)
+  true
+
+proc redo*(c: TextEditingController): bool =
+  ## Walks forward one step (assumes an undo just happened). Pushes
+  ## the current state onto the undo stack and restores the most
+  ## recent redo snapshot. Returns true if anything was redone.
+  if c.redoStack.len == 0: return false
+  c.undoStack.add(c.snapshot)
+  let next = c.redoStack.pop()
+  c.restore(next)
+  true
+
 proc clearSelection*(c: TextEditingController) =
   c.selectionEnd = c.cursor
 
@@ -96,6 +160,7 @@ proc deleteSelection*(c: TextEditingController): bool =
   true
 
 proc insertText*(c: TextEditingController, s: string, maxLength: int) =
+  c.pushUndo()
   discard c.deleteSelection()
   var add = s
   if maxLength > 0 and c.text.len + s.len > maxLength:
@@ -108,6 +173,7 @@ proc insertText*(c: TextEditingController, s: string, maxLength: int) =
 proc backspace*(c: TextEditingController) =
   if c.deleteSelection: return
   if c.cursor <= 0: return
+  c.pushUndo()
   c.text = c.text[0 ..< c.cursor - 1] & c.text[c.cursor ..< c.text.len]
   dec c.cursor
   c.selectionEnd = c.cursor
@@ -115,7 +181,35 @@ proc backspace*(c: TextEditingController) =
 proc forwardDelete*(c: TextEditingController) =
   if c.deleteSelection: return
   if c.cursor >= c.text.len: return
+  c.pushUndo()
   c.text = c.text[0 ..< c.cursor] & c.text[c.cursor + 1 ..< c.text.len]
+
+proc selectAll*(c: TextEditingController) =
+  ## Selects every character. After this, `selectionRange` covers
+  ## the whole text and `hasSelection` is true.
+  c.cursor = 0
+  c.selectionEnd = c.text.len
+
+proc selectRange*(c: TextEditingController, lo, hi: int) =
+  ## Sets the selection to span byte offsets `[lo, hi)`. Clamps to
+  ## the text length. The cursor ends up at `hi`.
+  let n = c.text.len
+  c.cursor = clamp(hi, 0, n)
+  c.selectionEnd = clamp(lo, 0, n)
+
+proc copyToString*(c: TextEditingController): string =
+  ## Returns the selected text, or the whole text if no selection
+  ## is active. Used by the clipboard hook.
+  if not c.hasSelection: return ""
+  let r = c.selectionRange
+  c.text[r.lo ..< r.hi]
+
+proc deleteSelectionWithUndo*(c: TextEditingController): bool =
+  ## Like `deleteSelection` but records an undo snapshot first.
+  ## Returns true if anything was deleted.
+  if not c.hasSelection: return false
+  c.pushUndo()
+  c.deleteSelection()
 
 proc moveLeft*(c: TextEditingController, extend: bool) =
   if c.cursor > 0: dec c.cursor
@@ -172,6 +266,52 @@ method initState(s: TextFieldState) =
       s.controller.insertText(text, host.maxLength))
     if not host.onChanged.isNil:
       try: host.onChanged(s.controller.text) except CatchableError: discard
+  s.node.onShortcut = proc(node: FocusNode, keysym: int, mods: uint32): bool =
+    let host = TextField(s.element.widget)
+    if not host.enabled: return false
+    let shift = (mods and 0x0003) != 0
+    # 'a'=97, 'c'=99, 'v'=118, 'x'=120, 'z'=122, 'y'=121
+    case keysym
+    of 97:   # Cmd/Ctrl+A: select all
+      setState(s, proc() = s.controller.selectAll())
+      return true
+    of 99:   # Cmd/Ctrl+C: copy
+      let sel = s.controller.copyToString()
+      if sel.len > 0 and not clipboardSet.isNil:
+        try: clipboardSet(sel) except CatchableError: discard
+      return true
+    of 120:  # Cmd/Ctrl+X: cut
+      let sel = s.controller.copyToString()
+      if sel.len > 0:
+        if not clipboardSet.isNil:
+          try: clipboardSet(sel) except CatchableError: discard
+        setState(s, proc() =
+          discard s.controller.deleteSelectionWithUndo())
+        if not host.onChanged.isNil:
+          try: host.onChanged(s.controller.text) except CatchableError: discard
+      return true
+    of 118:  # Cmd/Ctrl+V: paste
+      if not clipboardGet.isNil:
+        let pasted = try: clipboardGet() except CatchableError: ""
+        if pasted.len > 0:
+          setState(s, proc() =
+            s.controller.insertText(pasted, host.maxLength))
+          if not host.onChanged.isNil:
+            try: host.onChanged(s.controller.text) except CatchableError: discard
+      return true
+    of 122:  # Cmd/Ctrl+Z: undo (or Cmd/Ctrl+Shift+Z: redo)
+      setState(s, proc() =
+        if shift: discard s.controller.redo()
+        else:     discard s.controller.undo())
+      if not host.onChanged.isNil:
+        try: host.onChanged(s.controller.text) except CatchableError: discard
+      return true
+    of 121:  # Cmd/Ctrl+Y: redo (Windows-style)
+      setState(s, proc() = discard s.controller.redo())
+      if not host.onChanged.isNil:
+        try: host.onChanged(s.controller.text) except CatchableError: discard
+      return true
+    else: return false
   focusManager().add(s.node)
 
 method dispose(s: TextFieldState) =

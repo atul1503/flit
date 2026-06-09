@@ -13,6 +13,7 @@ import std/[times, os]
 import ../../foundation/[widget, render_object, binding, geometry,
                           runtime, diagnostics, focus]
 import ../../rendering/canvas_sdl
+import ../../widgets/text_field
 
 type
   DesktopWindowConfig* = object
@@ -63,6 +64,16 @@ proc runDesktop*(rootWidget: Widget,
   # focus manager. The TextInput event fires for printable
   # characters and IME composition output.
   startTextInput()
+
+  # Install SDL-backed clipboard provider so TextField's
+  # cut/copy/paste work without forcing TextField to import SDL.
+  clipboardGet = proc(): string {.gcsafe.} =
+    {.gcsafe.}:
+      let p = sdl2.getClipboardText()
+      result = if p.isNil: "" else: $p
+  clipboardSet = proc(text: string) {.gcsafe.} =
+    {.gcsafe.}:
+      discard sdl2.setClipboardText(text.cstring)
 
   var flags: uint32 = SDL_WINDOW_SHOWN
   if config.resizable: flags = flags or SDL_WINDOW_RESIZABLE

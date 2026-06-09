@@ -20,8 +20,9 @@ matches your problem.
 | [06-animations.md](06-animations.md) | AnimationController, Tween, curves |
 | [07-performance.md](07-performance.md) | RepaintBoundary, GpuCanvas, GlCanvas, glyph atlas, lazy lists, HarfBuzz, raster pool |
 | [08-cli.md](08-cli.md) | `flit create`, `flit run`, `flit build`, `flit doctor` |
-| [09-examples-tour.md](09-examples-tour.md) | Counter, todo, calculator, showcase |
+| [09-examples-tour.md](09-examples-tour.md) | Counter, todo, calculator, showcase, notes |
 | [10-api-reference.md](10-api-reference.md) | Generating `nim doc` HTML; where each symbol lives |
+| [11-production.md](11-production.md) | TextField clipboard/undo, animated transitions, semantics, what production-ready means |
 
 ## Conventions in this guide
 

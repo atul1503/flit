@@ -97,3 +97,67 @@ suite "TextEditingController":
     c.addListener(proc(v: string) = got = v)
     c.value = "b"
     check got == "b"
+
+suite "TextField undo / redo / clipboard":
+  test "undo walks back to previous state":
+    let c = newTextEditingController("hello")
+    c.cursor = 5; c.selectionEnd = 5
+    c.insertText(" world", 0)
+    check c.text == "hello world"
+    discard c.undo()
+    check c.text == "hello"
+
+  test "redo walks forward after undo":
+    let c = newTextEditingController("a")
+    c.cursor = 1; c.selectionEnd = 1
+    c.insertText("b", 0)
+    check c.text == "ab"
+    discard c.undo()
+    check c.text == "a"
+    discard c.redo()
+    check c.text == "ab"
+
+  test "undo returns false when history empty":
+    let c = newTextEditingController("x")
+    check (not c.undo())
+
+  test "new edit clears redo branch":
+    let c = newTextEditingController("a")
+    c.cursor = 1; c.selectionEnd = 1
+    c.insertText("b", 0)
+    discard c.undo()
+    # New edit at this point: redo branch should be invalidated.
+    c.insertText("c", 0)
+    check (not c.redo())
+
+  test "selectAll selects the whole text":
+    let c = newTextEditingController("hello")
+    c.selectAll()
+    check c.hasSelection
+    check c.selectionRange == (0, 5)
+
+  test "copyToString returns selected range":
+    let c = newTextEditingController("hello world")
+    c.cursor = 0
+    c.selectionEnd = 5
+    check c.copyToString() == "hello"
+
+  test "deleteSelectionWithUndo records undo":
+    let c = newTextEditingController("hello world")
+    c.cursor = 0
+    c.selectionEnd = 5
+    check c.deleteSelectionWithUndo()
+    check c.text == " world"
+    discard c.undo()
+    check c.text == "hello world"
+
+  test "snapshot / restore round-trips":
+    let c = newTextEditingController("abc")
+    c.cursor = 1
+    c.selectionEnd = 3
+    let snap = c.snapshot
+    c.text = "xyz"; c.cursor = 0; c.selectionEnd = 0
+    c.restore(snap)
+    check c.text == "abc"
+    check c.cursor == 1
+    check c.selectionEnd == 3

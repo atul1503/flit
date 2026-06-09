@@ -1,0 +1,35 @@
+nimTitle	transitions	flit/widgets/transitions.html	module src/flit/widgets/transitions		0
+nim	trNone	flit/widgets/transitions.html#trNone	RouteTransitionKind.trNone		23
+nim	trFade	flit/widgets/transitions.html#trFade	RouteTransitionKind.trFade		23
+nim	trSlideLeft	flit/widgets/transitions.html#trSlideLeft	RouteTransitionKind.trSlideLeft		23
+nim	trSlideRight	flit/widgets/transitions.html#trSlideRight	RouteTransitionKind.trSlideRight		23
+nim	trSlideUp	flit/widgets/transitions.html#trSlideUp	RouteTransitionKind.trSlideUp		23
+nim	trSlideDown	flit/widgets/transitions.html#trSlideDown	RouteTransitionKind.trSlideDown		23
+nim	trScale	flit/widgets/transitions.html#trScale	RouteTransitionKind.trScale		23
+nim	RouteTransitionKind	flit/widgets/transitions.html#RouteTransitionKind	enum RouteTransitionKind		23
+nim	SlideIn	flit/widgets/transitions.html#SlideIn	type SlideIn		27
+nim	FadeIn	flit/widgets/transitions.html#FadeIn	type FadeIn		32
+nim	ScaleIn	flit/widgets/transitions.html#ScaleIn	type ScaleIn		36
+nim	widgetTypeName	flit/widgets/transitions.html#widgetTypeName.e,SlideIn	method widgetTypeName(w: SlideIn): string		47
+nim	createElement	flit/widgets/transitions.html#createElement.e,SlideIn	method createElement(w: SlideIn): Element		48
+nim	createState	flit/widgets/transitions.html#createState.e,SlideIn	method createState(w: SlideIn): State		49
+nim	build	flit/widgets/transitions.html#build.e,SlideInState,BuildContext	method build(s: SlideInState; ctx: BuildContext): Widget		63
+nim	widgetTypeName	flit/widgets/transitions.html#widgetTypeName.e,FadeIn	method widgetTypeName(w: FadeIn): string		82
+nim	createElement	flit/widgets/transitions.html#createElement.e,FadeIn	method createElement(w: FadeIn): Element		83
+nim	createState	flit/widgets/transitions.html#createState.e,FadeIn	method createState(w: FadeIn): State		84
+nim	build	flit/widgets/transitions.html#build.e,FadeInState,BuildContext	method build(s: FadeInState; ctx: BuildContext): Widget		98
+nim	widgetTypeName	flit/widgets/transitions.html#widgetTypeName.e,ScaleIn	method widgetTypeName(w: ScaleIn): string		101
+nim	createElement	flit/widgets/transitions.html#createElement.e,ScaleIn	method createElement(w: ScaleIn): Element		102
+nim	createState	flit/widgets/transitions.html#createState.e,ScaleIn	method createState(w: ScaleIn): State		103
+nim	build	flit/widgets/transitions.html#build.e,ScaleInState,BuildContext	method build(s: ScaleInState; ctx: BuildContext): Widget		117
+nim	slideInLeft	flit/widgets/transitions.html#slideInLeft,Widget,int,Key	proc slideInLeft(child: Widget; durationMs: int = 250; key: Key = nil): SlideIn		123
+nim	slideInRight	flit/widgets/transitions.html#slideInRight,Widget,int,Key	proc slideInRight(child: Widget; durationMs: int = 250; key: Key = nil): SlideIn		128
+nim	slideInUp	flit/widgets/transitions.html#slideInUp,Widget,int,Key	proc slideInUp(child: Widget; durationMs: int = 250; key: Key = nil): SlideIn		131
+nim	slideInDown	flit/widgets/transitions.html#slideInDown,Widget,int,Key	proc slideInDown(child: Widget; durationMs: int = 250; key: Key = nil): SlideIn		135
+nim	fadeIn	flit/widgets/transitions.html#fadeIn,Widget,int,Key	proc fadeIn(child: Widget; durationMs: int = 200; key: Key = nil): FadeIn		138
+nim	scaleIn	flit/widgets/transitions.html#scaleIn,Widget,int,Key	proc scaleIn(child: Widget; durationMs: int = 200; key: Key = nil): ScaleIn		143
+nim	withTransition	flit/widgets/transitions.html#withTransition,RouteTransitionKind,Widget	proc withTransition(kind: RouteTransitionKind; child: Widget): Widget		147
+nimgrp	widgettypename	flit/widgets/transitions.html#widgetTypeName-methods-all	method		47
+nimgrp	createstate	flit/widgets/transitions.html#createState-methods-all	method		49
+nimgrp	createelement	flit/widgets/transitions.html#createElement-methods-all	method		48
+nimgrp	build	flit/widgets/transitions.html#build-methods-all	method		63

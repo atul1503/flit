@@ -28,16 +28,19 @@ type
 
   KeyHandler* = proc(node: FocusNode, key: FocusKey, modifiers: uint32) {.closure.}
   TextHandler* = proc(node: FocusNode, text: string) {.closure.}
+  ShortcutHandler* = proc(node: FocusNode, keysym: int, modifiers: uint32): bool {.closure.}
+    ## Returns true if the shortcut was consumed.
 
   FocusNode* = ref object
     ## A focusable target. The owner widget creates one in `initState`,
-    ## registers it via `manager.add`, and supplies `onKey` and
-    ## `onText` callbacks to receive input.
+    ## registers it via `manager.add`, and supplies `onKey`, `onText`,
+    ## and (optionally) `onShortcut` callbacks to receive input.
     ##
     ## `hasFocus` is true while this node is the manager's
     ## `current`. `onFocusChange` fires whenever that transitions.
     onKey*:         KeyHandler
     onText*:        TextHandler
+    onShortcut*:    ShortcutHandler
     onFocusChange*: proc(focused: bool) {.closure.}
     hasFocus*:      bool
     enabled*:       bool
@@ -63,10 +66,11 @@ proc focusManager*(): FocusManager =
 
 proc newFocusNode*(onKey: KeyHandler = nil,
                   onText: TextHandler = nil,
+                  onShortcut: ShortcutHandler = nil,
                   onFocusChange: proc(focused: bool) = nil): FocusNode =
   ## Constructs a fresh focus node. Set callbacks for the events
   ## you care about; nil callbacks are ignored.
-  FocusNode(onKey: onKey, onText: onText,
+  FocusNode(onKey: onKey, onText: onText, onShortcut: onShortcut,
             onFocusChange: onFocusChange,
             hasFocus: false, enabled: true)
 
@@ -168,6 +172,22 @@ proc handleKeyEvent*(m: FocusManager, ev: KeyEvent): bool =
     return true
 
   if m.current.isNil: return false
+
+  # Modifier mask for Ctrl + Cmd (Mac uses Cmd, Linux/Windows use Ctrl).
+  # SDL bits: 0x40 = LCtrl, 0x80 = RCtrl, 0x400 = LGui (Mac Cmd),
+  # 0x800 = RGui.
+  const modMask = uint32(0x40 or 0x80 or 0x400 or 0x800)
+
+  # When a Ctrl or Cmd modifier is pressed and the keysym is a
+  # printable ASCII letter, deliver to onShortcut. SDL suppresses
+  # TextInput for these combos so we don't double-fire.
+  if (ev.modifiers and modMask) != 0 and ev.keyCode in 32..126:
+    if not m.current.onShortcut.isNil:
+      var consumed = false
+      try:
+        consumed = m.current.onShortcut(m.current, ev.keyCode, ev.modifiers)
+      except CatchableError: discard
+      if consumed: return true
 
   let fk = case ev.keyCode
     of 8: fkBackspace

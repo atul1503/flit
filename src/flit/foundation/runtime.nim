@@ -148,6 +148,8 @@ proc childrenOf(w: Widget): seq[Widget] =
     if not OpacityWidget(w).child.isNil: result.add(OpacityWidget(w).child)
   elif w of RepaintBoundary:
     if not RepaintBoundary(w).child.isNil: result.add(RepaintBoundary(w).child)
+  elif w of TransformWidget:
+    if not TransformWidget(w).child.isNil: result.add(TransformWidget(w).child)
 
 proc kindFor*(w: Widget): ElementKind =
   ## Returns the `ElementKind` for the runtime class of `w`. Used by

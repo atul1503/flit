@@ -1,0 +1,35 @@
+nimTitle	semantics	flit/foundation/semantics.html	module src/flit/foundation/semantics		0
+nim	srNone	flit/foundation/semantics.html#srNone	SemanticsRole.srNone		24
+nim	srButton	flit/foundation/semantics.html#srButton	SemanticsRole.srButton		24
+nim	srLink	flit/foundation/semantics.html#srLink	SemanticsRole.srLink		24
+nim	srTextField	flit/foundation/semantics.html#srTextField	SemanticsRole.srTextField		24
+nim	srCheckbox	flit/foundation/semantics.html#srCheckbox	SemanticsRole.srCheckbox		24
+nim	srRadio	flit/foundation/semantics.html#srRadio	SemanticsRole.srRadio		24
+nim	srImage	flit/foundation/semantics.html#srImage	SemanticsRole.srImage		24
+nim	srHeading	flit/foundation/semantics.html#srHeading	SemanticsRole.srHeading		24
+nim	srList	flit/foundation/semantics.html#srList	SemanticsRole.srList		24
+nim	srListItem	flit/foundation/semantics.html#srListItem	SemanticsRole.srListItem		24
+nim	srTab	flit/foundation/semantics.html#srTab	SemanticsRole.srTab		24
+nim	srTabList	flit/foundation/semantics.html#srTabList	SemanticsRole.srTabList		24
+nim	srSlider	flit/foundation/semantics.html#srSlider	SemanticsRole.srSlider		24
+nim	srProgressBar	flit/foundation/semantics.html#srProgressBar	SemanticsRole.srProgressBar		24
+nim	srSearchBox	flit/foundation/semantics.html#srSearchBox	SemanticsRole.srSearchBox		24
+nim	srStatic	flit/foundation/semantics.html#srStatic	SemanticsRole.srStatic		24
+nim	SemanticsRole	flit/foundation/semantics.html#SemanticsRole	enum SemanticsRole		24
+nim	saTap	flit/foundation/semantics.html#saTap	SemanticsAction.saTap		32
+nim	saLongPress	flit/foundation/semantics.html#saLongPress	SemanticsAction.saLongPress		32
+nim	saIncrement	flit/foundation/semantics.html#saIncrement	SemanticsAction.saIncrement		32
+nim	saDecrement	flit/foundation/semantics.html#saDecrement	SemanticsAction.saDecrement		32
+nim	saScrollUp	flit/foundation/semantics.html#saScrollUp	SemanticsAction.saScrollUp		32
+nim	saScrollDown	flit/foundation/semantics.html#saScrollDown	SemanticsAction.saScrollDown		32
+nim	saScrollLeft	flit/foundation/semantics.html#saScrollLeft	SemanticsAction.saScrollLeft		32
+nim	saScrollRight	flit/foundation/semantics.html#saScrollRight	SemanticsAction.saScrollRight		32
+nim	saDismiss	flit/foundation/semantics.html#saDismiss	SemanticsAction.saDismiss		32
+nim	SemanticsAction	flit/foundation/semantics.html#SemanticsAction	enum SemanticsAction		32
+nim	Semantics	flit/foundation/semantics.html#Semantics	type Semantics		38
+nim	SemanticsNode	flit/foundation/semantics.html#SemanticsNode	object SemanticsNode		51
+nim	widgetTypeName	flit/foundation/semantics.html#widgetTypeName.e,Semantics	method widgetTypeName(w: Semantics): string		67
+nim	createElement	flit/foundation/semantics.html#createElement.e,Semantics	method createElement(w: Semantics): Element		68
+nim	semantics	flit/foundation/semantics.html#semantics,Widget,SemanticsRole,string,string,string,bool,bool,set[SemanticsAction],proc(SemanticsAction),Key	proc semantics(child: Widget; role: SemanticsRole = srNone; label: string = "";\n          value: string = ""; hint: string = ""; enabled: bool = true;\n          focused: bool = false; actions: set[SemanticsAction] = {};\n          onAction: proc (action: SemanticsAction) = nil; key: Key = nil): Semantics		70
+nim	buildSemanticsTree	flit/foundation/semantics.html#buildSemanticsTree,Element	proc buildSemanticsTree(root: Element): seq[SemanticsNode]		107
+nim	toJson	flit/foundation/semantics.html#toJson,seq[SemanticsNode]	proc toJson(nodes: seq[SemanticsNode]): string		181

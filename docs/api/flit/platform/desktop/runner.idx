@@ -1,4 +1,4 @@
 nimTitle	runner	flit/platform/desktop/runner.html	module src/flit/platform/desktop/runner		0
-nim	DesktopWindowConfig	flit/platform/desktop/runner.html#DesktopWindowConfig	object DesktopWindowConfig		18
-nim	defaultDesktopConfig	flit/platform/desktop/runner.html#defaultDesktopConfig	proc defaultDesktopConfig(): DesktopWindowConfig		37
-nim	runDesktop	flit/platform/desktop/runner.html#runDesktop,Widget,DesktopWindowConfig	proc runDesktop(rootWidget: Widget;\n           config: DesktopWindowConfig = defaultDesktopConfig())		45
+nim	DesktopWindowConfig	flit/platform/desktop/runner.html#DesktopWindowConfig	object DesktopWindowConfig		19
+nim	defaultDesktopConfig	flit/platform/desktop/runner.html#defaultDesktopConfig	proc defaultDesktopConfig(): DesktopWindowConfig		38
+nim	runDesktop	flit/platform/desktop/runner.html#runDesktop,Widget,DesktopWindowConfig	proc runDesktop(rootWidget: Widget;\n           config: DesktopWindowConfig = defaultDesktopConfig())		46

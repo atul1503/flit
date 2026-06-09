@@ -58,7 +58,11 @@
   <details open>
     <summary><a class="reference reference-toplevel" href="#7" id="57">Types</a></summary>
     <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#RenderTextField" title="RenderTextField = ref object of RenderObject
+      <li><a class="reference" href="#EditSnapshot" title="EditSnapshot = object
+  text*: string
+  cursor*: int
+  selectionEnd*: int">EditSnapshot</a></li>
+<li><a class="reference" href="#RenderTextField" title="RenderTextField = ref object of RenderObject
   value*: string
   placeholder*: string
   style*: TextStyle
@@ -70,7 +74,9 @@
   text*: string
   cursor*: int
   selectionEnd*: int
-  listeners*: seq[proc (value: string) {.closure.}]">TextEditingController</a></li>
+  listeners*: seq[proc (value: string) {.closure.}]
+  undoStack*: seq[EditSnapshot]
+  redoStack*: seq[EditSnapshot]">TextEditingController</a></li>
 <li><a class="reference" href="#TextField" title="TextField = ref object of StatefulWidget
   initialValue*: string
   controller*: TextEditingController
@@ -95,6 +101,16 @@
 </li>
 <li>
   <details open>
+    <summary><a class="reference reference-toplevel" href="#8" id="58">Vars</a></summary>
+    <ul class="simple simple-toc-section">
+      <li><a class="reference" href="#clipboardGet" title="clipboardGet: proc (): string {.gcsafe.}">clipboardGet</a></li>
+<li><a class="reference" href="#clipboardSet" title="clipboardSet: proc (text: string) {.gcsafe.}">clipboardSet</a></li>
+
+    </ul>
+  </details>
+</li>
+<li>
+  <details open>
     <summary><a class="reference reference-toplevel" href="#12" id="62">Procs</a></summary>
     <ul class="simple simple-toc-section">
       <ul class="simple nested-toc-section">addListener
@@ -109,8 +125,16 @@
   <li><a class="reference" href="#clearSelection%2CTextEditingController" title="clearSelection(c: TextEditingController)">clearSelection(c: TextEditingController)</a></li>
 
 </ul>
+<ul class="simple nested-toc-section">copyToString
+  <li><a class="reference" href="#copyToString%2CTextEditingController" title="copyToString(c: TextEditingController): string">copyToString(c: TextEditingController): string</a></li>
+
+</ul>
 <ul class="simple nested-toc-section">deleteSelection
   <li><a class="reference" href="#deleteSelection%2CTextEditingController" title="deleteSelection(c: TextEditingController): bool">deleteSelection(c: TextEditingController): bool</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">deleteSelectionWithUndo
+  <li><a class="reference" href="#deleteSelectionWithUndo%2CTextEditingController" title="deleteSelectionWithUndo(c: TextEditingController): bool">deleteSelectionWithUndo(c: TextEditingController): bool</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">forwardDelete
@@ -145,8 +169,32 @@
   <li><a class="reference" href="#newTextEditingController%2Cstring" title="newTextEditingController(initial: string = &quot;&quot;): TextEditingController">newTextEditingController(initial: string = &quot;&quot;): TextEditingController</a></li>
 
 </ul>
+<ul class="simple nested-toc-section">pushUndo
+  <li><a class="reference" href="#pushUndo%2CTextEditingController" title="pushUndo(c: TextEditingController)">pushUndo(c: TextEditingController)</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">redo
+  <li><a class="reference" href="#redo%2CTextEditingController" title="redo(c: TextEditingController): bool">redo(c: TextEditingController): bool</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">restore
+  <li><a class="reference" href="#restore%2CTextEditingController%2CEditSnapshot" title="restore(c: TextEditingController; s: EditSnapshot)">restore(c: TextEditingController; s: EditSnapshot)</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">selectAll
+  <li><a class="reference" href="#selectAll%2CTextEditingController" title="selectAll(c: TextEditingController)">selectAll(c: TextEditingController)</a></li>
+
+</ul>
 <ul class="simple nested-toc-section">selectionRange
   <li><a class="reference" href="#selectionRange%2CTextEditingController" title="selectionRange(c: TextEditingController): tuple[lo, hi: int]">selectionRange(c: TextEditingController): tuple[lo, hi: int]</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">selectRange
+  <li><a class="reference" href="#selectRange%2CTextEditingController%2Cint%2Cint" title="selectRange(c: TextEditingController; lo, hi: int)">selectRange(c: TextEditingController; lo, hi: int)</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">snapshot
+  <li><a class="reference" href="#snapshot%2CTextEditingController" title="snapshot(c: TextEditingController): EditSnapshot">snapshot(c: TextEditingController): EditSnapshot</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">textField
@@ -159,6 +207,10 @@
           onChanged: proc (value: string) = nil;
           onSubmitted: proc (value: string) = nil; enabled: bool = true;
           maxLength: int = 0; key: Key = nil): TextField</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">undo
+  <li><a class="reference" href="#undo%2CTextEditingController" title="undo(c: TextEditingController): bool">undo(c: TextEditingController): bool</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">value
@@ -245,7 +297,18 @@
 <div class="section" id="7">
   <h1><a class="toc-backref" href="#7">Types</a></h1>
   <dl class="item">
-    <div id="RenderTextField">
+    <div id="EditSnapshot">
+  <dt><pre><a href="text_field.html#EditSnapshot"><span class="Identifier">EditSnapshot</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">text</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">cursor</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
+  <span class="Identifier">selectionEnd</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span></pre></dt>
+  <dd>
+    
+    Snapshot of editing state for undo / redo.
+    
+  </dd>
+</div>
+<div id="RenderTextField">
   <dt><pre><a href="text_field.html#RenderTextField"><span class="Identifier">RenderTextField</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="../foundation/render_object.html#RenderObject"><span class="Identifier">RenderObject</span></a>
   <span class="Identifier">value</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
   <span class="Identifier">placeholder</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
@@ -265,10 +328,14 @@
   <span class="Identifier">text</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
   <span class="Identifier">cursor</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
   <span class="Identifier">selectionEnd</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
-  <span class="Identifier">listeners</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span class="Identifier">closure</span>.}<span class="Other">]</span></pre></dt>
+  <span class="Identifier">listeners</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span class="Identifier">closure</span>.}<span class="Other">]</span>
+  <span class="Identifier">undoStack</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="text_field.html#EditSnapshot"><span class="Identifier">EditSnapshot</span></a><span class="Other">]</span>
+  <span class="Identifier">redoStack</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="text_field.html#EditSnapshot"><span class="Identifier">EditSnapshot</span></a><span class="Other">]</span></pre></dt>
   <dd>
     
-    Mutable string + cursor + selection. The widget owns one; external callers can pass their own to share state.
+    <p>Mutable string + cursor + selection. The widget owns one; external callers can pass their own to share state.</p>
+<p>Maintains an undo / redo history. <tt class="docutils literal"><span class="pre"><span class="Identifier">pushUndo</span></span></tt> records the current state; <tt class="docutils literal"><span class="pre"><span class="Identifier">undo</span></span></tt> and <tt class="docutils literal"><span class="pre"><span class="Identifier">redo</span></span></tt> walk the history.</p>
+
     
   </dd>
 </div>
@@ -305,6 +372,28 @@
   <span class="Identifier">controller</span><span class="Operator">*</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a>
   <span class="Identifier">node</span><span class="Operator">*</span><span class="Other">:</span> <a href="../foundation/focus.html#FocusNode"><span class="Identifier">FocusNode</span></a>
   <span class="Identifier">blinkPhase</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+
+  </dl>
+</div>
+<div class="section" id="8">
+  <h1><a class="toc-backref" href="#8">Vars</a></h1>
+  <dl class="item">
+    <div id="clipboardGet">
+  <dt><pre><a href="text_field.html#clipboardGet"><span class="Identifier">clipboardGet</span></a><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">gcsafe</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="clipboardSet">
+  <dt><pre><a href="text_field.html#clipboardSet"><span class="Identifier">clipboardSet</span></a><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">text</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">gcsafe</span></span>.}</pre></dt>
   <dd>
     
     
@@ -352,6 +441,18 @@
 </div>
 
 </div>
+<div id="copyToString-procs-all">
+  <div id="copyToString,TextEditingController">
+  <dt><pre><span class="Keyword">proc</span> <a href="#copyToString%2CTextEditingController"><span class="Identifier">copyToString</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Returns the selected text, or the whole text if no selection is active. Used by the clipboard hook.
+    
+  </dd>
+</div>
+
+</div>
 <div id="deleteSelection-procs-all">
   <div id="deleteSelection,TextEditingController">
   <dt><pre><span class="Keyword">proc</span> <a href="#deleteSelection%2CTextEditingController"><span class="Identifier">deleteSelection</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
@@ -359,6 +460,18 @@
   <dd>
     
     Delete the selected text. Returns true if anything was deleted.
+    
+  </dd>
+</div>
+
+</div>
+<div id="deleteSelectionWithUndo-procs-all">
+  <div id="deleteSelectionWithUndo,TextEditingController">
+  <dt><pre><span class="Keyword">proc</span> <a href="#deleteSelectionWithUndo%2CTextEditingController"><span class="Identifier">deleteSelectionWithUndo</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Like <tt class="docutils literal"><span class="pre"><span class="Identifier">deleteSelection</span></span></tt> but records an undo snapshot first. Returns true if anything was deleted.
     
   </dd>
 </div>
@@ -459,6 +572,52 @@
 </div>
 
 </div>
+<div id="pushUndo-procs-all">
+  <div id="pushUndo,TextEditingController">
+  <dt><pre><span class="Keyword">proc</span> <a href="#pushUndo%2CTextEditingController"><span class="Identifier">pushUndo</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Records the current state for undo. Clears the redo stack (any new edit invalidates the redo branch). Cap the undo history at 256 to bound memory; the oldest entries get dropped past that point.
+    
+  </dd>
+</div>
+
+</div>
+<div id="redo-procs-all">
+  <div id="redo,TextEditingController">
+  <dt><pre><span class="Keyword">proc</span> <a href="#redo%2CTextEditingController"><span class="Identifier">redo</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Walks forward one step (assumes an undo just happened). Pushes the current state onto the undo stack and restores the most recent redo snapshot. Returns true if anything was redone.
+    
+  </dd>
+</div>
+
+</div>
+<div id="restore-procs-all">
+  <div id="restore,TextEditingController,EditSnapshot">
+  <dt><pre><span class="Keyword">proc</span> <a href="#restore%2CTextEditingController%2CEditSnapshot"><span class="Identifier">restore</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">;</span> <span class="Identifier">s</span><span class="Other">:</span> <a href="text_field.html#EditSnapshot"><span class="Identifier">EditSnapshot</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Restores editing state from a snapshot. Fires every listener with the restored text. Does NOT touch the undo / redo stacks.
+    
+  </dd>
+</div>
+
+</div>
+<div id="selectAll-procs-all">
+  <div id="selectAll,TextEditingController">
+  <dt><pre><span class="Keyword">proc</span> <a href="#selectAll%2CTextEditingController"><span class="Identifier">selectAll</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Selects every character. After this, <tt class="docutils literal"><span class="pre"><span class="Identifier">selectionRange</span></span></tt> covers the whole text and <tt class="docutils literal"><span class="pre"><span class="Identifier">hasSelection</span></span></tt> is true.
+    
+  </dd>
+</div>
+
+</div>
 <div id="selectionRange-procs-all">
   <div id="selectionRange,TextEditingController">
   <dt><pre><span class="Keyword">proc</span> <a href="#selectionRange%2CTextEditingController"><span class="Identifier">selectionRange</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">lo</span><span class="Other">,</span> <span class="Identifier">hi</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
@@ -466,6 +625,30 @@
   <dd>
     
     
+    
+  </dd>
+</div>
+
+</div>
+<div id="selectRange-procs-all">
+  <div id="selectRange,TextEditingController,int,int">
+  <dt><pre><span class="Keyword">proc</span> <a href="#selectRange%2CTextEditingController%2Cint%2Cint"><span class="Identifier">selectRange</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">;</span> <span class="Identifier">lo</span><span class="Other">,</span> <span class="Identifier">hi</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Sets the selection to span byte offsets <tt class="docutils literal"><span class="pre"><span class="Punctuation">[</span><span class="Identifier">lo</span><span class="Punctuation">,</span> <span class="Identifier">hi</span><span class="Punctuation">)</span></span></tt>. Clamps to the text length. The cursor ends up at <tt class="docutils literal"><span class="pre"><span class="Identifier">hi</span></span></tt>.
+    
+  </dd>
+</div>
+
+</div>
+<div id="snapshot-procs-all">
+  <div id="snapshot,TextEditingController">
+  <dt><pre><span class="Keyword">proc</span> <a href="#snapshot%2CTextEditingController"><span class="Identifier">snapshot</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span><span class="Other">:</span> <a href="text_field.html#EditSnapshot"><span class="Identifier">EditSnapshot</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Captures the current editing state. Used by undo / redo and by external callers that want to compare states.
     
   </dd>
 </div>
@@ -496,6 +679,18 @@
 </ul>
 <p>Effect: a focusable single-line input. Click to focus, type to insert, arrow keys to move, Backspace / Delete to remove.</p>
 
+    
+  </dd>
+</div>
+
+</div>
+<div id="undo-procs-all">
+  <div id="undo,TextEditingController">
+  <dt><pre><span class="Keyword">proc</span> <a href="#undo%2CTextEditingController"><span class="Identifier">undo</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="text_field.html#TextEditingController"><span class="Identifier">TextEditingController</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Walks back one step. Pushes the current state onto the redo stack so <tt class="docutils literal"><span class="pre"><span class="Identifier">redo</span></span></tt> can return to it. Returns true if anything was undone.
     
   </dd>
 </div>
@@ -662,7 +857,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 04:58:23 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:16:12 UTC</small>
       </div>
     </div>
   </div>

@@ -669,6 +669,47 @@ proc repaintBoundary*(child: Widget, key: Key = nil): RepaintBoundary =
   ## descendant calls `markNeedsPaint` (including via `setState`).
   RepaintBoundary(key: key, child: child)
 
+# ----- Transform -----
+
+type
+  TransformWidget* = ref object of RenderObjectWidget
+    ## Applies a translate + rotate + scale to its child's paint.
+    ## Mirrors Flutter's `Transform`. Fields default to identity.
+    translation*: Offset
+    rotation*:    float32
+    scaleX*:      float32
+    child*:       Widget
+
+method widgetTypeName*(w: TransformWidget): string = "Transform"
+method createElement*(w: TransformWidget): Element = newElement(ekRender, w)
+method createRenderObject*(w: TransformWidget, ctx: BuildContext): RenderObject =
+  RenderTransform(translation: w.translation, rotation: w.rotation,
+                  scale: w.scaleX)
+method updateRenderObject*(w: TransformWidget, ctx: BuildContext, r: RenderObject) =
+  let t = RenderTransform(r)
+  t.translation = w.translation
+  t.rotation = w.rotation
+  t.scale = w.scaleX
+  r.markNeedsPaint()
+
+proc transform*(child: Widget,
+                translation: Offset = Offset(dx: 0, dy: 0),
+                rotation: float32 = 0,
+                scale: float32 = 1,
+                key: Key = nil): TransformWidget =
+  ## Wraps `child` in a transform.
+  ##
+  ## Inputs:
+  ## - `child`: subtree to transform.
+  ## - `translation`: shift in pixels. Identity is `(0, 0)`.
+  ## - `rotation`: rotation in radians around the widget's
+  ##   top-left. Identity is `0`.
+  ## - `scale`: uniform scale factor. `1` is identity; `0` is also
+  ##   treated as identity to avoid collapsing the widget.
+  ## - `key`: reconciliation key.
+  TransformWidget(key: key, child: child, translation: translation,
+                  rotation: rotation, scaleX: scale)
+
 proc opacity*(child: Widget, opacity: float32, key: Key = nil): OpacityWidget =
   ## Builds an `OpacityWidget` that fades `child`.
   ##

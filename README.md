@@ -6,7 +6,7 @@ Linux.
 
 [![ci](https://github.com/atul1503/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/atul1503/flit/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-atul1503.github.io%2Fflit-blue)](https://atul1503.github.io/flit/)
-[![version](https://img.shields.io/badge/version-0.8.0-orange)](#)
+[![version](https://img.shields.io/badge/version-0.9.0-orange)](#)
 [![license](https://img.shields.io/badge/license-BSD--3--Clause-green)](#license)
 
 ## Status
@@ -158,14 +158,18 @@ Start with `guide/01-quickstart.md`.
 
 Pre-1.0 means real gaps. The honest list:
 
-- **Battle-testing**: no real apps shipped with flit yet
+- **Battle-testing**: only one demo app (`examples/notes`) so far; no
+  production deployment yet
 - **Mobile and embedded backends**: implemented but not exercised
   end-to-end
-- **Accessibility**: no screen reader support, no semantic tree
-- **Clipboard, undo/redo, mouse-drag selection** in TextField
+- **Accessibility**: the semantics tree exists, but the OS-side
+  bridge (NSAccessibility, AT-SPI, UIAutomation) isn't wired
+- **Mouse-drag selection** in TextField (keyboard selection works)
 - **HTTP / network**: out of scope; bring your own
-- **Animations on Navigator transitions** (push and pop are instant)
 - **Drag and drop**: outside scope today
+- **Built-in form widgets** like checkbox, radio, slider, dropdown
+  (you can compose them today from primitives, but they aren't
+  ergonomic one-liners)
 
 PRs welcome on any of these.
 

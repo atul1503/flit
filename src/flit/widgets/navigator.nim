@@ -18,6 +18,7 @@
 ## - `currentNavigator()`: app-wide handle to the active navigator.
 
 import ../foundation/[widget, render_object, key, runtime]
+import ./transitions
 
 type
   RouteBuilder* = proc(): Widget {.closure.}
@@ -60,12 +61,23 @@ method build*(s: NavigatorState, ctx: BuildContext): Widget =
   s.stack[^1]()
 
 proc push*(h: NavigatorHandle, route: RouteBuilder,
+           transition: RouteTransitionKind = trSlideLeft,
            onResult: proc(value: pointer) = nil) =
   ## Pushes `route` onto the stack and rebuilds. `onResult` fires
   ## when this route is popped (the value passed to `pop`).
+  ##
+  ## `transition` wraps the new route in an animated transition
+  ## widget. `trSlideLeft` (the default) matches iOS-style
+  ## navigation. `trNone` skips the animation entirely. The
+  ## transition runs once on mount; subsequent rebuilds of the
+  ## same route do not re-animate.
   if h.isNil or h.state.isNil: return
+  let wrapped: RouteBuilder =
+    if transition == trNone: route
+    else:
+      proc(): Widget = withTransition(transition, route())
   setState(h.state, proc() =
-    h.state.stack.add(route)
+    h.state.stack.add(wrapped)
     h.state.results.add(onResult))
 
 proc pop*(h: NavigatorHandle, value: pointer = nil) =

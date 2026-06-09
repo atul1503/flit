@@ -34,6 +34,7 @@ import flit/foundation/runtime
 import flit/foundation/listenable
 import flit/foundation/layer
 import flit/foundation/focus
+import flit/foundation/semantics
 import flit/rendering/harfbuzz
 import flit/rendering/canvas_gpu
 import flit/rendering/canvas_gl
@@ -49,6 +50,7 @@ import flit/widgets/basic
 import flit/widgets/lazy_list
 import flit/widgets/text_field
 import flit/widgets/image_widget
+import flit/widgets/transitions
 import flit/widgets/navigator as nav_widget
 import flit/widgets/form_widget
 import flit/widgets/directionality
@@ -60,8 +62,10 @@ import flit/cupertino/cupertino
 import flit/app
 
 export widget, key, render_object, geometry, color, diagnostics, binding,
-       runtime, listenable, layer, focus, harfbuzz, canvas_gpu, canvas_gl,
+       runtime, listenable, layer, focus, semantics, harfbuzz, canvas_gpu,
+       canvas_gl,
        glyph_atlas, raster_pool, text, decoration, proxy_box, flex, stack,
-       sliver_list, basic, lazy_list, text_field, image_widget, nav_widget,
-       form_widget, directionality, detector, animation, material, theme,
+       sliver_list, basic, lazy_list, text_field, image_widget, transitions,
+       nav_widget, form_widget, directionality, detector, animation,
+       material, theme,
        cupertino, app

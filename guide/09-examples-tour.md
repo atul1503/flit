@@ -63,6 +63,32 @@ A grid of color tiles. Demonstrates:
 - `aspectRatio` and `decoratedBox` together.
 - Random-but-deterministic content generation.
 
+## Notes
+
+`examples/notes/main.nim`
+
+A complete real app: list of notes, edit screen, settings,
+persistent storage. Demonstrates almost every flit feature
+working together:
+
+- ValueNotifier-backed store with ListenableBuilder subscribers
+- ListView.builder for the main list
+- Navigator with animated push (trSlideLeft) and pop
+- TextField with cursor, selection, clipboard, undo, redo
+- InheritedWidget for theme (light / dark)
+- Semantics annotations for accessibility
+- JSON persistence to /tmp/flit_notes.json
+- GestureDetector for tap-to-open
+
+Run it:
+
+```
+nim c -r examples/notes/main.nim
+```
+
+This is the example to study when you're ready to build a real
+app. Every pattern you'll need in production is in it.
+
 ## Showcase
 
 `examples/showcase/main.nim`

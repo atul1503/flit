@@ -104,8 +104,10 @@
 
 </ul>
 <ul class="simple nested-toc-section">push
-  <li><a class="reference" href="#push%2CNavigatorHandle%2CRouteBuilder%2Cproc%28pointer%29" title="push(h: NavigatorHandle; route: RouteBuilder;
+  <li><a class="reference" href="#push%2CNavigatorHandle%2CRouteBuilder%2CRouteTransitionKind%2Cproc%28pointer%29" title="push(h: NavigatorHandle; route: RouteBuilder;
+     transition: RouteTransitionKind = trSlideLeft;
      onResult: proc (value: pointer) = nil)">push(h: NavigatorHandle; route: RouteBuilder;
+     transition: RouteTransitionKind = trSlideLeft;
      onResult: proc (value: pointer) = nil)</a></li>
 
 </ul>
@@ -162,7 +164,7 @@
     <div class="section" id="6">
   <h1><a class="toc-backref" href="#6">Imports</a></h1>
   <dl class="item">
-    <a class="reference external" href="../foundation/widget.html">../foundation/widget</a>, <a class="reference external" href="../foundation/render_object.html">../foundation/render_object</a>, <a class="reference external" href="../foundation/key.html">../foundation/key</a>, <a class="reference external" href="../foundation/runtime.html">../foundation/runtime</a>
+    <a class="reference external" href="../foundation/widget.html">../foundation/widget</a>, <a class="reference external" href="../foundation/render_object.html">../foundation/render_object</a>, <a class="reference external" href="../foundation/key.html">../foundation/key</a>, <a class="reference external" href="../foundation/runtime.html">../foundation/runtime</a>, <a class="reference external" href="transitions.html">transitions</a>
   </dl>
 </div>
 <div class="section" id="7">
@@ -289,13 +291,16 @@
 
 </div>
 <div id="push-procs-all">
-  <div id="push,NavigatorHandle,RouteBuilder,proc(pointer)">
-  <dt><pre><span class="Keyword">proc</span> <a href="#push%2CNavigatorHandle%2CRouteBuilder%2Cproc%28pointer%29"><span class="Identifier">push</span></a><span class="Other">(</span><span class="Identifier">h</span><span class="Other">:</span> <a href="navigator.html#NavigatorHandle"><span class="Identifier">NavigatorHandle</span></a><span class="Other">;</span> <span class="Identifier">route</span><span class="Other">:</span> <a href="navigator.html#RouteBuilder"><span class="Identifier">RouteBuilder</span></a><span class="Other">;</span>
+  <div id="push,NavigatorHandle,RouteBuilder,RouteTransitionKind,proc(pointer)">
+  <dt><pre><span class="Keyword">proc</span> <a href="#push%2CNavigatorHandle%2CRouteBuilder%2CRouteTransitionKind%2Cproc%28pointer%29"><span class="Identifier">push</span></a><span class="Other">(</span><span class="Identifier">h</span><span class="Other">:</span> <a href="navigator.html#NavigatorHandle"><span class="Identifier">NavigatorHandle</span></a><span class="Other">;</span> <span class="Identifier">route</span><span class="Other">:</span> <a href="navigator.html#RouteBuilder"><span class="Identifier">RouteBuilder</span></a><span class="Other">;</span>
+          <span class="Identifier">transition</span><span class="Other">:</span> <a href="transitions.html#RouteTransitionKind"><span class="Identifier">RouteTransitionKind</span></a> <span class="Other">=</span> <span class="Identifier">trSlideLeft</span><span class="Other">;</span>
           <span class="Identifier">onResult</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">pointer</span><span class="Other">)</span> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Pushes <tt class="docutils literal"><span class="pre"><span class="Identifier">route</span></span></tt> onto the stack and rebuilds. <tt class="docutils literal"><span class="pre"><span class="Identifier">onResult</span></span></tt> fires when this route is popped (the value passed to <tt class="docutils literal"><span class="pre"><span class="Identifier">pop</span></span></tt>).
+    <p>Pushes <tt class="docutils literal"><span class="pre"><span class="Identifier">route</span></span></tt> onto the stack and rebuilds. <tt class="docutils literal"><span class="pre"><span class="Identifier">onResult</span></span></tt> fires when this route is popped (the value passed to <tt class="docutils literal"><span class="pre"><span class="Identifier">pop</span></span></tt>).</p>
+<p><tt class="docutils literal"><span class="pre"><span class="Identifier">transition</span></span></tt> wraps the new route in an animated transition widget. <tt class="docutils literal"><span class="pre"><span class="Identifier">trSlideLeft</span></span></tt> (the default) matches iOS-style navigation. <tt class="docutils literal"><span class="pre"><span class="Identifier">trNone</span></span></tt> skips the animation entirely. The transition runs once on mount; subsequent rebuilds of the same route do not re-animate.</p>
+
     
   </dd>
 </div>
@@ -377,7 +382,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 04:58:23 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:16:12 UTC</small>
       </div>
     </div>
   </div>

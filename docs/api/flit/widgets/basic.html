@@ -128,6 +128,11 @@
   textAlign*: TextAlign
   softWrap*: bool
   maxLines*: int">Text</a></li>
+<li><a class="reference" href="#TransformWidget" title="TransformWidget = ref object of RenderObjectWidget
+  translation*: Offset
+  rotation*: float32
+  scaleX*: float32
+  child*: Widget">TransformWidget</a></li>
 
     </ul>
   </details>
@@ -240,6 +245,12 @@
      softWrap = true; maxLines = 0; key: Key = nil): Text</a></li>
 
 </ul>
+<ul class="simple nested-toc-section">transform
+  <li><a class="reference" href="#transform%2CWidget%2COffset%2Cfloat32%2Cfloat32%2CKey" title="transform(child: Widget; translation: Offset = Offset(dx: 0.0, dy: 0.0);
+          rotation: float32 = 0.0; scale: float32 = 1.0; key: Key = nil): TransformWidget">transform(child: Widget; translation: Offset = Offset(dx: 0.0, dy: 0.0);
+          rotation: float32 = 0.0; scale: float32 = 1.0; key: Key = nil): TransformWidget</a></li>
+
+</ul>
 
     </ul>
   </details>
@@ -272,6 +283,7 @@
 <li><a class="reference" href="#createElement.e%2CSizedBox" title="createElement(w: SizedBox): Element">createElement(w: SizedBox): Element</a></li>
 <li><a class="reference" href="#createElement.e%2CStack" title="createElement(w: Stack): Element">createElement(w: Stack): Element</a></li>
 <li><a class="reference" href="#createElement.e%2CText" title="createElement(w: Text): Element">createElement(w: Text): Element</a></li>
+<li><a class="reference" href="#createElement.e%2CTransformWidget" title="createElement(w: TransformWidget): Element">createElement(w: TransformWidget): Element</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">createRenderObject
@@ -291,6 +303,7 @@
 <li><a class="reference" href="#createRenderObject.e%2CSizedBox%2CBuildContext" title="createRenderObject(w: SizedBox; ctx: BuildContext): RenderObject">createRenderObject(w: SizedBox; ctx: BuildContext): RenderObject</a></li>
 <li><a class="reference" href="#createRenderObject.e%2CStack%2CBuildContext" title="createRenderObject(w: Stack; ctx: BuildContext): RenderObject">createRenderObject(w: Stack; ctx: BuildContext): RenderObject</a></li>
 <li><a class="reference" href="#createRenderObject.e%2CText%2CBuildContext" title="createRenderObject(w: Text; ctx: BuildContext): RenderObject">createRenderObject(w: Text; ctx: BuildContext): RenderObject</a></li>
+<li><a class="reference" href="#createRenderObject.e%2CTransformWidget%2CBuildContext" title="createRenderObject(w: TransformWidget; ctx: BuildContext): RenderObject">createRenderObject(w: TransformWidget; ctx: BuildContext): RenderObject</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">updateRenderObject
@@ -308,6 +321,7 @@
 <li><a class="reference" href="#updateRenderObject.e%2CSizedBox%2CBuildContext%2CRenderObject" title="updateRenderObject(w: SizedBox; ctx: BuildContext; r: RenderObject)">updateRenderObject(w: SizedBox; ctx: BuildContext; r: RenderObject)</a></li>
 <li><a class="reference" href="#updateRenderObject.e%2CStack%2CBuildContext%2CRenderObject" title="updateRenderObject(w: Stack; ctx: BuildContext; r: RenderObject)">updateRenderObject(w: Stack; ctx: BuildContext; r: RenderObject)</a></li>
 <li><a class="reference" href="#updateRenderObject.e%2CText%2CBuildContext%2CRenderObject" title="updateRenderObject(w: Text; ctx: BuildContext; r: RenderObject)">updateRenderObject(w: Text; ctx: BuildContext; r: RenderObject)</a></li>
+<li><a class="reference" href="#updateRenderObject.e%2CTransformWidget%2CBuildContext%2CRenderObject" title="updateRenderObject(w: TransformWidget; ctx: BuildContext; r: RenderObject)">updateRenderObject(w: TransformWidget; ctx: BuildContext; r: RenderObject)</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">widgetTypeName
@@ -330,6 +344,7 @@
 <li><a class="reference" href="#widgetTypeName.e%2CSizedBox" title="widgetTypeName(w: SizedBox): string">widgetTypeName(w: SizedBox): string</a></li>
 <li><a class="reference" href="#widgetTypeName.e%2CStack" title="widgetTypeName(w: Stack): string">widgetTypeName(w: Stack): string</a></li>
 <li><a class="reference" href="#widgetTypeName.e%2CText" title="widgetTypeName(w: Text): string">widgetTypeName(w: Text): string</a></li>
+<li><a class="reference" href="#widgetTypeName.e%2CTransformWidget" title="widgetTypeName(w: TransformWidget): string">widgetTypeName(w: TransformWidget): string</a></li>
 
 </ul>
 
@@ -565,6 +580,18 @@
   <dd>
     
     A widget that displays a string of text with the given style and alignment. Supports soft-wrapping by word with optional <tt class="docutils literal"><span class="pre"><span class="Identifier">maxLines</span></span></tt> clamping.
+    
+  </dd>
+</div>
+<div id="TransformWidget">
+  <dt><pre><a href="basic.html#TransformWidget"><span class="Identifier">TransformWidget</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="../foundation/widget.html#RenderObjectWidget"><span class="Identifier">RenderObjectWidget</span></a>
+  <span class="Identifier">translation</span><span class="Operator">*</span><span class="Other">:</span> <a href="../foundation/geometry.html#Offset"><span class="Identifier">Offset</span></a>
+  <span class="Identifier">rotation</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>
+  <span class="Identifier">scaleX</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>
+  <span class="Identifier">child</span><span class="Operator">*</span><span class="Other">:</span> <a href="../foundation/widget.html#Widget"><span class="Identifier">Widget</span></a></pre></dt>
+  <dd>
+    
+    Applies a translate + rotate + scale to its child's paint. Mirrors Flutter's <tt class="docutils literal"><span class="pre"><span class="Identifier">Transform</span></span></tt>. Fields default to identity.
     
   </dd>
 </div>
@@ -983,6 +1010,27 @@
 </div>
 
 </div>
+<div id="transform-procs-all">
+  <div id="transform,Widget,Offset,float32,float32,Key">
+  <dt><pre><span class="Keyword">proc</span> <a href="#transform%2CWidget%2COffset%2Cfloat32%2Cfloat32%2CKey"><span class="Identifier">transform</span></a><span class="Other">(</span><span class="Identifier">child</span><span class="Other">:</span> <a href="../foundation/widget.html#Widget"><span class="Identifier">Widget</span></a><span class="Other">;</span> <span class="Identifier">translation</span><span class="Other">:</span> <a href="../foundation/geometry.html#Offset"><span class="Identifier">Offset</span></a> <span class="Other">=</span> <a href="../foundation/geometry.html#Offset"><span class="Identifier">Offset</span></a><span class="Other">(</span><span class="Identifier">dx</span><span class="Other">:</span> <span class="FloatNumber">0.0</span><span class="Other">,</span> <span class="Identifier">dy</span><span class="Other">:</span> <span class="FloatNumber">0.0</span><span class="Other">)</span><span class="Other">;</span>
+               <span class="Identifier">rotation</span><span class="Other">:</span> <span class="Identifier">float32</span> <span class="Other">=</span> <span class="FloatNumber">0.0</span><span class="Other">;</span> <span class="Identifier">scale</span><span class="Other">:</span> <span class="Identifier">float32</span> <span class="Other">=</span> <span class="FloatNumber">1.0</span><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <a href="../foundation/key.html#Key"><span class="Identifier">Key</span></a> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">)</span><span class="Other">:</span> <a href="basic.html#TransformWidget"><span class="Identifier">TransformWidget</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    <p>Wraps <tt class="docutils literal"><span class="pre"><span class="Identifier">child</span></span></tt> in a transform.</p>
+<p>Inputs:</p>
+<ul class="simple"><li><tt class="docutils literal"><span class="pre"><span class="Identifier">child</span></span></tt>: subtree to transform.</li>
+<li><tt class="docutils literal"><span class="pre"><span class="Identifier">translation</span></span></tt>: shift in pixels. Identity is <tt class="docutils literal"><span class="pre"><span class="Punctuation">(</span><span class="DecNumber">0</span><span class="Punctuation">,</span> <span class="DecNumber">0</span><span class="Punctuation">)</span></span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre"><span class="Identifier">rotation</span></span></tt>: rotation in radians around the widget's top-left. Identity is <tt class="docutils literal"><span class="pre"><span class="DecNumber">0</span></span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre"><span class="Identifier">scale</span></span></tt>: uniform scale factor. <tt class="docutils literal"><span class="pre"><span class="DecNumber">1</span></span></tt> is identity; <tt class="docutils literal"><span class="pre"><span class="DecNumber">0</span></span></tt> is also treated as identity to avoid collapsing the widget.</li>
+<li><tt class="docutils literal"><span class="pre"><span class="Identifier">key</span></span></tt>: reconciliation key.</li>
+</ul>
+
+    
+  </dd>
+</div>
+
+</div>
 
   </dl>
 </div>
@@ -1159,6 +1207,15 @@
     
   </dd>
 </div>
+<div id="createElement.e,TransformWidget">
+  <dt><pre><span class="Keyword">method</span> <a href="#createElement.e%2CTransformWidget"><span class="Identifier">createElement</span></a><span class="Other">(</span><span class="Identifier">w</span><span class="Other">:</span> <a href="basic.html#TransformWidget"><span class="Identifier">TransformWidget</span></a><span class="Other">)</span><span class="Other">:</span> <a href="../foundation/widget.html#Element"><span class="Identifier">Element</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
 
 </div>
 <div id="createRenderObject-methods-all">
@@ -1306,6 +1363,15 @@
     
   </dd>
 </div>
+<div id="createRenderObject.e,TransformWidget,BuildContext">
+  <dt><pre><span class="Keyword">method</span> <a href="#createRenderObject.e%2CTransformWidget%2CBuildContext"><span class="Identifier">createRenderObject</span></a><span class="Other">(</span><span class="Identifier">w</span><span class="Other">:</span> <a href="basic.html#TransformWidget"><span class="Identifier">TransformWidget</span></a><span class="Other">;</span> <span class="Identifier">ctx</span><span class="Other">:</span> <a href="../foundation/widget.html#BuildContext"><span class="Identifier">BuildContext</span></a><span class="Other">)</span><span class="Other">:</span> <a href="../foundation/render_object.html#RenderObject"><span class="Identifier">RenderObject</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
 
 </div>
 <div id="updateRenderObject-methods-all">
@@ -1429,6 +1495,15 @@
 <div id="updateRenderObject.e,Text,BuildContext,RenderObject">
   <dt><pre><span class="Keyword">method</span> <a href="#updateRenderObject.e%2CText%2CBuildContext%2CRenderObject"><span class="Identifier">updateRenderObject</span></a><span class="Other">(</span><span class="Identifier">w</span><span class="Other">:</span> <a href="basic.html#Text"><span class="Identifier">Text</span></a><span class="Other">;</span> <span class="Identifier">ctx</span><span class="Other">:</span> <a href="../foundation/widget.html#BuildContext"><span class="Identifier">BuildContext</span></a><span class="Other">;</span> <span class="Identifier">r</span><span class="Other">:</span> <a href="../foundation/render_object.html#RenderObject"><span class="Identifier">RenderObject</span></a><span class="Other">)</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="updateRenderObject.e,TransformWidget,BuildContext,RenderObject">
+  <dt><pre><span class="Keyword">method</span> <a href="#updateRenderObject.e%2CTransformWidget%2CBuildContext%2CRenderObject"><span class="Identifier">updateRenderObject</span></a><span class="Other">(</span><span class="Identifier">w</span><span class="Other">:</span> <a href="basic.html#TransformWidget"><span class="Identifier">TransformWidget</span></a><span class="Other">;</span> <span class="Identifier">ctx</span><span class="Other">:</span> <a href="../foundation/widget.html#BuildContext"><span class="Identifier">BuildContext</span></a><span class="Other">;</span> <span class="Identifier">r</span><span class="Other">:</span> <a href="../foundation/render_object.html#RenderObject"><span class="Identifier">RenderObject</span></a><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     
@@ -1595,6 +1670,15 @@
     
   </dd>
 </div>
+<div id="widgetTypeName.e,TransformWidget">
+  <dt><pre><span class="Keyword">method</span> <a href="#widgetTypeName.e%2CTransformWidget"><span class="Identifier">widgetTypeName</span></a><span class="Other">(</span><span class="Identifier">w</span><span class="Other">:</span> <a href="basic.html#TransformWidget"><span class="Identifier">TransformWidget</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
 
 </div>
 
@@ -1607,7 +1691,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 04:58:21 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:16:10 UTC</small>
       </div>
     </div>
   </div>
