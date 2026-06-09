@@ -424,7 +424,7 @@ proc productCard(p: Product, w: float32 = 200, h: float32 = 320): Widget =
   # through Pixie, which costs ~1ms per primitive.
   let pid = p.id
   let openProduct: TapCallback = proc() =
-    currentNavigator().push(proc(): Widget = productScreen(pid))
+    currentNavigator().push(proc(): Widget = productScreen(pid), transition = trNone)
   let toggleHeart: TapCallback = proc() = toggleWishlist(pid)
   let quickAdd: TapCallback = proc() = addToCart(pid)
   repaintBoundary(child = gestureDetector(
@@ -522,13 +522,13 @@ proc amazonHeader(showSearch: bool = true): Widget =
                 placeholder = "Search Amazon",
                 onSubmitted = proc(v: string) =
                   searchQuery.value = v
-                  currentNavigator().push(proc(): Widget = searchScreen()),
+                  currentNavigator().push(proc(): Widget = searchScreen(), transition = trNone),
                 onChanged = proc(v: string) = searchQuery.value = v,
                 style = textStyle(fontSize = 14, color = textDark)))),
             gestureDetector(
               behavior = htOpaque,
               onTap = proc() =
-                currentNavigator().push(proc(): Widget = searchScreen()),
+                currentNavigator().push(proc(): Widget = searchScreen(), transition = trNone),
               child = container(
                 width = 50, height = 40,
                 hasDecoration = true,
@@ -551,9 +551,9 @@ proc amazonHeader(showSearch: bool = true): Widget =
         behavior = htOpaque,
         onTap = proc() =
           if signedInUser.value.len == 0:
-            currentNavigator().push(proc(): Widget = signInScreen())
+            currentNavigator().push(proc(): Widget = signInScreen(), transition = trNone)
           else:
-            currentNavigator().push(proc(): Widget = accountScreen()),
+            currentNavigator().push(proc(): Widget = accountScreen(), transition = trNone),
         child = padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 4),
           child = listenableBuilder(signedInUser,
             proc(ctx: BuildContext, name: string): Widget =
@@ -570,7 +570,7 @@ proc amazonHeader(showSearch: bool = true): Widget =
       gestureDetector(
         behavior = htOpaque,
         onTap = proc() =
-          currentNavigator().push(proc(): Widget = ordersScreen()),
+          currentNavigator().push(proc(): Widget = ordersScreen(), transition = trNone),
         child = padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 4),
           child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
                          children = @[
@@ -583,7 +583,7 @@ proc amazonHeader(showSearch: bool = true): Widget =
       gestureDetector(
         behavior = htOpaque,
         onTap = proc() =
-          currentNavigator().push(proc(): Widget = cartScreen()),
+          currentNavigator().push(proc(): Widget = cartScreen(), transition = trNone),
         child = padding(padding = edgeInsetsSymmetric(horizontal = 12, vertical = 4),
           child = listenableBuilder(cartStore,
             proc(ctx: BuildContext, lines: seq[CartLine]): Widget =
@@ -625,17 +625,17 @@ proc amazonSubNav(): Widget =
     padding = edgeInsetsSymmetric(horizontal = 12, vertical = 6),
     child = row(crossAxisAlignment = caCenter, children = @[
       Widget(subNavLink("All", proc() =
-        currentNavigator().push(proc(): Widget = categoryScreen("All")))),
+        currentNavigator().push(proc(): Widget = categoryScreen("All"), transition = trNone))),
       subNavLink("Today's Deals", proc() =
-        currentNavigator().push(proc(): Widget = dealsScreen())),
+        currentNavigator().push(proc(): Widget = dealsScreen(), transition = trNone)),
       subNavLink("Customer Service", proc() =
-        currentNavigator().push(proc(): Widget = helpScreen())),
+        currentNavigator().push(proc(): Widget = helpScreen(), transition = trNone)),
       subNavLink("Registry", proc() =
-        currentNavigator().push(proc(): Widget = wishlistScreen())),
+        currentNavigator().push(proc(): Widget = wishlistScreen(), transition = trNone)),
       subNavLink("Gift Cards", proc() =
-        currentNavigator().push(proc(): Widget = giftCardsScreen())),
+        currentNavigator().push(proc(): Widget = giftCardsScreen(), transition = trNone)),
       subNavLink("Sell", proc() =
-        currentNavigator().push(proc(): Widget = sellScreen())),
+        currentNavigator().push(proc(): Widget = sellScreen(), transition = trNone)),
     ]))
 
 # Hero card. Amazon's home page typically shows a big banner; we
@@ -659,7 +659,7 @@ proc heroBanner(): Widget =
       gestureDetector(
         behavior = htOpaque,
         onTap = proc() =
-          currentNavigator().push(proc(): Widget = dealsScreen()),
+          currentNavigator().push(proc(): Widget = dealsScreen(), transition = trNone),
         child = container(
           width = 160, height = 36,
           hasDecoration = true,
@@ -674,7 +674,7 @@ proc heroBanner(): Widget =
 
 proc categoryCard(title, category: string, items: seq[Product]): Widget =
   let nav: TapCallback = proc() =
-    currentNavigator().push(proc(): Widget = categoryScreen(category))
+    currentNavigator().push(proc(): Widget = categoryScreen(category), transition = trNone)
   repaintBoundary(child = container(
     width = 280, height = 380,
     margin = edgeInsetsAll(8),
@@ -891,7 +891,7 @@ proc productScreen*(pid: int): Widget =
             gestureDetector(behavior = htOpaque,
               onTap = proc() =
                 placeOrder(@[CartLine(productId: p.id, qty: qtyController.value)])
-                currentNavigator().push(proc(): Widget = ordersScreen()),
+                currentNavigator().push(proc(): Widget = ordersScreen(), transition = trNone),
               child = container(
                 height = 36,
                 hasDecoration = true,
@@ -1065,7 +1065,7 @@ proc cartScreen*(): Widget =
                     onTap = proc() =
                       placeOrder(cartStore.value)
                       cartStore.value = @[]
-                      currentNavigator().push(proc(): Widget = ordersScreen()),
+                      currentNavigator().push(proc(): Widget = ordersScreen(), transition = trNone),
                     child = container(
                       height = 34,
                       hasDecoration = true,
@@ -1111,7 +1111,7 @@ proc searchScreen*(): Widget =
                       border = Border(color: borderGrey, width: 1)),
                     child = gestureDetector(behavior = htOpaque,
                       onTap = proc() = currentNavigator().push(
-                        proc(): Widget = productScreen(pid)),
+                        proc(): Widget = productScreen(pid), transition = trNone),
                       child = row(crossAxisAlignment = caStart, children = @[
                         Widget(productThumb(p, size = 140)),
                         sizedBox(width = 16),
@@ -1141,7 +1141,10 @@ proc searchScreen*(): Widget =
 # A standard page chrome wrapper used by every secondary screen:
 # header + sub-nav at top, scrollable body below, dark footer.
 proc pageChrome(title: string, body: Widget): Widget =
-  scrollView(child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+  # Outer column uses caStretch so the footer + header span the
+  # full window width. The body section uses its own padding for
+  # margins around the content.
+  scrollView(child = column(crossAxisAlignment = caStretch, mainAxisSize = msMin,
                             children = @[
     Widget(repaintBoundary(child = amazonHeader())),
     repaintBoundary(child = amazonSubNav()),
@@ -1284,7 +1287,7 @@ proc ordersScreen*(): Widget =
           if p.isNil: continue
           let pid = p.id
           let goToProduct: TapCallback = proc() =
-            currentNavigator().push(proc(): Widget = productScreen(pid))
+            currentNavigator().push(proc(): Widget = productScreen(pid), transition = trNone)
           rows.add(container(
             margin = edgeInsetsOnly(bottom = 12),
             padding = edgeInsetsAll(14),
@@ -1331,7 +1334,11 @@ proc ordersScreen*(): Widget =
 proc signInScreen*(): Widget =
   let emailCtrl = newTextEditingController()
   let passCtrl = newTextEditingController()
-  let body = center(child = container(
+  # center() inside a scrollView column collapses vertically, so use
+  # padding for horizontal centering and let the card take its
+  # natural height.
+  let body = padding(padding = edgeInsetsOnly(left = 300, right = 300, top = 24),
+    child = container(
     width = 360,
     padding = edgeInsetsAll(20),
     hasDecoration = true,
@@ -1402,7 +1409,7 @@ proc accountScreen*(): Widget =
       mainAxisSpacing = 12,
       children = @[
         Widget(gestureDetector(behavior = htOpaque,
-          onTap = proc() = currentNavigator().push(proc(): Widget = ordersScreen()),
+          onTap = proc() = currentNavigator().push(proc(): Widget = ordersScreen(), transition = trNone),
           child = container(
             padding = edgeInsetsAll(16),
             hasDecoration = true,
@@ -1417,7 +1424,7 @@ proc accountScreen*(): Widget =
                 style = textStyle(fontSize = 12, color = textMuted)),
             ])))),
         gestureDetector(behavior = htOpaque,
-          onTap = proc() = currentNavigator().push(proc(): Widget = wishlistScreen()),
+          onTap = proc() = currentNavigator().push(proc(): Widget = wishlistScreen(), transition = trNone),
           child = container(
             padding = edgeInsetsAll(16),
             hasDecoration = true,
@@ -1432,7 +1439,7 @@ proc accountScreen*(): Widget =
                 style = textStyle(fontSize = 12, color = textMuted)),
             ]))),
         gestureDetector(behavior = htOpaque,
-          onTap = proc() = currentNavigator().push(proc(): Widget = signInScreen()),
+          onTap = proc() = currentNavigator().push(proc(): Widget = signInScreen(), transition = trNone),
           child = container(
             padding = edgeInsetsAll(16),
             hasDecoration = true,

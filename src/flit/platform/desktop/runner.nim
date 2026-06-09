@@ -212,6 +212,21 @@ proc runDesktop*(rootWidget: Widget,
       runLayout(rootElement, tightFor(binding.surfaceSize))
       canvas.clear(0xFFFFFFFF'u32)
       runPaint(rootElement, canvas)
+    # Pump animation frames so route transitions etc. land before
+    # the snapshot. ~50 frames at 16ms = the typical slide-in time.
+    for i in 0 ..< 50:
+      if binding.frameCallbacks.len > 0:
+        let now = binding.currentTime
+        let pending = binding.frameCallbacks
+        binding.frameCallbacks.setLen(0)
+        for cb in pending: cb(now)
+      if binding.dirtyRoots.len > 0:
+        let snap = binding.dirtyRoots
+        binding.dirtyRoots.setLen(0)
+        for r in snap: rebuildElement(r)
+      runLayout(rootElement, tightFor(binding.surfaceSize))
+      canvas.clear(0xFFFFFFFF'u32)
+      runPaint(rootElement, canvas)
     # After the probe text is fully typed, snapshot again so the
     # caller can see the post-typing canvas state.
     saveSnapshotIfRequested()
