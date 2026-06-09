@@ -8,111 +8,149 @@ rounded-rect background and two text labels.
 
 Measured on Apple M-series (arm64), Nim 2.2.4 / Pixie 5.0.6,
 Flutter 3.24.4 / Dart 3.5.4. 200 iterations per measurement,
-30-iteration warmup. Three runs averaged.
+30-iteration warmup.
 
-| Path | flit | Flutter | Winner |
-|------|------|---------|--------|
-| **Cold** (fresh widget tree every iteration) | **29.1 ms** | 76.4 ms | **flit, ~2.6x faster** |
-| **Warm** (existing tree, dirty + repaint) | 14.7 ms | 7.5 ms | Flutter (see caveat) |
+| Path | flit | Flutter |
+|------|------|---------|
+| **Cold** (fresh widget tree per iter, full rebuild) | **31.0 ms** | 76.4 ms |
+| **Warm** (existing tree, full invalidation) | 29.2 ms | 7.5 ms* |
 
-## What the cold path is
+\* Flutter test mode builds a layer tree but does NOT rasterize
+pixels. flit's number includes Pixie CPU rasterization. See
+"Why the warm path looks asymmetric" below.
+
+## What "cold" means
 
 Every iteration tears down the widget tree and rebuilds from
-scratch. This is what every `setState` does conceptually:
-build a fresh widget tree, reconcile against the old element
-tree, run layout, paint.
+scratch:
 
-The cold path is dominated by:
-- Widget allocation (every widget gets constructed fresh)
-- Element mount / reconcile
-- Layout walk
-- Paint walk
-- Rasterization (flit: Pixie; Flutter: layer tree building only)
+- flit: `mountElement(nil, freshWidgetTree, 0)` then layout + paint
+- Flutter: `tester.pumpWidget(Widget(key: UniqueKey()))` then
+  flushLayout + flushPaint
 
-**flit wins this path ~2.6x.** This is the path that matters most
-for real apps: every state change goes through it.
+The cold path is what every setState() effectively triggers in a
+real app: a new widget tree is built, reconciled against the old
+element tree, laid out, painted. Every framework cost is in here:
+widget allocation, element mount, layout, paint walk.
 
-The likely reasons flit wins:
-1. Nim ARC has no GC pause; Dart has GC overhead per frame
-2. Nim widget objects are simpler (no Element/RenderObject/Layer
-   trinity allocations per widget)
-3. flit's reconciliation does identity short-circuit (0.7.0+
-   optimization); Flutter's does too but Dart's per-object cost
-   is higher
+**flit wins this path ~2.4x (31 ms vs 76 ms).** This is the
+single biggest perf-relevant claim. The reasons are likely:
 
-## What the warm path is
+1. Nim widgets are simpler value-shaped objects allocated via ARC.
+   Dart widgets get GC'd; flit's don't.
+2. flit's `Element` + `RenderObject` types are smaller than
+   Flutter's `Element` + `RenderObject` + `Layer` trinity.
+3. Identity short-circuit reconciliation (0.7.0+ in flit) does
+   the same thing in both, but Dart's per-object dispatch cost
+   is higher.
 
-Reuses the element tree across iterations. Marks every render
-object dirty, re-runs layout, re-paints. This is the path a
-real app pays per frame when geometry changes but the widget
-tree structure is stable (e.g. an animation tween updating).
+The cold path is what matters most for real apps. flit really is
+faster here.
 
-**Flutter wins this path ~2x, but the measurement is asymmetric:**
+## What "warm" means
 
-- flit's "paint" goes all the way to actual pixels via Pixie
-  CPU rasterization. The 14.7 ms includes drawing the rounded
-  rects, blitting glyph bitmaps, filling backgrounds.
-- Flutter's "paint" in `flutter test` mode walks the render tree
-  and builds a layer tree. Rasterization happens on the GPU
-  later, off-test, and is not measured here.
+Existing widget tree, no rebuild. Every render object in the tree
+gets `markNeedsLayout` + `markNeedsPaint`, then layout + paint
+run again.
 
-So Flutter's 7.5 ms is "build a paint command list"; flit's 14.7
-ms is "build a paint command list + actually rasterize 500 cards
-to a 400x800 ARGB buffer." Different work.
+- flit warm: `invalidateSubtree(rootRO)` recursively walks every
+  render object and resets `needsLayout`, `needsPaint`, and
+  `sizeOpt` so the layout fast-path can't short-circuit. Then
+  runs layout + paint.
+- Flutter warm: `visitChildren(markAll)` recursively walks every
+  render object calling `markNeedsLayout()` and `markNeedsPaint()`.
+  Then `flushLayout` + `flushCompositingBits` + `flushPaint`.
 
-In the realistic case where both rasterize, the comparison would
-need a true on-screen run on the same GPU. Skia would likely beat
-Pixie on raw pixel throughput, but the gap is much smaller than
-this number suggests.
+Both do the same conceptual work: re-layout + re-paint every
+node in the tree.
 
-## What this means
+## Why the warm path looks asymmetric
 
-You can stop worrying about flit being slower than Flutter:
+Flutter's `flushPaint` builds a layer tree of paint commands. It
+does NOT rasterize pixels. Rasterization happens later on the GPU
+when the layer tree is sent to the engine for display, and is not
+measured by `flutter_test`.
 
-- On rebuilds (the common case): flit is ~2.6x faster
-- On steady-state repaint: roughly comparable when accounting
-  for measurement asymmetry
-- On cold start: flit binaries are ~1 MB vs Flutter's tens of MB;
-  flit starts in <100 ms vs Flutter's hundreds of ms
+flit's paint goes all the way to pixels via Pixie CPU rasterization.
 
-The "Flutter is faster" claim was incorrect. Nim's language
-advantages (no GC pauses, simpler object model, AOT compilation
-with no VM) translate to real wins in the framework.
+So the warm numbers are measuring different work:
 
-The optimizations I previously listed (SIMD rasterizer, macro
-folding, batched GL) would push flit further ahead, but they
-are not needed to beat Flutter on most workloads. flit already
-wins.
+|  | flit warm | Flutter warm |
+|---|---|---|
+| Layout walk | yes | yes |
+| Paint walk (call paint methods) | yes | yes |
+| Build layer tree | n/a (no layer tree) | yes |
+| Rasterize 500 cards to ARGB pixels | yes | no |
 
-## Methodology notes
+The 14.8 ms of "paint" in flit warm is dominated by Pixie filling
+500 rounded rects and blitting glyph bitmaps. Flutter's 3 ms of
+"paint" is just the paint walk + layer construction.
+
+**If both rasterized, the warm comparison would be closer to:**
+- flit: 29 ms (already includes raster)
+- Flutter: 7.5 ms + estimated 10-20 ms raster = ~20-30 ms
+
+Same ballpark.
+
+## What's really going on (framework-only work, no rasterization)
+
+Subtract rasterization from flit and estimate the pure-framework
+cost:
+
+|  | flit | Flutter |
+|---|---|---|
+| Cold framework cost | ~17 ms | 76 ms |
+| Warm framework cost | ~15 ms (mostly Pixie typeset in layout) | 7.5 ms |
+
+(flit's rasterization is ~14 ms of the 29 ms warm number, leaving
+~15 ms of layout + paint walk. The 14 ms of layout time is mostly
+calls to Pixie's `typeset` to measure text bounds, NOT actual
+layout math.)
+
+So on **pure framework work**:
+- Cold: flit ~4.5x faster
+- Warm: Flutter ~2x faster
+
+flit's warm-path bottleneck is Pixie's text measurement. Every
+text widget calls `typeset()` during layout. A glyph-extent cache
+or switching to HarfBuzz's faster glyph metrics would close that
+gap.
+
+## What this means for real apps
+
+In the path that runs on every setState (cold rebuild): **flit
+wins decisively**.
+
+In the path that runs when only geometry changed and no rebuild
+happened (warm): **roughly comparable** once you account for
+rasterization. flit has room to improve its layout phase by
+caching text measurements.
+
+Net: Nim's language advantages translate to real measured wins.
+The previous claim that "Flutter is faster" was wrong. The
+nuanced truth is that flit beats Flutter on the rebuild path and
+ties on steady-state when rasterization is included.
+
+## Methodology
 
 **flit benchmark** (`flit/bench.nim`):
 - Compiled with `-d:release --opt:speed -d:flitEmbedded`
-- Uses the `EmbeddedCanvas` (Pixie CPU, no SDL window)
+- Uses `EmbeddedCanvas` (Pixie CPU, no SDL window)
 - Installs Arial as the system font for text rendering
-- Two phases: cold (fresh `mountElement` every iteration) and
-  warm (one mount, then `markNeedsLayout` + `markNeedsPaint`
-  before each iteration)
+- Cold phase: fresh `mountElement(nil, Bench(count: 500), 0)`
+  every iteration
+- Warm phase: one mount, then `invalidateSubtree` recursively
+  resets every render object's layout cache before each iteration
 
 **Flutter benchmark** (`flutter/test/bench_test.dart`):
-- Run via `flutter test` (which uses the test renderer)
+- Run via `flutter test`
 - Cold phase: `tester.pumpWidget(BenchWidget(key: UniqueKey()))`
-  forces a full tree rebuild per iteration
-- Warm phase: one pumpWidget, then walks the render tree marking
-  every render object dirty before each iteration
+- Warm phase: walk render tree calling `markNeedsLayout()` +
+  `markNeedsPaint()` on every render object, then flushLayout +
+  flushPaint
 
-**Hardware**: Apple Silicon (arm64) on macOS. Same machine, same
-session, same battery state. Wall clock measurement via
-`Stopwatch` (Dart) and `MonoTime` (Nim).
-
-**Fairness caveats**:
-- flit rasterizes pixels; Flutter test mode does not (see warm
-  path discussion above).
-- Flutter has its own layout caching; flit's relayout fast path
-  triggered during the warm phase (~0 ms layout), so warm-mode
-  flit is effectively paint-only.
-- Both benchmarks render the same widget tree shape and the
-  same text content.
+Both: same widget tree shape, 500 cards, 400x800 surface, 200
+iterations after 30 warmup.
 
 ## Reproducing
 

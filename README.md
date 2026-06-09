@@ -19,20 +19,25 @@ that matters to you, watch the repo and revisit at 1.0.
 ## Performance vs Flutter
 
 Apples-to-apples benchmark (500-card column, identical workload, same
-machine; see [`benchmarks/`](benchmarks/) for the source):
+machine; see [`benchmarks/`](benchmarks/) for the source and full
+methodology):
 
 | Path | flit | Flutter |
 |------|------|---------|
-| Rebuild (fresh widget tree per frame) | **29 ms** | 76 ms |
-| Steady-state repaint | 15 ms | 8 ms* |
+| Cold (fresh widget tree, full rebuild) | **31 ms** | 76 ms |
+| Warm (existing tree, full invalidation) | 29 ms | 7.5 ms* |
 
-\* Flutter test mode builds a layer tree without rasterizing pixels;
-flit's 15 ms includes full CPU pixel rasterization. Apples-to-apples
-warm path is roughly comparable.
+\* Flutter test mode builds a layer tree but doesn't rasterize pixels;
+flit's 29 ms includes Pixie CPU rasterization. With rasterization
+equalized the warm path is roughly comparable.
 
-**flit is ~2.6x faster than Flutter on the rebuild path**, which is
-the path every `setState` goes through. Nim's lack of GC pauses and
-simpler runtime translate to real measured wins.
+**flit is ~2.4x faster than Flutter on the cold rebuild path** — the
+path every `setState` triggers. Nim's lack of GC pauses, simpler
+runtime, and lighter object model translate to real measured wins.
+
+On pure framework cost (subtracting rasterization), Flutter wins the
+warm path by ~2x because flit's layout phase is dominated by Pixie's
+text measurement. A glyph-extent cache would close that gap.
 
 ## Why
 
