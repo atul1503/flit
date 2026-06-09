@@ -58,6 +58,50 @@ when not defined(js):
     ## Per-thread counters; useful for confirming the cache actually
     ## hits in interactive workloads.
 
+  # Rounded-rect bitmap cache. Pixie's path fill is the second most
+  # expensive paint op after fillText; for repeated shapes (button
+  # backgrounds, card containers, the search box) we rasterize each
+  # (size + radii + fill) tuple once and blit thereafter. Key
+  # quantizes the width/height/radii to 1px so near-identical
+  # shapes share a single bitmap.
+
+  type
+    SdlRRectKey = object
+      w:     uint16
+      h:     uint16
+      tl, tr, br, bl: uint16
+      color: uint32
+
+    SdlRRectEntry = object
+      image: pixie.Image
+
+  proc hash(k: SdlRRectKey): Hash =
+    var h: Hash = 0
+    h = h !& int(k.w)
+    h = h !& int(k.h)
+    h = h !& int(k.tl)
+    h = h !& int(k.tr)
+    h = h !& int(k.br)
+    h = h !& int(k.bl)
+    h = h !& int(k.color)
+    !$h
+
+  proc `==`(a, b: SdlRRectKey): bool =
+    a.w == b.w and a.h == b.h and
+      a.tl == b.tl and a.tr == b.tr and
+      a.br == b.br and a.bl == b.bl and
+      a.color == b.color
+
+  var sdlRRectCache* {.threadvar.}: Table[SdlRRectKey, SdlRRectEntry]
+  var sdlRRectCacheLimit* = 512
+    ## Cap on number of cached rrect bitmaps. Clears wholesale on
+    ## overflow.
+  var sdlRRectCacheHits*   {.threadvar.}: int
+  var sdlRRectCacheMisses* {.threadvar.}: int
+
+  proc clearSdlRRectCache*() =
+    sdlRRectCache.clear()
+
   proc clearSdlTextCache*() =
     ## Drops every rasterized text image from the SDL canvas cache.
     sdlTextCache.clear()
@@ -136,11 +180,45 @@ when not defined(js):
     c.ctx.fillRect(pixie.rect(r.left, r.top, r.width, r.height))
 
   method drawRRect*(c: SdlCanvas, r: geom.RRect, fill: uint32) =
-    c.ctx.fillStyle = argbToPaint(c, fill)
-    let pxR = pixie.rect(r.rect.left, r.rect.top, r.rect.width, r.rect.height)
-    var path = newPath()
-    path.roundedRect(pxR, r.tl.x, r.tr.x, r.br.x, r.bl.x)
-    c.ctx.fill(path)
+    let opaqued = c.applyOpacity(fill)
+    let w = int(r.rect.width + 0.5'f32)
+    let h = int(r.rect.height + 0.5'f32)
+    # Tiny shapes or fully-rectangular (no rounded corners) fall
+    # through to direct fillRect - cheaper than building a path.
+    if w <= 0 or h <= 0: return
+    if r.tl.x < 0.5 and r.tr.x < 0.5 and r.br.x < 0.5 and r.bl.x < 0.5:
+      c.ctx.fillStyle = argbToPaint(c, fill)
+      c.ctx.fillRect(pixie.rect(r.rect.left, r.rect.top, r.rect.width, r.rect.height))
+      return
+    let key = SdlRRectKey(
+      w: uint16(w), h: uint16(h),
+      tl: uint16(r.tl.x + 0.5'f32), tr: uint16(r.tr.x + 0.5'f32),
+      br: uint16(r.br.x + 0.5'f32), bl: uint16(r.bl.x + 0.5'f32),
+      color: opaqued)
+    var entry: SdlRRectEntry
+    if sdlRRectCache.hasKey(key):
+      entry = sdlRRectCache[key]
+      inc sdlRRectCacheHits
+    else:
+      inc sdlRRectCacheMisses
+      let img = pixie.newImage(w, h)
+      var ctx = newContext(img)
+      let a = uint8((opaqued shr 24) and 0xFF)
+      let red = uint8((opaqued shr 16) and 0xFF)
+      let g = uint8((opaqued shr  8) and 0xFF)
+      let b = uint8( opaqued         and 0xFF)
+      var pt = newPaint(SolidPaint)
+      pt.color = rgba(red, g, b, a).color
+      ctx.fillStyle = pt
+      var path = newPath()
+      path.roundedRect(pixie.rect(0.0'f32, 0.0'f32, float32(w), float32(h)),
+                       r.tl.x, r.tr.x, r.br.x, r.bl.x)
+      ctx.fill(path)
+      entry = SdlRRectEntry(image: img)
+      if sdlRRectCache.len >= sdlRRectCacheLimit:
+        sdlRRectCache.clear()
+      sdlRRectCache[key] = entry
+    c.image.draw(entry.image, translate(vec2(r.rect.left, r.rect.top)))
 
   method drawCircle*(c: SdlCanvas, center: geom.Offset, radius: float32, fill: uint32) =
     c.ctx.fillStyle = argbToPaint(c, fill)

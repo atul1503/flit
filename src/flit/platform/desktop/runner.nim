@@ -154,6 +154,45 @@ proc runDesktop*(rootWidget: Widget,
   if getEnv("FLIT_SAVE_FRAME").len > 0:
     canvas.image.writeFile(getEnv("FLIT_SAVE_FRAME"))
     echo "[flit] saved first-frame snapshot to ", getEnv("FLIT_SAVE_FRAME")
+  if getEnv("FLIT_TYPE_PROBE").len > 0:
+    # Simulate typing: focus the first registered focus node (which
+    # is the search field), inject 10 TextInput-equivalent key
+    # events, and measure each frame's rebuild + paint cost.
+    let fm = focusManager()
+    if fm.nodes.len > 0:
+      fm.focus(fm.nodes[0])
+      # Drain the focus-change setState
+      if binding.dirtyRoots.len > 0:
+        let snap = binding.dirtyRoots
+        binding.dirtyRoots.setLen(0)
+        for r in snap: rebuildElement(r)
+        runLayout(rootElement, tightFor(binding.surfaceSize))
+        canvas.clear(0xFFFFFFFF'u32)
+        runPaint(rootElement, canvas)
+        canvas.present()
+    const probeChars = "echo dot 5th gen"
+    for i, ch in probeChars:
+      let ev = KeyEvent(kind: keDown, text: $ch)
+      discard fm.handleKeyEvent(ev)
+      let t0 = cpuTime()
+      if binding.dirtyRoots.len > 0:
+        let snap = binding.dirtyRoots
+        binding.dirtyRoots.setLen(0)
+        for r in snap: rebuildElement(r)
+      let t1 = cpuTime()
+      runLayout(rootElement, tightFor(binding.surfaceSize))
+      let t2 = cpuTime()
+      canvas.clear(0xFFFFFFFF'u32)
+      runPaint(rootElement, canvas)
+      let t3 = cpuTime()
+      canvas.present()
+      let t4 = cpuTime()
+      echo "[type ", i+1, "] '", ch, "' rebuild=",
+           formatFloat((t1-t0)*1000, ffDecimal, 2),
+           "ms layout=", formatFloat((t2-t1)*1000, ffDecimal, 2),
+           "ms paint=", formatFloat((t3-t2)*1000, ffDecimal, 2),
+           "ms present=", formatFloat((t4-t3)*1000, ffDecimal, 2),
+           "ms total=", formatFloat((t4-t0)*1000, ffDecimal, 2), "ms"
   if getEnv("FLIT_PAINT_PROBE").len > 0:
     let n = max(1, parseInt(getEnv("FLIT_PAINT_PROBE")))
     for i in 0 ..< n:
