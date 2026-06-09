@@ -14,7 +14,7 @@
 ##
 ## Run: nim c -r examples/amazon/main.nim
 
-import std/[strutils, strformat, sequtils]
+import std/[strutils, strformat, sequtils, algorithm]
 import ../../src/flit
 import ../../src/flit/widgets/navigator as navw
 
@@ -366,16 +366,70 @@ proc homeScreen*(): Widget
 proc productScreen*(pid: int): Widget
 proc cartScreen*(): Widget
 proc searchScreen*(): Widget
+proc categoryScreen*(category: string): Widget
+proc dealsScreen*(): Widget
+proc ordersScreen*(): Widget
+proc accountScreen*(): Widget
+proc signInScreen*(): Widget
+proc wishlistScreen*(): Widget
+proc helpScreen*(): Widget
+proc giftCardsScreen*(): Widget
+proc sellScreen*(): Widget
+
+# Wishlist store mirrors the cart store: a ValueNotifier of
+# product IDs, watched by listenableBuilder anywhere the count or
+# membership matters.
+let wishlistStore = newValueNotifier[seq[int]](@[])
+
+proc inWishlist(pid: int): bool =
+  for id in wishlistStore.value:
+    if id == pid: return true
+  false
+
+proc toggleWishlist(pid: int) =
+  var ids = wishlistStore.value
+  var found = false
+  var keep: seq[int]
+  for id in ids:
+    if id == pid: found = true
+    else: keep.add(id)
+  if not found: keep.add(pid)
+  wishlistStore.value = keep
+
+# Authenticated-user store. nil = signed out. After signing in
+# (sign-in form) this holds the display name so the header
+# updates from "Hello, sign in" to "Hello, <name>".
+let signedInUser = newValueNotifier[string]("")  # empty = signed out
+
+# Orders store: every Buy Now or Proceed to Checkout creates an
+# entry so the Orders screen has something to show.
+type
+  OrderLine = ref object
+    productId*:  int
+    qty*:        int
+    placedAt*:   string
+let ordersStore = newValueNotifier[seq[OrderLine]](@[])
+
+proc placeOrder(lines: seq[CartLine]) =
+  var ords = ordersStore.value
+  for l in lines:
+    ords.add(OrderLine(productId: l.productId, qty: l.qty,
+                       placedAt: "2026-06-09"))
+  ordersStore.value = ords
 
 proc productCard(p: Product, w: float32 = 200, h: float32 = 320): Widget =
   # Wrap in RepaintBoundary so a card's bitmap is rasterized once
   # and cheaply composited on subsequent paints. Without this, every
   # scroll frame re-rasterizes the card's rrect + text + image
   # through Pixie, which costs ~1ms per primitive.
+  let pid = p.id
+  let openProduct: TapCallback = proc() =
+    currentNavigator().push(proc(): Widget = productScreen(pid))
+  let toggleHeart: TapCallback = proc() = toggleWishlist(pid)
+  let quickAdd: TapCallback = proc() = addToCart(pid)
   repaintBoundary(child = gestureDetector(
     behavior = htOpaque,
-    onTap = proc() =
-      currentNavigator().push(proc(): Widget = productScreen(p.id)),
+    onTap = openProduct,
     child = container(
       width = w, height = h,
       margin = edgeInsetsAll(6),
@@ -385,7 +439,21 @@ proc productCard(p: Product, w: float32 = 200, h: float32 = 320): Widget =
         border = Border(color: borderGrey, width: 1)),
       child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
                      children = @[
-        center(child = productThumb(p, size = w - 24)),
+        # Thumbnail with wishlist heart overlay at top-right.
+        Widget(stack(alignment = alignTopRight, children = @[
+          Widget(center(child = productThumb(p, size = w - 24))),
+          listenableBuilder(wishlistStore,
+            proc(ctx: BuildContext, ids: seq[int]): Widget =
+              gestureDetector(behavior = htOpaque, onTap = toggleHeart,
+                child = container(
+                  width = 32, height = 32,
+                  margin = edgeInsetsAll(4),
+                  hasDecoration = true,
+                  decoration = boxDecoration(color = colorWhite, borderRadius = 16,
+                    border = Border(color: borderGrey, width: 1)),
+                  child = center(child = icon("heart", size = 18,
+                    color = (if inWishlist(pid): amazonLinkRed else: rgb(150, 150, 150))))))),
+        ])),
         sizedBox(height = 8),
         if p.bestSeller: Widget(padding(padding = edgeInsetsOnly(bottom = 4),
           child = bestSellerBadge()))
@@ -396,7 +464,16 @@ proc productCard(p: Product, w: float32 = 200, h: float32 = 320): Widget =
         sizedBox(height = 6),
         priceRow(p),
         sizedBox(height = 4),
-        if p.prime: primeBadge() else: sizedBox(height = 0),
+        if p.prime: Widget(primeBadge()) else: Widget(sizedBox(height = 0)),
+        sizedBox(height = 6),
+        # Quick "Add to Cart" button without leaving the home page.
+        gestureDetector(behavior = htOpaque, onTap = quickAdd,
+          child = container(
+            height = 28,
+            hasDecoration = true,
+            decoration = boxDecoration(color = amazonYellow, borderRadius = 14),
+            child = center(child = text("Add to Cart",
+              style = textStyle(fontSize = 12, color = textDark))))),
       ]))))
 
 # Top header (Amazon's dark navy bar).
@@ -468,24 +545,40 @@ proc amazonHeader(showSearch: bool = true): Widget =
           text("English",
             style = textStyle(fontSize = 10, color = rgb(200, 200, 200))),
         ])),
-      # Account & lists.
-      padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 4),
-        child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
-                       children = @[
-          Widget(text("Hello, Atul",
-            style = textStyle(fontSize = 11, color = rgb(200, 200, 200)))),
-          text("Account & Lists",
-            style = textStyle(fontSize = 13, color = colorWhite)),
-        ])),
+      # Account & lists. Tap goes to account screen if signed-in,
+      # to sign-in screen otherwise.
+      gestureDetector(
+        behavior = htOpaque,
+        onTap = proc() =
+          if signedInUser.value.len == 0:
+            currentNavigator().push(proc(): Widget = signInScreen())
+          else:
+            currentNavigator().push(proc(): Widget = accountScreen()),
+        child = padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 4),
+          child = listenableBuilder(signedInUser,
+            proc(ctx: BuildContext, name: string): Widget =
+              column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                     children = @[
+                Widget(text(
+                  if name.len == 0: "Hello, sign in" else: "Hello, " & name,
+                  style = textStyle(fontSize = 11, color = rgb(200, 200, 200)))),
+                text("Account & Lists",
+                  style = textStyle(fontSize = 13, color = colorWhite)),
+              ]))),
+      ),
       # Returns & orders.
-      padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 4),
-        child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
-                       children = @[
-          Widget(text("Returns",
-            style = textStyle(fontSize = 11, color = rgb(200, 200, 200)))),
-          text("& Orders",
-            style = textStyle(fontSize = 13, color = colorWhite)),
-        ])),
+      gestureDetector(
+        behavior = htOpaque,
+        onTap = proc() =
+          currentNavigator().push(proc(): Widget = ordersScreen()),
+        child = padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 4),
+          child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                         children = @[
+            Widget(text("Returns",
+              style = textStyle(fontSize = 11, color = rgb(200, 200, 200)))),
+            text("& Orders",
+              style = textStyle(fontSize = 13, color = colorWhite)),
+          ]))),
       # Cart with badge.
       gestureDetector(
         behavior = htOpaque,
@@ -513,30 +606,36 @@ proc amazonHeader(showSearch: bool = true): Widget =
 
 # Secondary nav bar.
 
+proc subNavLink(label: string, onTap: proc()): Widget =
+  ## A clickable label in the sub-nav bar. Used for "Today's Deals",
+  ## "Customer Service", etc. Hover state would be nice but flit's
+  ## gesture detector doesn't expose hover events yet.
+  let cb: TapCallback = onTap
+  gestureDetector(
+    behavior = htOpaque,
+    onTap = cb,
+    child = padding(padding = edgeInsetsSymmetric(horizontal = 10, vertical = 4),
+      child = text(label,
+        style = textStyle(fontSize = 13, color = colorWhite))))
+
 proc amazonSubNav(): Widget =
   container(
     height = 38,
     hasColor = true, color = amazonDarkNavy,
     padding = edgeInsetsSymmetric(horizontal = 12, vertical = 6),
     child = row(crossAxisAlignment = caCenter, children = @[
-      Widget(padding(padding = edgeInsetsSymmetric(horizontal = 10, vertical = 4),
-        child = text("All",
-          style = textStyle(fontSize = 13, color = colorWhite)))),
-      padding(padding = edgeInsetsSymmetric(horizontal = 10, vertical = 4),
-        child = text("Today's Deals",
-          style = textStyle(fontSize = 13, color = colorWhite))),
-      padding(padding = edgeInsetsSymmetric(horizontal = 10, vertical = 4),
-        child = text("Customer Service",
-          style = textStyle(fontSize = 13, color = colorWhite))),
-      padding(padding = edgeInsetsSymmetric(horizontal = 10, vertical = 4),
-        child = text("Registry",
-          style = textStyle(fontSize = 13, color = colorWhite))),
-      padding(padding = edgeInsetsSymmetric(horizontal = 10, vertical = 4),
-        child = text("Gift Cards",
-          style = textStyle(fontSize = 13, color = colorWhite))),
-      padding(padding = edgeInsetsSymmetric(horizontal = 10, vertical = 4),
-        child = text("Sell",
-          style = textStyle(fontSize = 13, color = colorWhite))),
+      Widget(subNavLink("All", proc() =
+        currentNavigator().push(proc(): Widget = categoryScreen("All")))),
+      subNavLink("Today's Deals", proc() =
+        currentNavigator().push(proc(): Widget = dealsScreen())),
+      subNavLink("Customer Service", proc() =
+        currentNavigator().push(proc(): Widget = helpScreen())),
+      subNavLink("Registry", proc() =
+        currentNavigator().push(proc(): Widget = wishlistScreen())),
+      subNavLink("Gift Cards", proc() =
+        currentNavigator().push(proc(): Widget = giftCardsScreen())),
+      subNavLink("Sell", proc() =
+        currentNavigator().push(proc(): Widget = sellScreen())),
     ]))
 
 # Hero card. Amazon's home page typically shows a big banner; we
@@ -557,19 +656,25 @@ proc heroBanner(): Widget =
       text("Up to 60% off select Amazon Devices",
         style = textStyle(fontSize = 16, color = rgb(220, 235, 250))),
       sizedBox(height = 20),
-      container(
-        width = 160, height = 36,
-        hasDecoration = true,
-        decoration = boxDecoration(color = amazonOrange, borderRadius = 18),
-        child = center(child = text("Shop now",
-          style = textStyle(fontSize = 14, color = textDark)))),
+      gestureDetector(
+        behavior = htOpaque,
+        onTap = proc() =
+          currentNavigator().push(proc(): Widget = dealsScreen()),
+        child = container(
+          width = 160, height = 36,
+          hasDecoration = true,
+          decoration = boxDecoration(color = amazonOrange, borderRadius = 18),
+          child = center(child = text("Shop now",
+            style = textStyle(fontSize = 14, color = textDark))))),
     ])))
 
 # Category card (the 2x2 grid Amazon shows above the hero on
 # desktop). Each card has a title, four sub-thumbnails, and a
 # "See more" link.
 
-proc categoryCard(title: string, items: seq[Product]): Widget =
+proc categoryCard(title, category: string, items: seq[Product]): Widget =
+  let nav: TapCallback = proc() =
+    currentNavigator().push(proc(): Widget = categoryScreen(category))
   repaintBoundary(child = container(
     width = 280, height = 380,
     margin = edgeInsetsAll(8),
@@ -594,8 +699,9 @@ proc categoryCard(title: string, items: seq[Product]): Widget =
         productThumb(items[3], size = 110),
       ]),
       sizedBox(height = 12),
-      text("See more",
-        style = textStyle(fontSize = 13, color = amazonLink)),
+      gestureDetector(behavior = htOpaque, onTap = nav,
+        child = text("See more",
+          style = textStyle(fontSize = 13, color = amazonLink))),
     ])))
 
 # Home page.
@@ -628,10 +734,10 @@ proc homeScreen*(): Widget =
         crossAxisSpacing = 12,
         mainAxisSpacing = 12,
         children = @[
-          Widget(categoryCard("Electronics under $200", elec)),
-          categoryCard("Bestselling kitchen gear", kit),
-          categoryCard("Top reads", bk),
-          categoryCard("Best Sellers", bs),
+          Widget(categoryCard("Electronics under $200", "Electronics", elec)),
+          categoryCard("Bestselling kitchen gear", "Home & Kitchen", kit),
+          categoryCard("Top reads", "Books", bk),
+          categoryCard("Best Sellers", "All", bs),
         ])),
     # Recommendations strip.
     padding(padding = edgeInsetsSymmetric(horizontal = 18, vertical = 12),
@@ -781,17 +887,31 @@ proc productScreen*(pid: int): Widget =
                 child = center(child = text("Add to Cart",
                   style = textStyle(fontSize = 14, color = textDark))))),
             sizedBox(height = 10),
-            # Buy Now.
+            # Buy Now: bypass the cart, place the order, jump to orders.
             gestureDetector(behavior = htOpaque,
               onTap = proc() =
-                addToCart(p.id)
-                currentNavigator().push(proc(): Widget = cartScreen()),
+                placeOrder(@[CartLine(productId: p.id, qty: qtyController.value)])
+                currentNavigator().push(proc(): Widget = ordersScreen()),
               child = container(
                 height = 36,
                 hasDecoration = true,
                 decoration = boxDecoration(color = amazonOrange, borderRadius = 18),
                 child = center(child = text("Buy Now",
                   style = textStyle(fontSize = 14, color = colorWhite))))),
+            sizedBox(height = 10),
+            # Add to List (wishlist).
+            gestureDetector(behavior = htOpaque,
+              onTap = proc() = toggleWishlist(p.id),
+              child = container(
+                height = 32,
+                hasDecoration = true,
+                decoration = boxDecoration(color = colorWhite, borderRadius = 16,
+                  border = Border(color: borderGrey, width: 1)),
+                child = center(child = listenableBuilder(wishlistStore,
+                  proc(ctx: BuildContext, ids: seq[int]): Widget =
+                    text(
+                      if inWishlist(p.id): "Remove from List" else: "Add to List",
+                      style = textStyle(fontSize = 13, color = textDark)))))),
             sizedBox(height = 12),
             row(crossAxisAlignment = caCenter, mainAxisSize = msMin, children = @[
               Widget(text("Ships from:",
@@ -941,12 +1061,17 @@ proc cartScreen*(): Widget =
                       style = textStyle(fontSize = 13, color = textDark)),
                   ]),
                   sizedBox(height = 14),
-                  container(
-                    height = 34,
-                    hasDecoration = true,
-                    decoration = boxDecoration(color = amazonYellow, borderRadius = 17),
-                    child = center(child = text("Proceed to checkout",
-                      style = textStyle(fontSize = 13, color = textDark)))),
+                  gestureDetector(behavior = htOpaque,
+                    onTap = proc() =
+                      placeOrder(cartStore.value)
+                      cartStore.value = @[]
+                      currentNavigator().push(proc(): Widget = ordersScreen()),
+                    child = container(
+                      height = 34,
+                      hasDecoration = true,
+                      decoration = boxDecoration(color = amazonYellow, borderRadius = 17),
+                      child = center(child = text("Proceed to checkout",
+                        style = textStyle(fontSize = 13, color = textDark))))),
                 ])),
             ]))),
   ]))
@@ -1010,6 +1135,451 @@ proc searchScreen*(): Widget =
           ])),
       ]))
   )
+
+# ---- New screens added in the navigation expansion. ----
+
+# A standard page chrome wrapper used by every secondary screen:
+# header + sub-nav at top, scrollable body below, dark footer.
+proc pageChrome(title: string, body: Widget): Widget =
+  scrollView(child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                            children = @[
+    Widget(repaintBoundary(child = amazonHeader())),
+    repaintBoundary(child = amazonSubNav()),
+    padding(padding = edgeInsetsAll(16),
+      child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                     children = @[
+        Widget(text(title,
+          style = textStyle(fontSize = 28, color = textDark))),
+        sizedBox(height = 16),
+        body,
+      ])),
+    sizedBox(height = 24),
+    repaintBoundary(child = container(
+      height = 120, hasColor = true, color = amazonDarkNavy,
+      padding = edgeInsetsAll(20),
+      child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                     children = @[
+        Widget(text("(c) 1996-2026, Amazon.com, Inc.",
+          style = textStyle(fontSize = 11, color = rgb(180, 180, 180)))),
+      ]))),
+  ]))
+
+proc categoryScreen*(category: string): Widget =
+  ## Browse all products in `category` (or "All" for the full catalog).
+  ## Includes a left filter rail and a sort dropdown at the top.
+  let products =
+    if category == "All": catalog
+    else: catalog.filterIt(it.category == category)
+  let sortBy = newValueNotifier[string]("Featured")
+  let body = listenableBuilder(sortBy,
+    proc(ctx: BuildContext, sort: string): Widget =
+      var sorted = products
+      case sort
+      of "Price: Low to High":
+        sorted.sort(proc(a, b: Product): int = cmp(a.price, b.price))
+      of "Price: High to Low":
+        sorted.sort(proc(a, b: Product): int = cmp(b.price, a.price))
+      of "Avg. Customer Review":
+        sorted.sort(proc(a, b: Product): int = cmp(b.rating, a.rating))
+      else: discard  # Featured: original order
+      row(crossAxisAlignment = caStart, children = @[
+        # Filter sidebar.
+        Widget(container(
+          width = 220, padding = edgeInsetsAll(8),
+          child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                         children = @[
+            Widget(text("Department",
+              style = textStyle(fontSize = 16, color = textDark))),
+            sizedBox(height = 6),
+            text("All Departments",
+              style = textStyle(fontSize = 13, color = amazonLink)),
+            text("Electronics",
+              style = textStyle(fontSize = 13, color = amazonLink)),
+            text("Home & Kitchen",
+              style = textStyle(fontSize = 13, color = amazonLink)),
+            text("Books",
+              style = textStyle(fontSize = 13, color = amazonLink)),
+            text("Toys & Games",
+              style = textStyle(fontSize = 13, color = amazonLink)),
+            sizedBox(height = 16),
+            text("Avg. Customer Review",
+              style = textStyle(fontSize = 16, color = textDark)),
+            sizedBox(height = 6),
+            row(crossAxisAlignment = caCenter, mainAxisSize = msMin, children = @[
+              Widget(starRow(4.0, iconSize = 12)),
+              padding(padding = edgeInsetsOnly(left = 4),
+                child = text("& Up",
+                  style = textStyle(fontSize = 12, color = amazonLink))),
+            ]),
+            sizedBox(height = 16),
+            text("Prime",
+              style = textStyle(fontSize = 16, color = textDark)),
+            sizedBox(height = 6),
+            row(crossAxisAlignment = caCenter, mainAxisSize = msMin, children = @[
+              Widget(icon("check", size = 14, color = amazonLink)),
+              padding(padding = edgeInsetsOnly(left = 4),
+                child = text("Prime Eligible",
+                  style = textStyle(fontSize = 13, color = amazonLink))),
+            ]),
+          ]))),
+        sizedBox(width = 24),
+        expanded(child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                                children = @[
+          # Sort bar.
+          Widget(row(crossAxisAlignment = caCenter, children = @[
+            Widget(text($products.len & " results",
+              style = textStyle(fontSize = 13, color = textMuted))),
+            expanded(child = sizedBox(width = 0)),
+            text("Sort by: ",
+              style = textStyle(fontSize = 13, color = textDark)),
+            dropdown[string](
+              items = @["Featured", "Price: Low to High",
+                        "Price: High to Low", "Avg. Customer Review"],
+              value = sort,
+              onChange = proc(v: string) = sortBy.value = v,
+              width = 200),
+          ])),
+          sizedBox(height = 16),
+          # Product grid.
+          gridView(
+            crossAxisCount = 3,
+            crossAxisSpacing = 12,
+            mainAxisSpacing = 12,
+            children = sorted.mapIt(Widget(productCard(it, w = 220, h = 360)))),
+        ])),
+      ]))
+  pageChrome("Results in \"" & category & "\"", body)
+
+proc dealsScreen*(): Widget =
+  let deals = catalog.filterIt(it.originalPrice > it.price and it.originalPrice > 0)
+  let body = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                    children = @[
+    Widget(text("Save big on top deals across every category.",
+      style = textStyle(fontSize = 14, color = textMuted))),
+    sizedBox(height = 16),
+    gridView(
+      crossAxisCount = 4,
+      crossAxisSpacing = 12,
+      mainAxisSpacing = 12,
+      children = deals.mapIt(Widget(productCard(it, w = 200, h = 340)))),
+  ])
+  pageChrome("Today's Deals", body)
+
+proc ordersScreen*(): Widget =
+  let body = listenableBuilder(ordersStore,
+    proc(ctx: BuildContext, ords: seq[OrderLine]): Widget =
+      if ords.len == 0:
+        column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+               children = @[
+          Widget(text("You haven't placed any orders yet.",
+            style = textStyle(fontSize = 16, color = textDark))),
+          sizedBox(height = 8),
+          text("Items you buy will show up here.",
+            style = textStyle(fontSize = 13, color = textMuted)),
+        ])
+      else:
+        var rows: seq[Widget]
+        for ord in ords:
+          let p = productById(ord.productId)
+          if p.isNil: continue
+          let pid = p.id
+          let goToProduct: TapCallback = proc() =
+            currentNavigator().push(proc(): Widget = productScreen(pid))
+          rows.add(container(
+            margin = edgeInsetsOnly(bottom = 12),
+            padding = edgeInsetsAll(14),
+            hasDecoration = true,
+            decoration = boxDecoration(color = cardBg, borderRadius = 4,
+              border = Border(color: borderGrey, width: 1)),
+            child = row(crossAxisAlignment = caStart, children = @[
+              Widget(productThumb(p, size = 100)),
+              sizedBox(width = 16),
+              expanded(child = column(crossAxisAlignment = caStart,
+                                      mainAxisSize = msMin, children = @[
+                Widget(text("Delivered " & ord.placedAt,
+                  style = textStyle(fontSize = 12, color = rgb(0, 122, 51)))),
+                sizedBox(height = 4),
+                text(p.title,
+                  style = textStyle(fontSize = 16, color = amazonLink)),
+                sizedBox(height = 4),
+                text("Qty: " & $ord.qty,
+                  style = textStyle(fontSize = 12, color = textMuted)),
+              ])),
+              column(crossAxisAlignment = caEnd, mainAxisSize = msMin,
+                     children = @[
+                Widget(gestureDetector(behavior = htOpaque, onTap = goToProduct,
+                  child = container(
+                    width = 140, height = 30,
+                    hasDecoration = true,
+                    decoration = boxDecoration(color = amazonYellow, borderRadius = 15),
+                    child = center(child = text("Buy it again",
+                      style = textStyle(fontSize = 13, color = textDark)))))),
+                sizedBox(height = 6),
+                container(
+                  width = 140, height = 30,
+                  hasDecoration = true,
+                  decoration = boxDecoration(color = colorWhite, borderRadius = 15,
+                    border = Border(color: borderGrey, width: 1)),
+                  child = center(child = text("View order",
+                    style = textStyle(fontSize = 13, color = textDark)))),
+              ]),
+            ])))
+        column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+               children = rows))
+  pageChrome("Your Orders", body)
+
+proc signInScreen*(): Widget =
+  let emailCtrl = newTextEditingController()
+  let passCtrl = newTextEditingController()
+  let body = center(child = container(
+    width = 360,
+    padding = edgeInsetsAll(20),
+    hasDecoration = true,
+    decoration = boxDecoration(color = cardBg, borderRadius = 4,
+      border = Border(color: borderGrey, width: 1)),
+    child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                   children = @[
+      Widget(text("Sign in",
+        style = textStyle(fontSize = 22, color = textDark))),
+      sizedBox(height = 16),
+      text("Email or mobile phone number",
+        style = textStyle(fontSize = 13, color = textDark)),
+      sizedBox(height = 4),
+      container(
+        height = 36,
+        hasDecoration = true,
+        decoration = boxDecoration(color = colorWhite, borderRadius = 4,
+          border = Border(color: borderGrey, width: 1)),
+        child = padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 0),
+          child = textField(controller = emailCtrl,
+            placeholder = "you@example.com",
+            style = textStyle(fontSize = 14, color = textDark)))),
+      sizedBox(height = 12),
+      text("Password",
+        style = textStyle(fontSize = 13, color = textDark)),
+      sizedBox(height = 4),
+      container(
+        height = 36,
+        hasDecoration = true,
+        decoration = boxDecoration(color = colorWhite, borderRadius = 4,
+          border = Border(color: borderGrey, width: 1)),
+        child = padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 0),
+          child = textField(controller = passCtrl,
+            obscureText = true,
+            placeholder = "Password",
+            style = textStyle(fontSize = 14, color = textDark)))),
+      sizedBox(height = 16),
+      gestureDetector(behavior = htOpaque,
+        onTap = proc() =
+          let name =
+            if emailCtrl.value.len > 0:
+              let dot = emailCtrl.value.find('@')
+              if dot > 0: emailCtrl.value[0 ..< dot] else: "User"
+            else: "Atul"
+          signedInUser.value = name
+          currentNavigator().pop(),
+        child = container(
+          height = 36,
+          hasDecoration = true,
+          decoration = boxDecoration(color = amazonYellow, borderRadius = 18),
+          child = center(child = text("Continue",
+            style = textStyle(fontSize = 14, color = textDark))))),
+      sizedBox(height = 12),
+      text("By continuing, you agree to Amazon's Conditions of Use.",
+        style = textStyle(fontSize = 11, color = textMuted)),
+    ])))
+  pageChrome("", body)
+
+proc accountScreen*(): Widget =
+  let body = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                    children = @[
+    Widget(text("Your Account",
+      style = textStyle(fontSize = 22, color = textDark))),
+    sizedBox(height = 16),
+    gridView(
+      crossAxisCount = 3,
+      crossAxisSpacing = 12,
+      mainAxisSpacing = 12,
+      children = @[
+        Widget(gestureDetector(behavior = htOpaque,
+          onTap = proc() = currentNavigator().push(proc(): Widget = ordersScreen()),
+          child = container(
+            padding = edgeInsetsAll(16),
+            hasDecoration = true,
+            decoration = boxDecoration(color = cardBg, borderRadius = 4,
+              border = Border(color: borderGrey, width: 1)),
+            child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                           children = @[
+              Widget(text("Your Orders",
+                style = textStyle(fontSize = 16, color = textDark))),
+              sizedBox(height = 4),
+              text("Track, return, or buy things again",
+                style = textStyle(fontSize = 12, color = textMuted)),
+            ])))),
+        gestureDetector(behavior = htOpaque,
+          onTap = proc() = currentNavigator().push(proc(): Widget = wishlistScreen()),
+          child = container(
+            padding = edgeInsetsAll(16),
+            hasDecoration = true,
+            decoration = boxDecoration(color = cardBg, borderRadius = 4,
+              border = Border(color: borderGrey, width: 1)),
+            child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                           children = @[
+              Widget(text("Your Lists",
+                style = textStyle(fontSize = 16, color = textDark))),
+              sizedBox(height = 4),
+              text("View, modify, and share your lists",
+                style = textStyle(fontSize = 12, color = textMuted)),
+            ]))),
+        gestureDetector(behavior = htOpaque,
+          onTap = proc() = currentNavigator().push(proc(): Widget = signInScreen()),
+          child = container(
+            padding = edgeInsetsAll(16),
+            hasDecoration = true,
+            decoration = boxDecoration(color = cardBg, borderRadius = 4,
+              border = Border(color: borderGrey, width: 1)),
+            child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                           children = @[
+              Widget(text("Login & Security",
+                style = textStyle(fontSize = 16, color = textDark))),
+              sizedBox(height = 4),
+              text("Edit name, email, password",
+                style = textStyle(fontSize = 12, color = textMuted)),
+            ]))),
+        gestureDetector(behavior = htOpaque,
+          onTap = proc() = signedInUser.value = "",
+          child = container(
+            padding = edgeInsetsAll(16),
+            hasDecoration = true,
+            decoration = boxDecoration(color = cardBg, borderRadius = 4,
+              border = Border(color: borderGrey, width: 1)),
+            child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                           children = @[
+              Widget(text("Sign Out",
+                style = textStyle(fontSize = 16, color = textDark))),
+              sizedBox(height = 4),
+              text("Sign out of your account",
+                style = textStyle(fontSize = 12, color = textMuted)),
+            ]))),
+      ]),
+  ])
+  pageChrome("Hello, " & (if signedInUser.value.len > 0: signedInUser.value else: "Atul"),
+             body)
+
+proc wishlistScreen*(): Widget =
+  let body = listenableBuilder(wishlistStore,
+    proc(ctx: BuildContext, ids: seq[int]): Widget =
+      if ids.len == 0:
+        column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+               children = @[
+          Widget(text("Your list is empty.",
+            style = textStyle(fontSize = 16, color = textDark))),
+          sizedBox(height = 8),
+          text("Tap the heart icon on any product to save it here.",
+            style = textStyle(fontSize = 13, color = textMuted)),
+        ])
+      else:
+        var rows: seq[Widget]
+        for id in ids:
+          let p = productById(id)
+          if not p.isNil:
+            rows.add(productCard(p, w = 220, h = 360))
+        gridView(crossAxisCount = 3, crossAxisSpacing = 12,
+                 mainAxisSpacing = 12, children = rows))
+  pageChrome("Your List", body)
+
+proc helpScreen*(): Widget =
+  let body = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                    children = @[
+    Widget(text("How can we help?",
+      style = textStyle(fontSize = 16, color = textDark))),
+    sizedBox(height = 16),
+    gridView(crossAxisCount = 3, crossAxisSpacing = 12, mainAxisSpacing = 12,
+             children = @[
+      Widget(container(padding = edgeInsetsAll(16), hasDecoration = true,
+        decoration = boxDecoration(color = cardBg, borderRadius = 4,
+          border = Border(color: borderGrey, width: 1)),
+        child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                       children = @[
+          Widget(text("Your Orders",
+            style = textStyle(fontSize = 15, color = textDark))),
+          sizedBox(height = 4),
+          text("Track packages, return items",
+            style = textStyle(fontSize = 12, color = textMuted)),
+        ]))),
+      container(padding = edgeInsetsAll(16), hasDecoration = true,
+        decoration = boxDecoration(color = cardBg, borderRadius = 4,
+          border = Border(color: borderGrey, width: 1)),
+        child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                       children = @[
+          Widget(text("Returns & Refunds",
+            style = textStyle(fontSize = 15, color = textDark))),
+          sizedBox(height = 4),
+          text("Print labels, track returns",
+            style = textStyle(fontSize = 12, color = textMuted)),
+        ])),
+      container(padding = edgeInsetsAll(16), hasDecoration = true,
+        decoration = boxDecoration(color = cardBg, borderRadius = 4,
+          border = Border(color: borderGrey, width: 1)),
+        child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
+                       children = @[
+          Widget(text("Manage Prime",
+            style = textStyle(fontSize = 15, color = textDark))),
+          sizedBox(height = 4),
+          text("View benefits, cancel membership",
+            style = textStyle(fontSize = 12, color = textMuted)),
+        ])),
+    ]),
+  ])
+  pageChrome("Customer Service", body)
+
+proc giftCardsScreen*(): Widget =
+  pageChrome("Gift Cards",
+    column(crossAxisAlignment = caStart, mainAxisSize = msMin, children = @[
+      Widget(text("Send a gift in seconds. No fees, no expiration.",
+        style = textStyle(fontSize = 16, color = textDark))),
+      sizedBox(height = 16),
+      gridView(crossAxisCount = 4, crossAxisSpacing = 12, mainAxisSpacing = 12,
+               children = @[
+        Widget(container(width = 220, height = 140, hasDecoration = true,
+          decoration = boxDecoration(color = rgb(54, 130, 95), borderRadius = 8),
+          child = center(child = text("$25",
+            style = textStyle(fontSize = 36, color = colorWhite))))),
+        container(width = 220, height = 140, hasDecoration = true,
+          decoration = boxDecoration(color = rgb(95, 54, 130), borderRadius = 8),
+          child = center(child = text("$50",
+            style = textStyle(fontSize = 36, color = colorWhite)))),
+        container(width = 220, height = 140, hasDecoration = true,
+          decoration = boxDecoration(color = rgb(130, 95, 54), borderRadius = 8),
+          child = center(child = text("$100",
+            style = textStyle(fontSize = 36, color = colorWhite)))),
+        container(width = 220, height = 140, hasDecoration = true,
+          decoration = boxDecoration(color = rgb(130, 54, 95), borderRadius = 8),
+          child = center(child = text("Custom",
+            style = textStyle(fontSize = 28, color = colorWhite)))),
+      ]),
+    ]))
+
+proc sellScreen*(): Widget =
+  pageChrome("Become an Amazon seller",
+    column(crossAxisAlignment = caStart, mainAxisSize = msMin, children = @[
+      Widget(text("Put your products in front of millions of customers.",
+        style = textStyle(fontSize = 16, color = textDark))),
+      sizedBox(height = 16),
+      text("- Reach customers in 100+ countries",
+        style = textStyle(fontSize = 14, color = textDark)),
+      text("- Use Amazon's logistics, customer service, and storage",
+        style = textStyle(fontSize = 14, color = textDark)),
+      text("- $49 / month + 8-15% referral fee per item sold",
+        style = textStyle(fontSize = 14, color = textDark)),
+      sizedBox(height = 20),
+      container(
+        width = 200, height = 36,
+        hasDecoration = true,
+        decoration = boxDecoration(color = amazonYellow, borderRadius = 18),
+        child = center(child = text("Sign up",
+          style = textStyle(fontSize = 14, color = textDark)))),
+    ]))
 
 # Root.
 
