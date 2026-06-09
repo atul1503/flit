@@ -394,49 +394,14 @@ when not defined(js):
   method compositeSubCanvas*(c: SdlCanvas, sub: Canvas, offset: geom.Offset, size: geom.Size) =
     if not (sub of SdlSubCanvas): return
     let s = SdlSubCanvas(sub)
-    let w = s.image.width
-    let h = s.image.height
-    # Lazily create / refresh the texture.
-    if s.texture.isNil:
-      s.texture = createTexture(c.renderer, SDL_PIXELFORMAT_ARGB8888,
-                                SDL_TEXTUREACCESS_STREAMING, cint(w), cint(h))
-      discard setTextureBlendMode(s.texture, BlendMode_Blend)
-      s.textureDirty = true
-    if s.textureDirty:
-      var pixels: pointer
-      var pitch: cint
-      discard lockTexture(s.texture, nil, addr pixels, addr pitch)
-      # Same RGBA -> ARGB swizzle as `present`. Done once per dirty
-      # frame, then cached.
-      let src = cast[ptr UncheckedArray[uint32]](addr s.image.data[0])
-      let dst = cast[ptr UncheckedArray[uint32]](pixels)
-      for i in 0 ..< w * h:
-        let px = src[i]
-        let r2 = (px shr 0)  and 0xFF
-        let g2 = (px shr 8)  and 0xFF
-        let b2 = (px shr 16) and 0xFF
-        let a2 = (px shr 24) and 0xFF
-        dst[i] = (a2 shl 24) or (r2 shl 16) or (g2 shl 8) or b2
-      unlockTexture(s.texture)
-      s.textureDirty = false
-    # Composite to the streaming texture that the renderer will copy
-    # to the window. Setting render target to `c.texture` makes this
-    # a texture-to-texture GPU blit; SDL2 picks the accelerated path
-    # on macOS (Metal), Windows (D3D), and Linux (OpenGL).
-    let alpha = uint8(currentOpacity(c) * 255.0'f32)
-    discard setTextureAlphaMod(s.texture, alpha)
-    var dstRect = sdl2.rect(cint(offset.dx), cint(offset.dy),
-                            cint(size.width), cint(size.height))
-    discard setRenderTarget(c.renderer, c.texture)
-    discard copy(c.renderer, s.texture, nil, addr dstRect)
-    discard setRenderTarget(c.renderer, nil)
-    # The GPU blit above is the source of truth for what the user
-    # sees. We previously also did a CPU-side per-pixel composite
-    # into the parent's Pixie image (so screenshot/test pipelines
-    # could see the result), but for the amazon home page that copy
-    # cost more than every Pixie draw call combined (~40ms of the
-    # 60ms total). Dropping it. Apps that need a CPU-side mirror
-    # for screenshots can call a dedicated readback API.
+    # Composite the sub-canvas's CPU Pixie image into the parent's
+    # CPU Pixie image. `Image.draw` uses Pixie's vectorized
+    # RGBA-over-RGBA blend (much faster than a per-pixel Nim loop).
+    # The parent's `present` then handles the single CPU->GPU
+    # upload for the whole frame. This is the source of truth for
+    # what the user sees; we no longer keep a separate GPU texture
+    # per sub-canvas.
+    c.image.draw(s.image, translate(vec2(offset.dx, offset.dy)))
 
   proc present*(c: SdlCanvas) =
     ## Push the Pixie image into the SDL streaming texture, copy the

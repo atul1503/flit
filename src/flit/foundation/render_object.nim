@@ -73,6 +73,13 @@ type
     needsPaint*: bool
     attached*: bool
     debugLabel*: string
+    skipsCull*: bool
+      ## When true, `paintChild` does NOT cull this render object even
+      ## when it's outside the parent's cull rect. RepaintBoundary
+      ## sets this so its cached bitmap is built eagerly during
+      ## initial paint, eliminating the "first time scrolled into
+      ## view" rasterization spike. The boundary handles its own
+      ## visibility check at composite time.
 
 # Opacity stack helpers - declared after the type block so all of Canvas/
 # RenderObject/PaintingContext are in scope.
@@ -221,7 +228,11 @@ proc paintChild*(ctx: PaintingContext, child: RenderObject, offset: Offset) =
   ## paint at all.
   if child.isNil: return
   let abs = ctx.offset + offset
-  if ctx.hasCull:
+  if ctx.hasCull and not child.skipsCull:
+    # `skipsCull` is true on RepaintBoundary so its cache rasterizes
+    # eagerly even when off-screen; that turns scroll-into-view from
+    # a paint spike into a cached blit. The boundary itself decides
+    # whether to skip the composite based on its own visibility.
     let cs = if child.sizeOpt.isSome: child.sizeOpt.get else: SizeZero
     let childRect = Rect(left: abs.dx, top: abs.dy,
                          right: abs.dx + cs.width,

@@ -151,6 +151,9 @@ proc runDesktop*(rootWidget: Widget,
   # Optional warmup probe: paint N additional frames back-to-back so
   # we can see steady-state cost after caches warm. Enabled via
   # FLIT_PAINT_PROBE=<count>.
+  if getEnv("FLIT_SAVE_FRAME").len > 0:
+    canvas.image.writeFile(getEnv("FLIT_SAVE_FRAME"))
+    echo "[flit] saved first-frame snapshot to ", getEnv("FLIT_SAVE_FRAME")
   if getEnv("FLIT_PAINT_PROBE").len > 0:
     let n = max(1, parseInt(getEnv("FLIT_PAINT_PROBE")))
     for i in 0 ..< n:

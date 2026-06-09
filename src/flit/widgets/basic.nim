@@ -696,7 +696,9 @@ type
 method widgetTypeName*(w: RepaintBoundary): string = "RepaintBoundary"
 method createElement*(w: RepaintBoundary): Element = newElement(ekRender, w)
 method createRenderObject*(w: RepaintBoundary, ctx: BuildContext): RenderObject =
-  RenderRepaintBoundary()
+  let r = RenderRepaintBoundary()
+  r.skipsCull = true
+  r
 method updateRenderObject*(w: RepaintBoundary, ctx: BuildContext, r: RenderObject) =
   ## Nothing config-driven to update; the cache stays valid across
   ## widget identity changes as long as the subtree layout matches.

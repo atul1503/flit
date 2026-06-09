@@ -36,14 +36,28 @@ when not defined(js):
     fetchQueue:  Deque[string]
     fetchWorker: Thread[void]
     fetchWorkerStarted: bool
-    fetchPendingResults: bool
+    completedUrls: seq[string]
 
   initLock(fetchLock)
 
   let networkImageTrigger* = newValueNotifier[int](0)
-    ## Bumped each time a fetch completes. `NetworkImage` subscribes
-    ## to this so any widget waiting on a URL can rebuild as soon as
-    ## the bytes arrive.
+    ## Bumped each time a fetch completes. Currently kept for
+    ## backwards compatibility; `NetworkImage` itself no longer
+    ## subscribes here. Use per-URL notifiers (`notifierForUrl`)
+    ## for finer-grained rebuilds.
+
+  var urlNotifiers {.threadvar.}: Table[string, ValueNotifier[int]]
+
+  proc notifierForUrl*(url: string): ValueNotifier[int] =
+    ## Returns the per-URL `ValueNotifier` that's bumped when this
+    ## specific URL's fetch completes. Each `NetworkImage` subscribes
+    ## to its own URL's notifier so a fetch landing only rebuilds
+    ## that one widget (not every NetworkImage in the tree, which
+    ## was the previous behavior and caused scroll lag because each
+    ## arrival invalidated every product card's RepaintBoundary).
+    if not urlNotifiers.hasKey(url):
+      urlNotifiers[url] = newValueNotifier[int](0)
+    urlNotifiers[url]
 
   proc workerProc() {.thread, gcsafe.} =
     {.cast(gcsafe).}:
@@ -65,7 +79,7 @@ when not defined(js):
         withLock fetchLock:
           if status == nfsLoaded: fetchBytes[url] = bytes
           fetchStatus[url] = status
-          fetchPendingResults = true
+          completedUrls.add(url)
 
   proc ensureWorker() =
     if fetchWorkerStarted: return
@@ -99,15 +113,19 @@ when not defined(js):
       fetchStatus.clear()
 
   proc pumpNetworkImageEvents*() =
-    ## Called by the runtime once per frame. If any fetches completed
-    ## since the last call, bumps `networkImageTrigger` so subscribed
-    ## widgets rebuild.
-    var pending = false
+    ## Called by the runtime once per frame. Drains the list of URLs
+    ## whose fetches completed since the last call and bumps each
+    ## URL's own notifier so only the matching widget rebuilds.
+    var todo: seq[string]
     withLock fetchLock:
-      pending = fetchPendingResults
-      fetchPendingResults = false
-    if pending:
-      networkImageTrigger.value = networkImageTrigger.value + 1
+      if completedUrls.len > 0:
+        todo = completedUrls
+        completedUrls.setLen(0)
+    if todo.len == 0: return
+    for u in todo:
+      if urlNotifiers.hasKey(u):
+        let n = urlNotifiers[u]
+        n.value = n.value + 1
 
 else:
   proc requestNetworkImage*(url: string): NetworkFetchStatus = nfsPending
@@ -137,8 +155,8 @@ method createState*(w: NetworkImage): State = NetworkImageState()
 
 method build*(s: NetworkImageState, ctx: BuildContext): Widget =
   let host = NetworkImage(s.element.widget)
-  let status = requestNetworkImage(host.url)
-  listenableBuilder(networkImageTrigger,
+  discard requestNetworkImage(host.url)
+  listenableBuilder(notifierForUrl(host.url),
     proc(ctx: BuildContext, tick: int): Widget =
       let current = requestNetworkImage(host.url)
       case current

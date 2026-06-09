@@ -335,6 +335,16 @@ method paint*(r: RenderRepaintBoundary, ctx: PaintingContext, offset: Offset) =
     paint(r.child, subCtx, OffsetZero)
     r.cacheDirty = false
 
+  # Skip the composite if the boundary's absolute bounds are
+  # completely outside the current cull rect. The cache is still
+  # warm so once we scroll back into view we just blit.
+  if ctx.hasCull:
+    if offset.dx + sz.width  <= ctx.cullRect.left  or
+       offset.dx             >= ctx.cullRect.right or
+       offset.dy + sz.height <= ctx.cullRect.top   or
+       offset.dy             >= ctx.cullRect.bottom:
+      return
+
   ctx.canvas.compositeSubCanvas(r.subCanvas, offset, sz)
 
 method paint*(r: RenderTransform, ctx: PaintingContext, offset: Offset) =
