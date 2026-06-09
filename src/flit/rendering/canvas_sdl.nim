@@ -128,8 +128,25 @@ when not defined(js):
   method scale*(c: SdlCanvas, sx, sy: float32) = c.ctx.scale(sx, sy)
   method rotate*(c: SdlCanvas, radians: float32) = c.ctx.rotate(radians)
   method clipRect*(c: SdlCanvas, r: geom.Rect) =
+    # Clamp the clip rect to the canvas bounds. Pixie's NEON fill
+    # path raises IndexDefect when the clip's bounding box
+    # extends past the underlying buffer. Clamping is safe
+    # because nothing outside the canvas is visible anyway.
+    let canvasW = c.size.width
+    let canvasH = c.size.height
+    let left   = max(0.0'f32, r.left)
+    let top    = max(0.0'f32, r.top)
+    let right  = min(canvasW, r.right)
+    let bottom = min(canvasH, r.bottom)
+    if right <= left or bottom <= top:
+      # Fully off-screen; clip to a zero-area rect so subsequent
+      # draws are no-ops.
+      var path = newPath()
+      pixie.rect(path, pixie.rect(0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32))
+      c.ctx.clip(path)
+      return
     var path = newPath()
-    pixie.rect(path, pixie.rect(r.left, r.top, r.width, r.height))
+    pixie.rect(path, pixie.rect(left, top, right - left, bottom - top))
     c.ctx.clip(path)
 
   method drawImage*(c: SdlCanvas, image: pointer, src, dst: geom.Rect) =
@@ -241,8 +258,20 @@ when not defined(js):
   method scale*(s: SdlSubCanvas, sx, sy: float32) = s.ctx.scale(sx, sy)
   method rotate*(s: SdlSubCanvas, radians: float32) = s.ctx.rotate(radians)
   method clipRect*(s: SdlSubCanvas, r: geom.Rect) =
+    # Clamp to sub-canvas bounds. See SdlCanvas.clipRect for rationale.
+    let canvasW = s.size.width
+    let canvasH = s.size.height
+    let left   = max(0.0'f32, r.left)
+    let top    = max(0.0'f32, r.top)
+    let right  = min(canvasW, r.right)
+    let bottom = min(canvasH, r.bottom)
+    if right <= left or bottom <= top:
+      var path = newPath()
+      pixie.rect(path, pixie.rect(0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32))
+      s.ctx.clip(path)
+      return
     var path = newPath()
-    pixie.rect(path, pixie.rect(r.left, r.top, r.width, r.height))
+    pixie.rect(path, pixie.rect(left, top, right - left, bottom - top))
     s.ctx.clip(path)
 
   # SdlCanvas implementations of the boundary hooks. The big perf win
