@@ -62,8 +62,9 @@ when defined(android) or defined(ios):
         else: discard
 
       if binding.dirtyRoots.len > 0:
-        for r in binding.dirtyRoots: rebuildElement(r)
-        binding.clearDirty()
+        let pending = binding.dirtyRoots
+        binding.dirtyRoots.setLen(0)
+        for r in pending: rebuildElement(r)
         runLayout(rootElement, tightFor(binding.surfaceSize))
       canvas.clear(0xFFFFFFFF'u32)
       runPaint(rootElement, canvas)

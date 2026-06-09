@@ -85,11 +85,14 @@ proc value*(c: TextEditingController): string = c.text
 
 proc `value=`*(c: TextEditingController, v: string) =
   ## Replace the text. Clamps cursor and selection to the new length.
-  ## Fires every listener.
+  ## Fires every listener. Listeners are iterated over a snapshot
+  ## so a listener that registers or removes listeners during the
+  ## notification is safe.
   c.text = v
   if c.cursor > v.len: c.cursor = v.len
   if c.selectionEnd > v.len: c.selectionEnd = v.len
-  for l in c.listeners:
+  let snapshot = c.listeners
+  for l in snapshot:
     try: l(v) except CatchableError: discard
 
 proc addListener*(c: TextEditingController, fn: proc(value: string)) =
@@ -103,11 +106,12 @@ proc snapshot*(c: TextEditingController): EditSnapshot =
 proc restore*(c: TextEditingController, s: EditSnapshot) =
   ## Restores editing state from a snapshot. Fires every listener
   ## with the restored text. Does NOT touch the undo / redo
-  ## stacks.
+  ## stacks. Listeners iterated over a snapshot.
   c.text = s.text
   c.cursor = s.cursor
   c.selectionEnd = s.selectionEnd
-  for l in c.listeners:
+  let snap = c.listeners
+  for l in snap:
     try: l(c.text) except CatchableError: discard
 
 proc pushUndo*(c: TextEditingController) =

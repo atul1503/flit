@@ -347,14 +347,17 @@ method performRebuild*(e: Element) {.base.} =
 
 proc visit*(e: Element, fn: proc(child: Element)) =
   ## Calls `fn` on each direct child of `e`. Order is the same as
-  ## `e.children`.
-  for c in e.children: fn(c)
+  ## `e.children`. Iterates over a snapshot so `fn` can mutate
+  ## the children list without crashing.
+  let snapshot = e.children
+  for c in snapshot: fn(c)
 
 proc visitDeep*(e: Element, fn: proc(child: Element)) =
   ## Calls `fn` on `e` then recursively on every descendant
-  ## (pre-order).
+  ## (pre-order). Iterates a snapshot at each level.
   fn(e)
-  for c in e.children: visitDeep(c, fn)
+  let snapshot = e.children
+  for c in snapshot: visitDeep(c, fn)
 
 # Inherited lookup
 
@@ -397,7 +400,12 @@ proc notifyInheritedDependents*(e: Element) =
   ## asks the runtime to rebuild them. Called by `reconcileChildren`
   ## when an `ekInherited` element receives a new widget whose
   ## `updateShouldNotify` returns true.
-  for dep in e.dependents:
+  ##
+  ## Iterates over a snapshot because a dirtied dependent's rebuild
+  ## could subscribe additional widgets to this inherited element,
+  ## growing `e.dependents` mid-iteration.
+  let snapshot = e.dependents
+  for dep in snapshot:
     if not dep.dirty:
       dep.dirty = true
       onSetStateRoot(dep)

@@ -183,18 +183,24 @@ proc dispose*(c: AnimationController) =
 proc `value=`*(c: AnimationController, v: float32) =
   ## Sets the controller's value, clamped to `[lower, upper]`. Notifies
   ## all listeners if the value changed. Does NOT change `status`.
+  ## Listeners are iterated over a snapshot so a listener that
+  ## registers or removes listeners during the notification doesn't
+  ## crash on Nim's seq-length-changed assertion.
   let clamped = clamp(v, c.lower, c.upper)
   if c.value == clamped: return
   c.valueField = clamped
-  for l in c.listeners: l(c.value)
+  let snapshot = c.listeners
+  for l in snapshot: l(c.value)
 
 proc setValue(c: AnimationController, v: float32) =
   c.valueField = clamp(v, c.lower, c.upper)
-  for l in c.listeners: l(c.value)
+  let snapshot = c.listeners
+  for l in snapshot: l(c.value)
 
 proc setStatus(c: AnimationController, s: AnimationStatus) =
   c.status = s
-  for l in c.statusListeners: l(s)
+  let snapshot = c.statusListeners
+  for l in snapshot: l(s)
 
 proc forward*(c: AnimationController, b: Binding,
               curve: Curve = curveLinear) =

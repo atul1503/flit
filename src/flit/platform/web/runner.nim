@@ -95,8 +95,12 @@ proc runWeb*(rootWidget: Widget, canvasElementId: string = "flit-canvas") =
 
   proc frame(ts: float) =
     if binding.dirtyRoots.len > 0:
-      for r in binding.dirtyRoots: rebuildElement(r)
-      binding.clearDirty()
+      # Snapshot + clear FIRST: rebuildElement can add to
+      # dirtyRoots via InheritedWidget propagation or setState
+      # callbacks fired by listeners during the rebuild.
+      let pending = binding.dirtyRoots
+      binding.dirtyRoots.setLen(0)
+      for r in pending: rebuildElement(r)
       runLayout(rootElement, tightFor(binding.surfaceSize))
     canvas.clear(0xFFFFFFFF'u32)
     runPaint(rootElement, canvas)

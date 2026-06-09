@@ -219,11 +219,21 @@ proc runDesktop*(rootWidget: Widget,
     # via setState callbacks.
     processPointerEvents(binding)
 
-    # Rebuild dirty subtrees
+    # Rebuild dirty subtrees. Snapshot and clear FIRST because
+    # rebuildElement can add to dirtyRoots (via InheritedWidget
+    # notifications that propagate to descendants, or setState
+    # callbacks fired by listeners during the rebuild). Iterating
+    # the live seq while it grows triggers Nim's items() length
+    # assertion and crashes.
+    #
+    # Newly-added dirty roots get processed on the next frame,
+    # which is what Flutter's pipeline does too (microtasks +
+    # frame scheduling).
     if binding.dirtyRoots.len > 0:
-      for r in binding.dirtyRoots:
+      let pending = binding.dirtyRoots
+      binding.dirtyRoots.setLen(0)
+      for r in pending:
         rebuildElement(r)
-      binding.clearDirty()
       runLayout(rootElement, tightFor(binding.surfaceSize))
       canvas.clear(0xFFFFFFFF'u32)
       runPaint(rootElement, canvas)
@@ -248,8 +258,9 @@ proc runDesktop*(rootWidget: Widget,
         # The callbacks may have set state, so check for dirty roots before
         # painting.
         if binding.dirtyRoots.len > 0:
-          for r in binding.dirtyRoots: rebuildElement(r)
-          binding.clearDirty()
+          let pending2 = binding.dirtyRoots
+          binding.dirtyRoots.setLen(0)
+          for r in pending2: rebuildElement(r)
           runLayout(rootElement, tightFor(binding.surfaceSize))
         canvas.clear(0xFFFFFFFF'u32)
         runPaint(rootElement, canvas)
