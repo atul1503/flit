@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>flit: a Flutter-inspired UI toolkit for Nim</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fafafa;
+    --fg: #111;
+    --muted: #555;
+    --accent: #1976d2;
+    --card: #fff;
+    --border: #e0e0e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e0e10;
+      --fg: #eaeaea;
+      --muted: #9a9a9a;
+      --accent: #61afef;
+      --card: #1a1a1d;
+      --border: #2a2a2d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    padding: 0;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+  header { margin-bottom: 32px; }
+  h1 {
+    font-size: 2.4rem;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .tagline {
+    color: var(--muted);
+    font-size: 1.1rem;
+    margin: 0 0 16px;
+  }
+  .badges { margin-top: 12px; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-right: 6px;
+  }
+  section { margin-top: 40px; }
+  h2 {
+    font-size: 1.3rem;
+    margin: 0 0 12px;
+    color: var(--accent);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    display: block;
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--fg);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .card .num {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+  .card .title {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .card .desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  pre {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+  }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>flit</h1>
+  <p class="tagline">
+    A Flutter-inspired UI toolkit for Nim. Declarative widgets, real GPU
+    rendering, single codebase for desktop, mobile, web, and embedded.
+  </p>
+  <div class="badges">
+    <span class="badge">v0.7.0</span>
+    <span class="badge">BSD-3-Clause</span>
+    <span class="badge">Nim 2.0+</span>
+  </div>
+</header>
+
+<section>
+  <h2>Quick start</h2>
+<pre><code>brew install nim sdl2 harfbuzz
+git clone https://github.com/gs-attripathi/flit
+cd flit &amp;&amp; nimble install
+flit create my_app &amp;&amp; cd my_app &amp;&amp; flit run</code></pre>
+</section>
+
+<section>
+  <h2>Guide</h2>
+  <div class="grid">
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/01-quickstart.md">
+      <div class="num">01</div>
+      <div class="title">Quickstart</div>
+      <div class="desc">Install, your first counter app, flit run</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/02-widgets.md">
+      <div class="num">02</div>
+      <div class="title">Widgets</div>
+      <div class="desc">Stateless, stateful, render objects, lifecycle, keys</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/03-layout.md">
+      <div class="num">03</div>
+      <div class="title">Layout</div>
+      <div class="desc">Constraints, Row, Column, Stack, Container</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/04-state.md">
+      <div class="num">04</div>
+      <div class="title">State</div>
+      <div class="desc">setState, ValueNotifier, ListenableBuilder, InheritedWidget</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/05-gestures.md">
+      <div class="num">05</div>
+      <div class="title">Gestures</div>
+      <div class="desc">Tap, double-tap, pan, scroll wheel</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/06-animations.md">
+      <div class="num">06</div>
+      <div class="title">Animations</div>
+      <div class="desc">AnimationController, Tween, curves</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/07-performance.md">
+      <div class="num">07</div>
+      <div class="title">Performance</div>
+      <div class="desc">RepaintBoundary, GpuCanvas, GlCanvas, ListView.builder, HarfBuzz</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/08-cli.md">
+      <div class="num">08</div>
+      <div class="title">CLI</div>
+      <div class="desc">flit create, run, build, doctor, hot</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/09-examples-tour.md">
+      <div class="num">09</div>
+      <div class="title">Examples tour</div>
+      <div class="desc">Counter, todo, calculator, gallery, showcase</div>
+    </a>
+    <a class="card" href="https://github.com/gs-attripathi/flit/blob/main/guide/10-api-reference.md">
+      <div class="num">10</div>
+      <div class="title">API reference</div>
+      <div class="desc">nim doc workflow, page index, versioning</div>
+    </a>
+  </div>
+</section>
+
+<section>
+  <h2>API reference</h2>
+  <div class="grid">
+    <a class="card" href="api/flit.html">
+      <div class="title">Umbrella module</div>
+      <div class="desc">Every public symbol, all modules re-exported</div>
+    </a>
+    <a class="card" href="api/theindex.html">
+      <div class="title">Alphabetical index</div>
+      <div class="desc">Every symbol across every module</div>
+    </a>
+    <a class="card" href="api/index.html">
+      <div class="title">Curated landing</div>
+      <div class="desc">Hand-picked entry points</div>
+    </a>
+  </div>
+</section>
+
+<section>
+  <h2>Performance subsystems</h2>
+  <p>flit 0.7.0 ships with the perf features Flutter has: GPU shaders, cached
+  layers, lazy lists, HarfBuzz text shaping, and a worker thread pool. See
+  the
+  <a href="https://github.com/gs-attripathi/flit/blob/main/guide/07-performance.md">performance
+  guide</a> for what each does and when to use it.</p>
+</section>
+
+<section>
+  <h2>Examples</h2>
+  <p>Every example is a complete runnable app in the repo at
+  <a href="https://github.com/gs-attripathi/flit/tree/main/examples">examples/</a>.
+  Clone the repo and run:</p>
+<pre><code>nim c -r examples/showcase/main.nim</code></pre>
+</section>
+
+<section>
+  <h2>Repository</h2>
+  <p>
+    Source:
+    <a href="https://github.com/gs-attripathi/flit">github.com/gs-attripathi/flit</a><br>
+    Issues:
+    <a href="https://github.com/gs-attripathi/flit/issues">github.com/gs-attripathi/flit/issues</a>
+  </p>
+</section>
+
+<footer>
+  Built with flit. License: BSD-3-Clause.
+</footer>
+
+</div>
+</body>
+</html>
