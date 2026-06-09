@@ -19,6 +19,14 @@ examples/*/counter
 examples/*/gallery
 examples/*/todo
 examples/*/calculator
+# Benchmark artifacts.
+benchmarks/flit/bench
+benchmarks/flit/verify
+benchmarks/flutter/.dart_tool/
+benchmarks/flutter/.flutter-plugins
+benchmarks/flutter/.flutter-plugins-dependencies
+benchmarks/flutter/pubspec.lock
+benchmarks/flutter/build/
 *.exe
 *.dll
 *.dylib

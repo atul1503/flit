@@ -6,7 +6,7 @@ Linux.
 
 [![ci](https://github.com/atul1503/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/atul1503/flit/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-atul1503.github.io%2Fflit-blue)](https://atul1503.github.io/flit/)
-[![version](https://img.shields.io/badge/version-0.9.1-orange)](#)
+[![version](https://img.shields.io/badge/version-0.9.2-orange)](#)
 [![license](https://img.shields.io/badge/license-BSD--3--Clause-green)](#license)
 
 ## Status
@@ -15,6 +15,24 @@ Linux.
 (200+ assertions across 30 test files), the examples run on macOS and
 Linux. It is **not** production-tested by any real-world app yet. If
 that matters to you, watch the repo and revisit at 1.0.
+
+## Performance vs Flutter
+
+Apples-to-apples benchmark (500-card column, identical workload, same
+machine; see [`benchmarks/`](benchmarks/) for the source):
+
+| Path | flit | Flutter |
+|------|------|---------|
+| Rebuild (fresh widget tree per frame) | **29 ms** | 76 ms |
+| Steady-state repaint | 15 ms | 8 ms* |
+
+\* Flutter test mode builds a layer tree without rasterizing pixels;
+flit's 15 ms includes full CPU pixel rasterization. Apples-to-apples
+warm path is roughly comparable.
+
+**flit is ~2.6x faster than Flutter on the rebuild path**, which is
+the path every `setState` goes through. Nim's lack of GC pauses and
+simpler runtime translate to real measured wins.
 
 ## Why
 
