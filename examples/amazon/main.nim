@@ -440,7 +440,7 @@ proc amazonHeader(showSearch: bool = true): Widget =
                 padding(padding = edgeInsetsOnly(left = 4),
                   child = icon("chevron.down", size = 10,
                     color = textDark))]))),
-            expanded(child = padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 4),
+            expanded(child = padding(padding = edgeInsetsSymmetric(horizontal = 8, vertical = 0),
               child = textField(
                 placeholder = "Search Amazon",
                 onSubmitted = proc(v: string) =

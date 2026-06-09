@@ -17,6 +17,7 @@ import ../../widgets/text_field
 import ../../widgets/drag_drop
 import ../../widgets/network_image
 import ../../rendering/text as flitText
+import ../../gestures/detector
 import pixie except Rect, rect
 
 type
@@ -154,6 +155,60 @@ proc runDesktop*(rootWidget: Widget,
   if getEnv("FLIT_SAVE_FRAME").len > 0:
     canvas.image.writeFile(getEnv("FLIT_SAVE_FRAME"))
     echo "[flit] saved first-frame snapshot to ", getEnv("FLIT_SAVE_FRAME")
+  if getEnv("FLIT_TAP_PROBE").len > 0:
+    # Synthetically tap at coordinates from FLIT_TAP_PROBE="x,y"
+    # then type from FLIT_TAP_PROBE_TEXT. Drives the binding directly
+    # so we can isolate input routing from SDL.
+    let parts = getEnv("FLIT_TAP_PROBE").split(",")
+    let tx = parseFloat(parts[0])
+    let ty = parseFloat(parts[1])
+    echo "[tap-probe] tapping at ", tx, ",", ty
+    # Dump the hit path so we can see what was at that point
+    block:
+      let rE = descendantRenderElement(rootElement)
+      if not rE.isNil:
+        let res = HitTestResult(path: @[])
+        discard rE.renderObj.hitTest(res, Offset(dx: float32(tx), dy: float32(ty)))
+        var gdCount = 0
+        for entry in res.path:
+          if entry.target of RenderGestureDetector:
+            inc gdCount
+        echo "[tap-probe] hit path: ", res.path.len, " entries, ",
+          gdCount, " RenderGestureDetector(s)"
+    binding.dispatchPointer(PointerEvent(
+      kind: peDown, pointer: 0,
+      position: Offset(dx: float32(tx), dy: float32(ty)),
+      buttons: 1, timestamp: binding.currentTime))
+    binding.dispatchPointer(PointerEvent(
+      kind: peUp, pointer: 0,
+      position: Offset(dx: float32(tx), dy: float32(ty)),
+      buttons: 1, timestamp: binding.currentTime))
+    processPointerEvents(binding)
+    echo "[tap-probe] after tap: focus=",
+      (not focusManager().current.isNil),
+      " hasOnText=",
+      (not focusManager().current.isNil and
+        not focusManager().current.onText.isNil)
+    # Drain dirty
+    if binding.dirtyRoots.len > 0:
+      let snap = binding.dirtyRoots
+      binding.dirtyRoots.setLen(0)
+      for r in snap: rebuildElement(r)
+      runLayout(rootElement, tightFor(binding.surfaceSize))
+      canvas.clear(0xFFFFFFFF'u32)
+      runPaint(rootElement, canvas)
+    let probeText = getEnv("FLIT_TAP_PROBE_TEXT")
+    for ch in probeText:
+      let ev = KeyEvent(kind: keDown, text: $ch)
+      let consumed = focusManager().handleKeyEvent(ev)
+      echo "[tap-probe] type '", ch, "' consumed=", consumed
+      if binding.dirtyRoots.len > 0:
+        let snap = binding.dirtyRoots
+        binding.dirtyRoots.setLen(0)
+        for r in snap: rebuildElement(r)
+      runLayout(rootElement, tightFor(binding.surfaceSize))
+      canvas.clear(0xFFFFFFFF'u32)
+      runPaint(rootElement, canvas)
   if getEnv("FLIT_TYPE_PROBE").len > 0:
     # Simulate typing: focus the first registered focus node (which
     # is the search field), inject 10 TextInput-equivalent key
@@ -306,6 +361,11 @@ proc runDesktop*(rootWidget: Widget,
           let c = te.text[i]
           if c == '\0': break
           s.add(c)
+        if getEnv("FLIT_INPUT_LOG").len > 0:
+          echo "[TextInput] text='", s, "' focused=",
+            (not focusManager().current.isNil),
+            " hasOnText=",
+            (not focusManager().current.isNil and not focusManager().current.onText.isNil)
         if s.len > 0:
           let kev = KeyEvent(kind: keDown, text: s)
           binding.dispatchKey(kev)

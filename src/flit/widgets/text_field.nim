@@ -458,11 +458,15 @@ proc splitLines(s: string): seq[string] =
   result.add(current)
 
 method performLayout*(r: RenderTextField) =
-  ## Single-line: parent width by 1.6 * fontSize (min 32).
+  ## Single-line: parent width by 1.6 * fontSize (min 32), or by
+  ## the parent's bounded height if larger. The "fill bounded
+  ## height" rule expands the hit target so taps anywhere in a
+  ## taller wrapper container (e.g. a 40px search box) reach the
+  ## TextField's gesture detector instead of just the inner 32px.
   ## Multi-line: parent width by line-count * fontSize * style.height
   ## (clamped to maxLines if positive, with vertical padding).
   let lineH = r.style.fontSize * r.style.height
-  let h =
+  let intrinsicH =
     if not r.multiline:
       max(r.style.fontSize * 1.6'f32, 32.0'f32)
     else:
@@ -470,6 +474,11 @@ method performLayout*(r: RenderTextField) =
       let visible = if r.maxLines > 0: min(lines, r.maxLines)
                     else: max(1, lines)
       max(float32(visible) * lineH + 12, 32.0'f32)
+  let h =
+    if r.constraints.hasBoundedHeight and r.constraints.maxHeight > intrinsicH:
+      r.constraints.maxHeight
+    else:
+      intrinsicH
   let w = if r.constraints.hasBoundedWidth: r.constraints.maxWidth
           else: 200.0'f32
   r.setSize(r.constraints.constrain(Size(width: w, height: h)))
