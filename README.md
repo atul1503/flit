@@ -4,8 +4,8 @@ A Flutter-inspired UI toolkit for Nim. Declarative widgets, real GPU
 rendering, single codebase for desktop, mobile, web, and embedded
 Linux.
 
-[![ci](https://github.com/gs-attripathi/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/gs-attripathi/flit/actions/workflows/ci.yml)
-[![docs](https://img.shields.io/badge/docs-gs--attripathi.github.io%2Fflit-blue)](https://gs-attripathi.github.io/flit/)
+[![ci](https://github.com/atul1503/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/atul1503/flit/actions/workflows/ci.yml)
+[![docs](https://img.shields.io/badge/docs-atul1503.github.io%2Fflit-blue)](https://atul1503.github.io/flit/)
 [![version](https://img.shields.io/badge/version-0.8.0-orange)](#)
 [![license](https://img.shields.io/badge/license-BSD--3--Clause-green)](#license)
 
@@ -62,7 +62,7 @@ nim c -r hello.nim
 brew install nim sdl2 harfbuzz                       # macOS
 sudo apt install nim libsdl2-dev libharfbuzz-dev    # Debian / Ubuntu
 
-git clone https://github.com/gs-attripathi/flit
+git clone https://github.com/atul1503/flit
 cd flit
 nimble install
 ```
@@ -149,7 +149,7 @@ Tooling:
 ## Documentation
 
 - **Guide:** [guide/](guide/)
-- **API reference:** [gs-attripathi.github.io/flit](https://gs-attripathi.github.io/flit/)
+- **API reference:** [atul1503.github.io/flit](https://atul1503.github.io/flit/)
 - **Examples:** [`examples/`](examples/)
 
 Start with `guide/01-quickstart.md`.
