@@ -108,6 +108,7 @@
 <li>Pure compute (geometry, math, hashing, copying byte buffers) is fine.</li>
 </ul>
 <p>The intended use is sub-canvas rasterization inside a <tt class="docutils literal"><span class="pre"><span class="Identifier">RepaintBoundary</span></span></tt>: each boundary owns its own Pixie image and font references, so rasterizing one boundary on a worker is naturally race-free.</p>
+<p>On the JS backend, the type surface is provided as no-op stubs so callers compile against the same module on every target.</p>
 </p>
     <div class="section" id="7">
   <h1><a class="toc-backref" href="#7">Types</a></h1>
@@ -119,7 +120,7 @@
   <span class="Identifier">isShutdown</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span></pre></dt>
   <dd>
     
-    Fixed-size pool of worker threads. Tasks are submitted via <tt class="docutils literal"><span class="pre"><span class="Identifier">submit</span></span></tt>; each is run by exactly one worker. Public fields are for introspection; treat as read-only.
+    Fixed-size pool of worker threads. Tasks are submitted via <tt class="docutils literal"><span class="pre"><span class="Identifier">submit</span></span></tt>; each is run by exactly one worker.
     
   </dd>
 </div>
@@ -174,7 +175,7 @@
                                       <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Returns the process-wide shared pool, creating it on first access. Use this when you want background raster but don't want to manage a pool yourself.
+    Returns the process-wide shared pool, creating it on first access.
     
   </dd>
 </div>
@@ -185,7 +186,7 @@
   <dt><pre><span class="Keyword">proc</span> <a href="#shutdown%2CRasterPool"><span class="Identifier">shutdown</span></a><span class="Other">(</span><span class="Identifier">pool</span><span class="Other">:</span> <a href="raster_pool.html#RasterPool"><span class="Identifier">RasterPool</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Stops accepting new tasks, waits for in-flight ones to finish, signals workers to exit, then joins. Idempotent.
+    Stops accepting new tasks, waits for in-flight ones to finish, signals workers to exit, then joins.
     
   </dd>
 </div>
@@ -197,7 +198,7 @@
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Enqueues <tt class="docutils literal"><span class="pre"><span class="Identifier">task</span></span></tt> for execution by the next available worker. Returns immediately. Tasks MUST be <tt class="docutils literal"><span class="pre"><span class="Punctuation">{</span><span class="Operator">.</span><span class="Identifier">nimcall</span><span class="Punctuation">,</span> <span class="Identifier">gcsafe</span><span class="Operator">.</span><span class="Punctuation">}</span></span></tt> procs (not closures capturing heap state) due to Nim's cross-thread closure limitations under ORC.
+    Enqueues <tt class="docutils literal"><span class="pre"><span class="Identifier">task</span></span></tt> for execution by the next available worker.
     
   </dd>
 </div>
@@ -213,7 +214,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:16:12 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:33:50 UTC</small>
       </div>
     </div>
   </div>

@@ -17,7 +17,7 @@ type
     ## as a `dom.Element`. `ctx` is the 2D rendering context obtained
     ## via `canvas.getContext("2d")`.
     ctx*: JsObject
-    elem*: Element
+    elem*: dom.Element
 
 proc colorToCss(v: uint32): cstring =
   let a = (v shr 24) and 0xFF

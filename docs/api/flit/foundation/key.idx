@@ -14,5 +14,5 @@ nim	newGlobalKey	flit/foundation/key.html#newGlobalKey,string	proc newGlobalKey(
 nim	newObjectKey	flit/foundation/key.html#newObjectKey,pointer	proc newObjectKey(obj: pointer): Key		72
 nim	hash	flit/foundation/key.html#hash,Key	proc hash(k: Key): Hash		77
 nim	`==`	flit/foundation/key.html#==,Key,Key	proc `==`(a, b: Key): bool		89
-nim	`$`	flit/foundation/key.html#$,Key	proc `$`(k: Key): string		100
+nim	`$`	flit/foundation/key.html#$,Key	proc `$`(k: Key): string		103
 nimgrp	newvaluekey	flit/foundation/key.html#newValueKey-procs-all	proc		57

@@ -18,92 +18,99 @@
 ## `RepaintBoundary`: each boundary owns its own Pixie image
 ## and font references, so rasterizing one boundary on a worker
 ## is naturally race-free.
+##
+## On the JS backend, the type surface is provided as no-op stubs
+## so callers compile against the same module on every target.
 
-import std/atomics
+when defined(js):
+  type
+    RasterTask* = proc() {.gcsafe.}
+    RasterPool* = ref object
 
-type
-  RasterTaskKind = enum tkRun, tkTerminate
-  RasterTaskMsg = object
-    kind: RasterTaskKind
-    fn: proc() {.gcsafe, nimcall.}
+  proc newRasterPool*(nWorkers: int = 2): RasterPool = RasterPool()
+  proc submit*(pool: RasterPool, task: RasterTask) = discard
+  proc drain*(pool: RasterPool) = discard
+  proc shutdown*(pool: RasterPool) = discard
+  proc sharedRasterPool*(): RasterPool = RasterPool()
 
-  RasterTask* = proc() {.gcsafe, nimcall.}
+else:
+  import std/atomics
 
-  RasterPoolImpl* = object
-    queue:    Channel[RasterTaskMsg]
-    pending:  Atomic[int]
+  type
+    RasterTaskKind = enum tkRun, tkTerminate
 
-  RasterPool* = ref object
-    ## Fixed-size pool of worker threads. Tasks are submitted via
-    ## `submit`; each is run by exactly one worker. Public fields
-    ## are for introspection; treat as read-only.
-    threads*:  seq[Thread[ptr RasterPoolImpl]]
-    impl*:     ptr RasterPoolImpl
-    isShutdown*: bool
+    RasterTaskMsg = object
+      kind: RasterTaskKind
+      fn: proc() {.gcsafe, nimcall.}
 
-proc workerLoop(impl: ptr RasterPoolImpl) {.thread, gcsafe, nimcall.} =
-  while true:
-    let msg = impl.queue.recv()
-    case msg.kind
-    of tkTerminate:
-      break
-    of tkRun:
-      {.gcsafe.}:
-        try: msg.fn() except CatchableError: discard
-      discard impl.pending.fetchSub(1)
+    RasterTask* = proc() {.gcsafe, nimcall.}
 
-proc newRasterPool*(nWorkers: int = 2): RasterPool =
-  ## Builds a pool of `nWorkers` worker threads. Workers block on
-  ## the queue until a task arrives or `shutdown` is called.
-  let impl = cast[ptr RasterPoolImpl](allocShared0(sizeof(RasterPoolImpl)))
-  impl.queue.open()
-  impl.pending.store(0)
-  result = RasterPool(impl: impl, isShutdown: false)
-  result.threads.setLen(nWorkers)
-  for i in 0 ..< nWorkers:
-    createThread(result.threads[i], workerLoop, impl)
+    RasterPoolImpl* = object
+      queue:    Channel[RasterTaskMsg]
+      pending:  Atomic[int]
 
-proc submit*(pool: RasterPool, task: RasterTask) =
-  ## Enqueues `task` for execution by the next available worker.
-  ## Returns immediately. Tasks MUST be `{.nimcall, gcsafe.}` procs
-  ## (not closures capturing heap state) due to Nim's cross-thread
-  ## closure limitations under ORC.
-  if pool.isNil or pool.impl.isNil or pool.isShutdown: return
-  discard pool.impl.pending.fetchAdd(1)
-  pool.impl.queue.send(RasterTaskMsg(kind: tkRun, fn: task))
+    RasterPool* = ref object
+      ## Fixed-size pool of worker threads. Tasks are submitted via
+      ## `submit`; each is run by exactly one worker.
+      threads*:  seq[Thread[ptr RasterPoolImpl]]
+      impl*:     ptr RasterPoolImpl
+      isShutdown*: bool
 
-proc drain*(pool: RasterPool) =
-  ## Spins until every submitted task has finished.
-  if pool.isNil or pool.impl.isNil: return
-  while pool.impl.pending.load() > 0:
-    cpuRelax()
+  proc workerLoop(impl: ptr RasterPoolImpl) {.thread, gcsafe, nimcall.} =
+    while true:
+      let msg = impl.queue.recv()
+      case msg.kind
+      of tkTerminate:
+        break
+      of tkRun:
+        {.gcsafe.}:
+          try: msg.fn() except CatchableError: discard
+        discard impl.pending.fetchSub(1)
 
-proc shutdown*(pool: RasterPool) =
-  ## Stops accepting new tasks, waits for in-flight ones to
-  ## finish, signals workers to exit, then joins. Idempotent.
-  if pool.isNil or pool.impl.isNil or pool.isShutdown: return
-  pool.isShutdown = true
-  # Wait for already-queued work to drain.
-  while pool.impl.pending.load() > 0:
-    cpuRelax()
-  # One terminate message per worker. recv() wakes each in turn.
-  for _ in 0 ..< pool.threads.len:
-    pool.impl.queue.send(RasterTaskMsg(kind: tkTerminate, fn: nil))
-  for i in 0 ..< pool.threads.len:
-    joinThread(pool.threads[i])
-  pool.threads.setLen(0)
-  pool.impl.queue.close()
-  deallocShared(pool.impl)
-  pool.impl = nil
+  proc newRasterPool*(nWorkers: int = 2): RasterPool =
+    ## Builds a pool of `nWorkers` worker threads. Workers block on
+    ## the queue until a task arrives or `shutdown` is called.
+    let impl = cast[ptr RasterPoolImpl](allocShared0(sizeof(RasterPoolImpl)))
+    impl.queue.open()
+    impl.pending.store(0)
+    result = RasterPool(impl: impl, isShutdown: false)
+    result.threads.setLen(nWorkers)
+    for i in 0 ..< nWorkers:
+      createThread(result.threads[i], workerLoop, impl)
 
-# Convenience: a shared global pool. Created lazily on first use.
+  proc submit*(pool: RasterPool, task: RasterTask) =
+    ## Enqueues `task` for execution by the next available worker.
+    if pool.isNil or pool.impl.isNil or pool.isShutdown: return
+    discard pool.impl.pending.fetchAdd(1)
+    pool.impl.queue.send(RasterTaskMsg(kind: tkRun, fn: task))
 
-var sharedPool: RasterPool
+  proc drain*(pool: RasterPool) =
+    ## Spins until every submitted task has finished.
+    if pool.isNil or pool.impl.isNil: return
+    while pool.impl.pending.load() > 0:
+      cpuRelax()
 
-proc sharedRasterPool*(): RasterPool =
-  ## Returns the process-wide shared pool, creating it on first
-  ## access. Use this when you want background raster but don't
-  ## want to manage a pool yourself.
-  if sharedPool.isNil:
-    sharedPool = newRasterPool(2)
-  sharedPool
+  proc shutdown*(pool: RasterPool) =
+    ## Stops accepting new tasks, waits for in-flight ones to
+    ## finish, signals workers to exit, then joins.
+    if pool.isNil or pool.impl.isNil or pool.isShutdown: return
+    pool.isShutdown = true
+    while pool.impl.pending.load() > 0:
+      cpuRelax()
+    for _ in 0 ..< pool.threads.len:
+      pool.impl.queue.send(RasterTaskMsg(kind: tkTerminate, fn: nil))
+    for i in 0 ..< pool.threads.len:
+      joinThread(pool.threads[i])
+    pool.threads.setLen(0)
+    pool.impl.queue.close()
+    deallocShared(pool.impl)
+    pool.impl = nil
+
+  var sharedPool: RasterPool
+
+  proc sharedRasterPool*(): RasterPool =
+    ## Returns the process-wide shared pool, creating it on first
+    ## access.
+    if sharedPool.isNil:
+      sharedPool = newRasterPool(2)
+    sharedPool

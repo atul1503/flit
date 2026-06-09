@@ -30,7 +30,26 @@ import std/[tables, hashes]
 import ../foundation/render_object
 import ../foundation/geometry as geom
 
-when not defined(js):
+# Desktop OpenGL only. iOS uses Metal; Android uses GLES; both
+# have different binding APIs from the desktop `opengl` package.
+# On those targets (and on JS) provide a stub type and a
+# nil-returning `newGlCanvas` so callers can opt in or fall
+# back cleanly.
+
+const flitDesktopGl =
+  not defined(js) and not defined(ios) and not defined(android)
+
+when not flitDesktopGl:
+  type
+    GlCanvas* = ref object of Canvas
+  when not defined(js):
+    import sdl2
+    proc newGlCanvas*(window: WindowPtr, sdlRenderer: RendererPtr,
+                      w, h: int): GlCanvas = nil
+  else:
+    proc newGlCanvas*(): GlCanvas = nil
+
+when flitDesktopGl:
   import sdl2
   import opengl
 

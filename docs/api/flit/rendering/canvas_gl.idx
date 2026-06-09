@@ -1,16 +1,16 @@
 nimTitle	canvas_gl	flit/rendering/canvas_gl.html	module src/flit/rendering/canvas_gl		0
-nim	Shader	flit/rendering/canvas_gl.html#Shader	object Shader		38
-nim	GlCanvas	flit/rendering/canvas_gl.html#GlCanvas	type GlCanvas		51
-nim	newGlCanvas	flit/rendering/canvas_gl.html#newGlCanvas,WindowPtr,RendererPtr,int,int	proc newGlCanvas(window: WindowPtr; sdlRenderer: RendererPtr; w, h: int): GlCanvas		241
-nim	clear	flit/rendering/canvas_gl.html#clear.e,GlCanvas,uint32	method clear(c: GlCanvas; color: uint32)		308
-nim	drawRect	flit/rendering/canvas_gl.html#drawRect.e,GlCanvas,,uint32	method drawRect(c: GlCanvas; r: geom.Rect; fill: uint32)		318
-nim	drawRRect	flit/rendering/canvas_gl.html#drawRRect.e,GlCanvas,,uint32	method drawRRect(c: GlCanvas; r: geom.RRect; fill: uint32)		326
-nim	drawCircle	flit/rendering/canvas_gl.html#drawCircle.e,GlCanvas,,float32,uint32	method drawCircle(c: GlCanvas; center: geom.Offset; radius: float32; fill: uint32)		342
-nim	drawLine	flit/rendering/canvas_gl.html#drawLine.e,GlCanvas,,,uint32,float32	method drawLine(c: GlCanvas; p0, p1: geom.Offset; color: uint32; width: float32)		355
-nim	save	flit/rendering/canvas_gl.html#save.e,GlCanvas	method save(c: GlCanvas)		374
-nim	restore	flit/rendering/canvas_gl.html#restore.e,GlCanvas	method restore(c: GlCanvas)		377
-nim	translate	flit/rendering/canvas_gl.html#translate.e,GlCanvas,float32,float32	method translate(c: GlCanvas; dx, dy: float32)		383
-nim	scale	flit/rendering/canvas_gl.html#scale.e,GlCanvas,float32,float32	method scale(c: GlCanvas; sx, sy: float32)		387
-nim	rotate	flit/rendering/canvas_gl.html#rotate.e,GlCanvas,float32	method rotate(c: GlCanvas; radians: float32)		391
-nim	clipRect	flit/rendering/canvas_gl.html#clipRect.e,GlCanvas,	method clipRect(c: GlCanvas; r: geom.Rect)		394
-nim	present	flit/rendering/canvas_gl.html#present,GlCanvas	proc present(c: GlCanvas)		401
+nim	Shader	flit/rendering/canvas_gl.html#Shader	object Shader		57
+nim	GlCanvas	flit/rendering/canvas_gl.html#GlCanvas	type GlCanvas		70
+nim	newGlCanvas	flit/rendering/canvas_gl.html#newGlCanvas,WindowPtr,RendererPtr,int,int	proc newGlCanvas(window: WindowPtr; sdlRenderer: RendererPtr; w, h: int): GlCanvas		260
+nim	clear	flit/rendering/canvas_gl.html#clear.e,GlCanvas,uint32	method clear(c: GlCanvas; color: uint32)		327
+nim	drawRect	flit/rendering/canvas_gl.html#drawRect.e,GlCanvas,,uint32	method drawRect(c: GlCanvas; r: geom.Rect; fill: uint32)		337
+nim	drawRRect	flit/rendering/canvas_gl.html#drawRRect.e,GlCanvas,,uint32	method drawRRect(c: GlCanvas; r: geom.RRect; fill: uint32)		345
+nim	drawCircle	flit/rendering/canvas_gl.html#drawCircle.e,GlCanvas,,float32,uint32	method drawCircle(c: GlCanvas; center: geom.Offset; radius: float32; fill: uint32)		361
+nim	drawLine	flit/rendering/canvas_gl.html#drawLine.e,GlCanvas,,,uint32,float32	method drawLine(c: GlCanvas; p0, p1: geom.Offset; color: uint32; width: float32)		374
+nim	save	flit/rendering/canvas_gl.html#save.e,GlCanvas	method save(c: GlCanvas)		393
+nim	restore	flit/rendering/canvas_gl.html#restore.e,GlCanvas	method restore(c: GlCanvas)		396
+nim	translate	flit/rendering/canvas_gl.html#translate.e,GlCanvas,float32,float32	method translate(c: GlCanvas; dx, dy: float32)		402
+nim	scale	flit/rendering/canvas_gl.html#scale.e,GlCanvas,float32,float32	method scale(c: GlCanvas; sx, sy: float32)		406
+nim	rotate	flit/rendering/canvas_gl.html#rotate.e,GlCanvas,float32	method rotate(c: GlCanvas; radians: float32)		410
+nim	clipRect	flit/rendering/canvas_gl.html#clipRect.e,GlCanvas,	method clipRect(c: GlCanvas; r: geom.Rect)		413
+nim	present	flit/rendering/canvas_gl.html#present,GlCanvas	proc present(c: GlCanvas)		420

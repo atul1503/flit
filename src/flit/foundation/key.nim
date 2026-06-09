@@ -95,7 +95,10 @@ proc `==`*(a, b: Key): bool =
   of kkUnique: a.uniqueId == b.uniqueId
   of kkValue:  a.value == b.value
   of kkGlobal: cast[int](a) == cast[int](b)
-  of kkObject: a.objRef == b.objRef
+  of kkObject: cast[int](a.objRef) == cast[int](b.objRef)
+    # Comparing raw `pointer` values triggers a Nim JS codegen
+    # bug; casting to int sidesteps it and is the right
+    # comparison anyway (identity of the referenced object).
 
 proc `$`*(k: Key): string =
   ## Debug representation. Used by `debugDescribe` to show keys in

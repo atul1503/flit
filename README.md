@@ -6,7 +6,7 @@ Linux.
 
 [![ci](https://github.com/atul1503/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/atul1503/flit/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-atul1503.github.io%2Fflit-blue)](https://atul1503.github.io/flit/)
-[![version](https://img.shields.io/badge/version-0.9.0-orange)](#)
+[![version](https://img.shields.io/badge/version-0.9.1-orange)](#)
 [![license](https://img.shields.io/badge/license-BSD--3--Clause-green)](#license)
 
 ## Status
@@ -138,13 +138,13 @@ Tooling:
 
 | Platform | Status |
 |----------|--------|
-| macOS | working, tested |
-| Linux | working, tested in CI |
-| Windows | implemented, CI not yet set up for Windows |
-| Web (JS) | implemented via Nim's JS backend; not extensively tested |
-| iOS | binary compiles; needs Xcode wrapper |
-| Android | binary compiles; needs Android Studio wrapper |
-| Embedded Linux | framebuffer backend implemented |
+| macOS | working, manually tested + CI |
+| Linux | CI green; counter and notes run natively |
+| Windows | CI green |
+| Web (JS) | compiles, output parses cleanly, demo opens in browser |
+| iOS | cross-compiles to ARM64 binary; Xcode wrapper still manual |
+| Android | cross-compiles to ARM64 `.so`; Android Studio wrapper still manual |
+| Embedded Linux | framebuffer backend compiles + runs (see `examples/embedded/`) |
 
 ## Documentation
 

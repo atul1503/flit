@@ -16,7 +16,7 @@
 
 import std/[os, osproc, strutils, strformat, parseopt, tables, times]
 
-const flitVersion* = "0.9.0"
+const flitVersion* = "0.9.1"
 
 proc usage() =
   echo """
@@ -143,6 +143,10 @@ proc cmdBuild(target: string) =
     echo "(after .so is built, wrap with an Android Studio shell)"
     quit execShellCmd(cmd)
   of "ipa", "ios":
+    # iOS uses a POSIX-like target with the Apple toolchain.
+    # Nim's `--os:ios` accepts lowercase. Linking to a runnable
+    # bundle still requires Xcode + provisioning; this step only
+    # produces the ARM64 binary that an Xcode shell would wrap.
     let cmd = &"nim c -d:release -d:ios --os:ios --cpu:arm64 " &
               &"-o:build/ios/{name} {entry}"
     echo "+ ", cmd

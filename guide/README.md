@@ -23,6 +23,7 @@ matches your problem.
 | [09-examples-tour.md](09-examples-tour.md) | Counter, todo, calculator, showcase, notes |
 | [10-api-reference.md](10-api-reference.md) | Generating `nim doc` HTML; where each symbol lives |
 | [11-production.md](11-production.md) | TextField clipboard/undo, animated transitions, semantics, what production-ready means |
+| [12-platform-builds.md](12-platform-builds.md) | Build commands, artifacts, runtime requirements per platform |
 
 ## Conventions in this guide
 

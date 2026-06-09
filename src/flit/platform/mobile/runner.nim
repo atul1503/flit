@@ -30,7 +30,7 @@ when defined(android) or defined(ios):
     let window = createWindow(title, 0, 0, dm.w, dm.h,
                               SDL_WINDOW_FULLSCREEN or SDL_WINDOW_ALLOW_HIGHDPI)
     let renderer = createRenderer(window, -1,
-                                  SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC)
+                                  cint(Renderer_Accelerated) or cint(Renderer_PresentVsync))
     let canvas = newSdlCanvas(window, renderer, dm.w, dm.h, fontPath)
     let binding = newBinding(canvas,
                              Size(width: float32(dm.w), height: float32(dm.h)),
