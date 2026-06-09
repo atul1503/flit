@@ -64,15 +64,22 @@ proc `value=`*[T](n: ValueNotifier[T], v: T) =
   ## one (per `equalsFn`), every registered listener is called with
   ## `v` synchronously. Listener errors are NOT caught; they
   ## propagate to the caller of `value =`.
+  ##
+  ## Listeners are iterated over a snapshot of the list, so a
+  ## listener that registers or unregisters listeners during the
+  ## notification is safe (the new registration takes effect on
+  ## the next notify, not the current one).
   if n.equalsFn(n.valueField, v): return
   n.valueField = v
-  for fn in n.listeners: fn(v)
+  let snapshot = n.listeners
+  for fn in snapshot: fn(v)
 
 proc notify*[T](n: ValueNotifier[T]) =
   ## Manually fires all listeners with the current value, regardless
   ## of whether it changed. Useful for `seq[T]` or `ref` values that
   ## mutate in place without going through `.value =`.
-  for fn in n.listeners: fn(n.valueField)
+  let snapshot = n.listeners
+  for fn in snapshot: fn(n.valueField)
 
 proc addListener*[T](n: ValueNotifier[T], fn: proc(v: T)) =
   ## Registers `fn` to be called on every change. The same listener
