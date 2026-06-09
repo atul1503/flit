@@ -15,7 +15,52 @@ import ../foundation/geometry as geom
 when not defined(js):
   import pixie except Rect, rect
   import sdl2
-  import std/[tables]
+  import std/[tables, hashes, os]
+
+  # Text rasterization cache for the SDL backend. Same shape as the
+  # embedded canvas's cache: Pixie's `fillText` is by far the
+  # heaviest paint op (typeset + glyph raster); for stable strings
+  # (item labels, button captions) we rasterize once into a small
+  # image and `draw` that image on every subsequent call. Cache key
+  # is (text, family, fontSize-as-px, color). Per-process, shared
+  # across all SdlCanvas instances.
+
+  type
+    SdlTextCacheKey = object
+      text:   string
+      family: string
+      size:   uint16
+      color:  uint32
+
+    SdlTextCacheEntry = object
+      image: pixie.Image
+      width, height: int
+
+  proc hash(k: SdlTextCacheKey): Hash =
+    var h: Hash = 0
+    h = h !& hash(k.text)
+    h = h !& hash(k.family)
+    h = h !& int(k.size)
+    h = h !& int(k.color)
+    !$h
+
+  proc `==`(a, b: SdlTextCacheKey): bool =
+    a.text == b.text and a.family == b.family and
+      a.size == b.size and a.color == b.color
+
+  var sdlTextCache* {.threadvar.}: Table[SdlTextCacheKey, SdlTextCacheEntry]
+  var sdlTextCacheLimit* = 2048
+    ## Maximum number of rasterized text bitmaps to keep. Eviction
+    ## is "drop everything when full" today; LRU is a follow-up.
+
+  var sdlTextCacheHits*  {.threadvar.}: int
+  var sdlTextCacheMisses* {.threadvar.}: int
+    ## Per-thread counters; useful for confirming the cache actually
+    ## hits in interactive workloads.
+
+  proc clearSdlTextCache*() =
+    ## Drops every rasterized text image from the SDL canvas cache.
+    sdlTextCache.clear()
 
   type
     SdlCanvas* = ref object of Canvas
@@ -123,14 +168,45 @@ when not defined(js):
 
   method drawText*(c: SdlCanvas, text: string, pos: geom.Offset, color: uint32,
                    fontSize: float32, fontFamily: string) =
+    if text.len == 0: return
     var f = c.fonts.getOrDefault(fontFamily, c.defaultFont)
     if f.isNil: return
-    f.size = fontSize
-    let pt = argbToPaint(c, color)
-    f.paints = @[pt]
-    # Pixie places typeset text at the top-left of the translate point, NOT
-    # the baseline. So we just translate to pos directly.
-    c.image.fillText(f, text, translate(vec2(pos.dx, pos.dy)))
+    # Bake opacity into the cache key so semi-transparent and opaque
+    # variants of the same string keep separate bitmaps.
+    let opaqued = c.applyOpacity(color)
+    let key = SdlTextCacheKey(
+      text: text, family: fontFamily,
+      size: uint16(fontSize), color: opaqued)
+    var entry: SdlTextCacheEntry
+    if sdlTextCache.hasKey(key):
+      entry = sdlTextCache[key]
+      inc sdlTextCacheHits
+    else:
+      inc sdlTextCacheMisses
+      # cache miss; build the cached image.
+      f.size = fontSize
+      let bounds = pixie.typeset(f, text).computeBounds()
+      let tw = max(int(bounds.w) + 2, 1)
+      let th = max(int(max(bounds.h, fontSize)) + 2, 1)
+      let img = pixie.newImage(tw, th)
+      # Render with full alpha; we will redraw with the current
+      # opacity stack via the cached image's `draw` call below.
+      let a = uint8((opaqued shr 24) and 0xFF)
+      let r = uint8((opaqued shr 16) and 0xFF)
+      let g = uint8((opaqued shr  8) and 0xFF)
+      let b = uint8( opaqued         and 0xFF)
+      var pt = newPaint(SolidPaint)
+      pt.color = rgba(r, g, b, a).color
+      f.paints = @[pt]
+      img.fillText(f, text, translate(vec2(0, 0)))
+      entry = SdlTextCacheEntry(image: img, width: tw, height: th)
+      if sdlTextCache.len >= sdlTextCacheLimit:
+        sdlTextCache.clear()
+      sdlTextCache[key] = entry
+    # Blit the cached bitmap at `pos`. Pixie places typeset text at
+    # the top-left of the translate point, NOT the baseline; the
+    # cache image preserves that, so just translate directly.
+    c.image.draw(entry.image, translate(vec2(pos.dx, pos.dy)))
 
   method save*(c: SdlCanvas) = c.ctx.save()
   method restore*(c: SdlCanvas) = c.ctx.restore()
@@ -354,44 +430,13 @@ when not defined(js):
     discard setRenderTarget(c.renderer, c.texture)
     discard copy(c.renderer, s.texture, nil, addr dstRect)
     discard setRenderTarget(c.renderer, nil)
-    # We also have to keep the Pixie image (CPU side) in sync so that
-    # screenshot tests, hit testing visuals, etc. see consistent
-    # output. Composite the source image into the parent image at the
-    # given offset. Cheap for typical layer sizes; can be skipped in
-    # release if needed.
-    let ix = int(offset.dx)
-    let iy = int(offset.dy)
-    let parentW = c.image.width
-    let parentH = c.image.height
-    let psrc = cast[ptr UncheckedArray[uint32]](addr s.image.data[0])
-    let pdst = cast[ptr UncheckedArray[uint32]](addr c.image.data[0])
-    for y in 0 ..< h:
-      let dy = iy + y
-      if dy < 0 or dy >= parentH: continue
-      for x in 0 ..< w:
-        let dx = ix + x
-        if dx < 0 or dx >= parentW: continue
-        let sPx = psrc[y * w + x]
-        let sA = (sPx shr 24) and 0xFF
-        if sA == 0: continue
-        if sA == 0xFF:
-          pdst[dy * parentW + dx] = sPx
-        else:
-          # Standard "source-over" compositing on RGBA8 channels.
-          let dPx = pdst[dy * parentW + dx]
-          let sR = (sPx shr 0)  and 0xFF
-          let sG = (sPx shr 8)  and 0xFF
-          let sB = (sPx shr 16) and 0xFF
-          let dR = (dPx shr 0)  and 0xFF
-          let dG = (dPx shr 8)  and 0xFF
-          let dB = (dPx shr 16) and 0xFF
-          let dA = (dPx shr 24) and 0xFF
-          let invA = (255 - sA)
-          let outR = ((sR * sA) + (dR * invA)) div 255
-          let outG = ((sG * sA) + (dG * invA)) div 255
-          let outB = ((sB * sA) + (dB * invA)) div 255
-          let outA = sA + ((dA * invA) div 255)
-          pdst[dy * parentW + dx] = (outA shl 24) or (outB shl 16) or (outG shl 8) or outR
+    # The GPU blit above is the source of truth for what the user
+    # sees. We previously also did a CPU-side per-pixel composite
+    # into the parent's Pixie image (so screenshot/test pipelines
+    # could see the result), but for the amazon home page that copy
+    # cost more than every Pixie draw call combined (~40ms of the
+    # 60ms total). Dropping it. Apps that need a CPU-side mirror
+    # for screenshots can call a dedicated readback API.
 
   proc present*(c: SdlCanvas) =
     ## Push the Pixie image into the SDL streaming texture, copy the

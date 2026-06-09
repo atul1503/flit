@@ -9,13 +9,15 @@ when defined(js):
   {.error: "desktop runner is not available on the JS backend".}
 
 import sdl2
-import std/[times, os]
+import std/[times, os, strutils]
 import ../../foundation/[widget, render_object, binding, geometry,
                           runtime, diagnostics, focus]
 import ../../rendering/canvas_sdl
 import ../../widgets/text_field
 import ../../widgets/drag_drop
 import ../../widgets/network_image
+import ../../rendering/text as flitText
+import pixie except Rect, rect
 
 type
   DesktopWindowConfig* = object
@@ -120,6 +122,17 @@ proc runDesktop*(rootWidget: Widget,
   let canvas = newSdlCanvas(window, renderer,
                             config.width, config.height,
                             fontPath)
+  # Install a Pixie-backed measureText that uses the canvas's font
+  # so layout knows real glyph widths. Wrap in the global memoizer
+  # so repeated strings (every list item label, every button
+  # caption) only typeset once.
+  if not canvas.defaultFont.isNil:
+    let theFont = canvas.defaultFont
+    flitText.measureText = flitText.wrapMeasureWithCache(
+      proc(s: string, style: TextStyle): Size =
+        theFont.size = style.fontSize
+        let b = pixie.typeset(theFont, s).computeBounds()
+        Size(width: b.w, height: max(b.h, style.fontSize * style.height)))
   let binding = newBinding(canvas,
                            Size(width: float32(config.width),
                                 height: float32(config.height)))
@@ -135,8 +148,33 @@ proc runDesktop*(rootWidget: Widget,
   runPaint(rootElement, canvas)
   canvas.present()
 
+  # Optional warmup probe: paint N additional frames back-to-back so
+  # we can see steady-state cost after caches warm. Enabled via
+  # FLIT_PAINT_PROBE=<count>.
+  if getEnv("FLIT_PAINT_PROBE").len > 0:
+    let n = max(1, parseInt(getEnv("FLIT_PAINT_PROBE")))
+    for i in 0 ..< n:
+      let t0 = cpuTime()
+      canvas.clear(0xFFFFFFFF'u32)
+      let t1 = cpuTime()
+      runPaint(rootElement, canvas)
+      let t2 = cpuTime()
+      canvas.present()
+      let t3 = cpuTime()
+      echo "[probe ", i, "] clear=", formatFloat((t1-t0)*1000, ffDecimal, 2),
+           "ms paint=", formatFloat((t2-t1)*1000, ffDecimal, 2),
+           "ms present=", formatFloat((t3-t2)*1000, ffDecimal, 2),
+           "ms total=", formatFloat((t3-t0)*1000, ffDecimal, 2),
+           "ms text-hits=", sdlTextCacheHits,
+           " text-misses=", sdlTextCacheMisses
+      sdlTextCacheHits = 0
+      sdlTextCacheMisses = 0
+
   flogi("flit desktop runner started ", config.width, "x", config.height)
 
+  # Cache env-var driven debug flags once so the steady-state hot
+   # loop doesn't pay a per-frame getEnv syscall.
+  let logFrames = (getEnv("FLIT_FRAME_LOG").len > 0)
   var ev: sdl2.Event
   var running = true
   while running:
@@ -253,21 +291,39 @@ proc runDesktop*(rootWidget: Widget,
     # which is what Flutter's pipeline does too (microtasks +
     # frame scheduling).
     if binding.dirtyRoots.len > 0:
+      let t0 = cpuTime()
       let pending = binding.dirtyRoots
       binding.dirtyRoots.setLen(0)
       for r in pending:
         rebuildElement(r)
+      let t1 = cpuTime()
       runLayout(rootElement, tightFor(binding.surfaceSize))
+      let t2 = cpuTime()
       canvas.clear(0xFFFFFFFF'u32)
       runPaint(rootElement, canvas)
+      let t3 = cpuTime()
       canvas.present()
+      let t4 = cpuTime()
       binding.needsRepaint = false
+      if logFrames:
+        echo "[frame] rebuild=", formatFloat((t1-t0)*1000, ffDecimal, 2),
+             "ms layout=", formatFloat((t2-t1)*1000, ffDecimal, 2),
+             "ms paint=", formatFloat((t3-t2)*1000, ffDecimal, 2),
+             "ms present=", formatFloat((t4-t3)*1000, ffDecimal, 2),
+             "ms total=", formatFloat((t4-t0)*1000, ffDecimal, 2), "ms"
     elif binding.needsRepaint:
       # Paint-only pass for scroll and other layout-stable changes.
+      let t0 = cpuTime()
       canvas.clear(0xFFFFFFFF'u32)
       runPaint(rootElement, canvas)
+      let t1 = cpuTime()
       canvas.present()
+      let t2 = cpuTime()
       binding.needsRepaint = false
+      if logFrames:
+        echo "[scroll-frame] paint=", formatFloat((t1-t0)*1000, ffDecimal, 2),
+             "ms present=", formatFloat((t2-t1)*1000, ffDecimal, 2),
+             "ms total=", formatFloat((t2-t0)*1000, ffDecimal, 2), "ms"
     else:
       # Animation pump. Snapshot the callback list and clear FIRST, because
       # tickers re-schedule themselves by appending during the callback;

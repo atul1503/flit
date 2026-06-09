@@ -368,7 +368,11 @@ proc cartScreen*(): Widget
 proc searchScreen*(): Widget
 
 proc productCard(p: Product, w: float32 = 200, h: float32 = 320): Widget =
-  gestureDetector(
+  # Wrap in RepaintBoundary so a card's bitmap is rasterized once
+  # and cheaply composited on subsequent paints. Without this, every
+  # scroll frame re-rasterizes the card's rrect + text + image
+  # through Pixie, which costs ~1ms per primitive.
+  repaintBoundary(child = gestureDetector(
     behavior = htOpaque,
     onTap = proc() =
       currentNavigator().push(proc(): Widget = productScreen(p.id)),
@@ -393,7 +397,7 @@ proc productCard(p: Product, w: float32 = 200, h: float32 = 320): Widget =
         priceRow(p),
         sizedBox(height = 4),
         if p.prime: primeBadge() else: sizedBox(height = 0),
-      ])))
+      ]))))
 
 # Top header (Amazon's dark navy bar).
 
@@ -539,7 +543,7 @@ proc amazonSubNav(): Widget =
 # approximate with a wide category teaser.
 
 proc heroBanner(): Widget =
-  container(
+  repaintBoundary(child = container(
     height = 220,
     margin = edgeInsetsAll(12),
     padding = edgeInsetsAll(20),
@@ -559,14 +563,14 @@ proc heroBanner(): Widget =
         decoration = boxDecoration(color = amazonOrange, borderRadius = 18),
         child = center(child = text("Shop now",
           style = textStyle(fontSize = 14, color = textDark)))),
-    ]))
+    ])))
 
 # Category card (the 2x2 grid Amazon shows above the hero on
 # desktop). Each card has a title, four sub-thumbnails, and a
 # "See more" link.
 
 proc categoryCard(title: string, items: seq[Product]): Widget =
-  container(
+  repaintBoundary(child = container(
     width = 280, height = 380,
     margin = edgeInsetsAll(8),
     padding = edgeInsetsAll(16),
@@ -592,7 +596,7 @@ proc categoryCard(title: string, items: seq[Product]): Widget =
       sizedBox(height = 12),
       text("See more",
         style = textStyle(fontSize = 13, color = amazonLink)),
-    ]))
+    ])))
 
 # Home page.
 
@@ -614,8 +618,8 @@ proc homeScreen*(): Widget =
 
   scrollView(child = column(crossAxisAlignment = caStart, mainAxisSize = msMin,
                             children = @[
-    Widget(amazonHeader()),
-    amazonSubNav(),
+    Widget(repaintBoundary(child = amazonHeader())),
+    repaintBoundary(child = amazonSubNav()),
     heroBanner(),
     # 2x2 grid of category cards using the new gridView.
     padding(padding = edgeInsetsSymmetric(horizontal = 12, vertical = 4),
@@ -639,9 +643,9 @@ proc homeScreen*(): Widget =
     padding(padding = edgeInsetsSymmetric(horizontal = 12, vertical = 4),
       child = row(crossAxisAlignment = caStart, children =
         catalog[6 .. catalog.high].mapIt(Widget(productCard(it))))),
-    # Footer.
+    # Footer (wrapped in repaintBoundary since fully static).
     sizedBox(height = 24),
-    container(
+    repaintBoundary(child = container(
       height = 200,
       hasColor = true, color = amazonDarkNavy,
       padding = edgeInsetsAll(20),
@@ -655,7 +659,7 @@ proc homeScreen*(): Widget =
         sizedBox(height = 8),
         text("(c) 1996-2026, Amazon.com, Inc. or its affiliates",
           style = textStyle(fontSize = 11, color = rgb(180, 180, 180))),
-      ])),
+      ]))),
   ]))
 
 # Product detail screen.
