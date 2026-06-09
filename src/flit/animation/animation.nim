@@ -133,7 +133,13 @@ proc newAnimationController*(durationSec: float32, lower = 0.0'f32,
   ##
   ## Output: a fresh controller in `asDismissed` state with
   ## `value = lower`.
-  AnimationController(duration: durationSec, lower: lower, upper: upper,
+  ##
+  ## `durationSec` of zero (or negative) is clamped to 1ms to
+  ## avoid division by zero in the frame ticker. Animations that
+  ## want to be effectively instant should set the value directly
+  ## via `value =` instead of using `forward()`.
+  let safeDuration = max(durationSec, 0.001'f32)
+  AnimationController(duration: safeDuration, lower: lower, upper: upper,
                       valueField: lower, status: asDismissed,
                       listeners: @[], statusListeners: @[])
 

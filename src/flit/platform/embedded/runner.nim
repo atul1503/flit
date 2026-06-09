@@ -165,7 +165,11 @@ proc runEmbedded*(rootWidget: Widget, w, h: int, flush: EmbeddedFlush,
   binding.rootElement = rootElement
   runLayout(rootElement, tightFor(binding.surfaceSize))
 
-  let frameMs = 1000 div frameRateHz
+  # Guard against a 0 frameRateHz which would div-by-zero. Clamp
+  # to at least 1 Hz; callers that want max throughput should
+  # pass a very high value, not 0.
+  let safeHz = max(frameRateHz, 1)
+  let frameMs = 1000 div safeHz
   while true:
     if binding.dirtyRoots.len > 0:
       let pending = binding.dirtyRoots

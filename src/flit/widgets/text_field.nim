@@ -154,6 +154,34 @@ proc selectionRange*(c: TextEditingController): tuple[lo, hi: int] =
   if c.cursor <= c.selectionEnd: (c.cursor, c.selectionEnd)
   else: (c.selectionEnd, c.cursor)
 
+# --- UTF-8 boundary helpers ---
+#
+# Nim strings are byte-indexed; text is UTF-8. A naive cursor that
+# moves by 1 byte lands mid-codepoint for any non-ASCII character
+# and the next slice corrupts the string. These helpers walk
+# codepoint boundaries by skipping continuation bytes (high bits
+# 10xxxxxx).
+
+proc utf8Back*(s: string, byteIdx: int): int =
+  ## Returns the byte index of the codepoint BEFORE `byteIdx`, or
+  ## 0 if `byteIdx` is at the start.
+  if byteIdx <= 0: return 0
+  var i = byteIdx - 1
+  while i > 0 and (s[i].uint8 and 0xC0'u8) == 0x80'u8:
+    dec i
+  i
+
+proc utf8Forward*(s: string, byteIdx: int): int =
+  ## Returns the byte index of the codepoint AFTER `byteIdx`, or
+  ## `s.len` if `byteIdx` is at the end. The codepoint starting at
+  ## `byteIdx` is consumed entirely (1 byte for ASCII, 2-4 for
+  ## multi-byte UTF-8).
+  if byteIdx >= s.len: return s.len
+  var i = byteIdx + 1
+  while i < s.len and (s[i].uint8 and 0xC0'u8) == 0x80'u8:
+    inc i
+  i
+
 proc deleteSelection*(c: TextEditingController): bool =
   ## Delete the selected text. Returns true if anything was deleted.
   if not c.hasSelection: return false
@@ -178,15 +206,21 @@ proc backspace*(c: TextEditingController) =
   if c.deleteSelection: return
   if c.cursor <= 0: return
   c.pushUndo()
-  c.text = c.text[0 ..< c.cursor - 1] & c.text[c.cursor ..< c.text.len]
-  dec c.cursor
+  # Walk back a full UTF-8 codepoint, not a single byte. For ASCII
+  # the new cursor is c.cursor - 1; for a 2-4 byte character it's
+  # 2-4 bytes back.
+  let newCursor = utf8Back(c.text, c.cursor)
+  c.text = c.text[0 ..< newCursor] & c.text[c.cursor ..< c.text.len]
+  c.cursor = newCursor
   c.selectionEnd = c.cursor
 
 proc forwardDelete*(c: TextEditingController) =
   if c.deleteSelection: return
   if c.cursor >= c.text.len: return
   c.pushUndo()
-  c.text = c.text[0 ..< c.cursor] & c.text[c.cursor + 1 ..< c.text.len]
+  # Skip forward a full UTF-8 codepoint.
+  let nextCursor = utf8Forward(c.text, c.cursor)
+  c.text = c.text[0 ..< c.cursor] & c.text[nextCursor ..< c.text.len]
 
 proc selectAll*(c: TextEditingController) =
   ## Selects every character. After this, `selectionRange` covers
@@ -216,11 +250,11 @@ proc deleteSelectionWithUndo*(c: TextEditingController): bool =
   c.deleteSelection()
 
 proc moveLeft*(c: TextEditingController, extend: bool) =
-  if c.cursor > 0: dec c.cursor
+  if c.cursor > 0: c.cursor = utf8Back(c.text, c.cursor)
   if not extend: c.selectionEnd = c.cursor
 
 proc moveRight*(c: TextEditingController, extend: bool) =
-  if c.cursor < c.text.len: inc c.cursor
+  if c.cursor < c.text.len: c.cursor = utf8Forward(c.text, c.cursor)
   if not extend: c.selectionEnd = c.cursor
 
 proc moveHome*(c: TextEditingController, extend: bool) =

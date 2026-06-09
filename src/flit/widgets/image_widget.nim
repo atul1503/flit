@@ -125,9 +125,11 @@ method performLayout*(r: RenderImage) =
     w = r.requestedW; h = r.requestedH
   elif r.requestedW > 0 and imgW > 0:
     w = r.requestedW; h = w * imgH / imgW
-  elif r.requestedH > 0 and imgW > 0:
+  elif r.requestedH > 0 and imgH > 0:
+    # The previous version checked `imgW > 0` here, then divided
+    # by imgH which could be zero. Bug fix: check the divisor.
     h = r.requestedH; w = h * imgW / imgH
-  elif imgW > 0:
+  elif imgW > 0 and imgH > 0:
     w = imgW; h = imgH
   else:
     w = if r.constraints.hasBoundedWidth:  r.constraints.maxWidth  else: 0.0'f32
@@ -150,6 +152,9 @@ method paint*(r: RenderImage, ctx: PaintingContext, offset: Offset) =
     let sh = float32(img.height)
     let dw = r.size.width
     let dh = r.size.height
+    # Degenerate input: skip drawing if any dimension is zero
+    # (no pixels to fit; avoids div-by-zero in aspect math).
+    if sw <= 0 or sh <= 0 or dw <= 0 or dh <= 0: return
     var dstW, dstH, dstX, dstY: float32
     case r.fit
     of ifFill:

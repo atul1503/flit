@@ -268,6 +268,36 @@ when not defined(js):
     GpuSubCanvas(parent: parent, texture: tex,
                  size: Size(width: float32(w), height: float32(h)))
 
+  proc disposeSubCanvas*(s: GpuSubCanvas) =
+    ## Releases the render-target texture. Safe to call multiple
+    ## times. Call when the owning `RepaintBoundary` unmounts.
+    if s.isNil: return
+    if not s.texture.isNil:
+      destroyTexture(s.texture)
+      s.texture = nil
+
+  proc trimShapeCache*(c: GpuCanvas, maxEntries: int = 256) =
+    ## Caps the shape cache size. The cache otherwise grows
+    ## unboundedly for apps that draw many unique
+    ## (size, color, radius) shape combinations. Call
+    ## occasionally (e.g. once per second from the runner) or
+    ## when memory pressure is detected.
+    if c.isNil or c.shapeCache.len <= maxEntries: return
+    # Evict half the entries arbitrarily; we don't track LRU
+    # access order for shape entries (text is more important
+    # and has its own LRU atlas).
+    var dropped = 0
+    var keysToDrop: seq[ShapeKey]
+    let target = c.shapeCache.len - maxEntries
+    for k in c.shapeCache.keys:
+      if dropped >= target: break
+      keysToDrop.add(k)
+      inc dropped
+    for k in keysToDrop:
+      let tex = c.shapeCache[k]
+      if not tex.isNil: destroyTexture(tex)
+      c.shapeCache.del(k)
+
   template withTarget(c: GpuCanvas, tex: TexturePtr, body: untyped) =
     let prev = getRenderTarget(c.renderer)
     discard setRenderTarget(c.renderer, tex)

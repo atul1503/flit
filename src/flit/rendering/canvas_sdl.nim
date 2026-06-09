@@ -187,6 +187,17 @@ when not defined(js):
       texture*:      TexturePtr
       textureDirty*: bool
 
+  proc disposeSubCanvas*(s: SdlSubCanvas) =
+    ## Releases the SDL texture this sub-canvas holds. Safe to
+    ## call multiple times. Call when a `RepaintBoundary` is
+    ## unmounted to avoid leaking GPU memory; otherwise the
+    ## texture stays alive until the SDL renderer itself is
+    ## destroyed.
+    if s.isNil: return
+    if not s.texture.isNil:
+      destroyTexture(s.texture)
+      s.texture = nil
+
   proc newSdlSubCanvas*(parent: SdlCanvas, w, h: int): SdlSubCanvas =
     ## Builds a child sub-canvas backed by its own Pixie image. The
     ## texture is created lazily on first composite. Fonts are

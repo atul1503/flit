@@ -161,3 +161,69 @@ suite "TextField undo / redo / clipboard":
     check c.text == "abc"
     check c.cursor == 1
     check c.selectionEnd == 3
+
+suite "TextField UTF-8 handling":
+  test "backspace removes a full multi-byte codepoint (accented char)":
+    # 'é' is 2 bytes in UTF-8 (0xC3 0xA9).
+    let c = newTextEditingController("café")
+    check c.text.len == 5   # 4 ASCII chars + 1 byte for é = 5? no
+    # Actually café = c, a, f, é = c(1) + a(1) + f(1) + é(2) = 5 bytes
+    c.cursor = 5; c.selectionEnd = 5
+    c.backspace()
+    check c.text == "caf"   # full é gone, not just one byte
+    check c.cursor == 3
+
+  test "backspace on emoji removes all 4 bytes":
+    # '👋' is 4 bytes in UTF-8 (0xF0 0x9F 0x91 0x8B).
+    let c = newTextEditingController("hi👋")
+    let initialLen = c.text.len  # 2 + 4 = 6
+    check initialLen == 6
+    c.cursor = initialLen; c.selectionEnd = initialLen
+    c.backspace()
+    check c.text == "hi"
+    check c.cursor == 2
+
+  test "forwardDelete removes a full multi-byte codepoint":
+    let c = newTextEditingController("éclair")
+    c.cursor = 0; c.selectionEnd = 0
+    c.forwardDelete()
+    check c.text == "clair"   # full é gone
+    check c.cursor == 0
+
+  test "moveRight advances by full codepoint":
+    let c = newTextEditingController("a😀b")
+    c.cursor = 0; c.selectionEnd = 0
+    c.moveRight(false)
+    check c.cursor == 1   # past 'a'
+    c.moveRight(false)
+    check c.cursor == 5   # past '😀' (4 bytes)
+    c.moveRight(false)
+    check c.cursor == 6   # past 'b'
+
+  test "moveLeft retreats by full codepoint":
+    let c = newTextEditingController("a😀b")
+    c.cursor = c.text.len; c.selectionEnd = c.text.len
+    c.moveLeft(false)
+    check c.cursor == 5   # back to start of 'b'
+    c.moveLeft(false)
+    check c.cursor == 1   # back to start of '😀'
+    c.moveLeft(false)
+    check c.cursor == 0   # back to start of 'a'
+
+  test "insertText with multi-byte content is preserved":
+    let c = newTextEditingController("hello ")
+    c.cursor = 6; c.selectionEnd = 6
+    c.insertText("世界", 0)
+    check c.text == "hello 世界"
+    # cursor advanced by byte length of the inserted UTF-8 (6 bytes)
+    check c.cursor == 12
+
+  test "mixed editing: type, navigate, delete with emoji":
+    let c = newTextEditingController("")
+    c.insertText("a🎉b", 0)
+    check c.text == "a🎉b"
+    c.moveLeft(false)              # before 'b'
+    c.moveLeft(false)              # before 🎉
+    c.forwardDelete()              # remove 🎉
+    check c.text == "ab"
+    check c.cursor == 1
