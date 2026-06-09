@@ -22,6 +22,18 @@ type
     name*: string
     exts*: seq[string]
 
+# Pluggable backends. Tests can swap these to avoid spawning real
+# native dialogs. Default implementations are installed below per
+# platform.
+var openFileImpl*: proc(title: string, filters: seq[FileFilter]): string {.closure.} =
+  proc(title: string, filters: seq[FileFilter]): string = ""
+
+var saveFileImpl*: proc(title, defaultName: string): string {.closure.} =
+  proc(title, defaultName: string): string = ""
+
+var pickFolderImpl*: proc(title: string): string {.closure.} =
+  proc(title: string): string = ""
+
 when defined(macosx):
   proc osascriptPick(script: string): string =
     try:
@@ -34,7 +46,7 @@ when defined(macosx):
     except CatchableError:
       result = ""
 
-  proc openFileImpl(title: string, filters: seq[FileFilter]): string =
+  proc macOpenFile(title: string, filters: seq[FileFilter]): string =
     var ofTypes = ""
     if filters.len > 0:
       var exts: seq[string]
@@ -46,14 +58,18 @@ when defined(macosx):
                  title & "\"" & ofTypes & ")"
     osascriptPick(script)
 
-  proc saveFileImpl(title, defaultName: string): string =
+  proc macSaveFile(title, defaultName: string): string =
     let script = "POSIX path of (choose file name with prompt \"" &
                  title & "\" default name \"" & defaultName & "\")"
     osascriptPick(script)
 
-  proc pickFolderImpl(title: string): string =
+  proc macPickFolder(title: string): string =
     let script = "POSIX path of (choose folder with prompt \"" & title & "\")"
     osascriptPick(script)
+
+  openFileImpl = macOpenFile
+  saveFileImpl = macSaveFile
+  pickFolderImpl = macPickFolder
 
 elif defined(linux):
   proc zenityAvailable(): bool =
@@ -69,7 +85,7 @@ elif defined(linux):
     except CatchableError:
       result = ""
 
-  proc openFileImpl(title: string, filters: seq[FileFilter]): string =
+  proc linuxOpenFile(title: string, filters: seq[FileFilter]): string =
     if zenityAvailable():
       var args = @["--file-selection", "--title=" & title]
       for f in filters:
@@ -81,7 +97,7 @@ elif defined(linux):
       runProc("kdialog", @["--getopenfilename", "", "", "--title", title])
     else: ""
 
-  proc saveFileImpl(title, defaultName: string): string =
+  proc linuxSaveFile(title, defaultName: string): string =
     if zenityAvailable():
       runProc("zenity", @["--file-selection", "--save",
                           "--confirm-overwrite",
@@ -91,13 +107,17 @@ elif defined(linux):
       runProc("kdialog", @["--getsavefilename", defaultName, "", "--title", title])
     else: ""
 
-  proc pickFolderImpl(title: string): string =
+  proc linuxPickFolder(title: string): string =
     if zenityAvailable():
       runProc("zenity", @["--file-selection", "--directory",
                           "--title=" & title])
     elif kdialogAvailable():
       runProc("kdialog", @["--getexistingdirectory", "", "--title", title])
     else: ""
+
+  openFileImpl = linuxOpenFile
+  saveFileImpl = linuxSaveFile
+  pickFolderImpl = linuxPickFolder
 
 elif defined(windows):
   proc psPick(script: string): string =
@@ -109,7 +129,7 @@ elif defined(windows):
     except CatchableError:
       result = ""
 
-  proc openFileImpl(title: string, filters: seq[FileFilter]): string =
+  proc winOpenFile(title: string, filters: seq[FileFilter]): string =
     var filter = "All files (*.*)|*.*"
     if filters.len > 0:
       var parts: seq[string]
@@ -127,7 +147,7 @@ elif defined(windows):
     """
     psPick(script)
 
-  proc saveFileImpl(title, defaultName: string): string =
+  proc winSaveFile(title, defaultName: string): string =
     let script = """
       Add-Type -AssemblyName System.Windows.Forms
       $d = New-Object System.Windows.Forms.SaveFileDialog
@@ -137,7 +157,7 @@ elif defined(windows):
     """
     psPick(script)
 
-  proc pickFolderImpl(title: string): string =
+  proc winPickFolder(title: string): string =
     let script = """
       Add-Type -AssemblyName System.Windows.Forms
       $d = New-Object System.Windows.Forms.FolderBrowserDialog
@@ -146,10 +166,9 @@ elif defined(windows):
     """
     psPick(script)
 
-else:
-  proc openFileImpl(title: string, filters: seq[FileFilter]): string = ""
-  proc saveFileImpl(title, defaultName: string): string = ""
-  proc pickFolderImpl(title: string): string = ""
+  openFileImpl = winOpenFile
+  saveFileImpl = winSaveFile
+  pickFolderImpl = winPickFolder
 
 proc openFile*(title: string = "Open file",
                filters: seq[FileFilter] = @[]): string =

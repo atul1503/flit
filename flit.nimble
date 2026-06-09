@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.10.0"
+version       = "0.10.1"
 author        = "Atul Tripathi"
 description   = "Flit: a Flutter-inspired cross-platform UI toolkit for Nim. Declarative widgets, hot reload, single codebase for desktop, mobile, web, and embedded."
 license       = "BSD-3-Clause"
@@ -80,6 +80,24 @@ task test, "Run test suite":
   exec "nim c -r tests/test_image.nim"
   exec "nim c -r tests/test_iteration_safety.nim"
   exec "nim c -r tests/test_edge_inputs.nim"
+  exec "nim c -r tests/test_tier1_drag_drop.nim"
+  exec "nim c -r tests/test_tier1_menu.nim"
+  exec "nim c -r tests/test_tier1_file_picker.nim"
+  exec "nim c -r tests/test_tier1_image_clipboard.nim"
+  exec "nim c -r tests/test_tier1_a11y_bridge.nim"
+  exec "nim c -r tests/test_tier1_multi_window.nim"
+  exec "nim c -r tests/test_tier2_text_field_extended.nim"
+  exec "nim c -r tests/test_tier2_native_dialogs.nim"
+  exec "nim c -r tests/test_tier2_system_tray.nim"
+  exec "nim c -r tests/test_tier2_notifications.nim"
+  exec "nim c -r tests/test_tier2_spellcheck.nim"
+  exec "nim c -r tests/test_tier2_ime_composing.nim"
+  exec "nim c -r tests/test_tier3_multitouch.nim"
+  exec "nim c -r tests/test_tier3_haptics.nim"
+  exec "nim c -r tests/test_tier3_system_state.nim"
+  exec "nim c -r tests/test_tier3_locale_format.nim"
+  exec "nim c -r tests/test_tier3_window_decorations.nim"
+  exec "nim c -r tests/test_tier3_pickers.nim"
 
 task fmt, "Format code with nimpretty":
   exec "find src tests examples -name '*.nim' -exec nimpretty {} \\;"

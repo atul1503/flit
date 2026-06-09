@@ -22,22 +22,14 @@ type
   NotificationKind* = enum
     nkInfo, nkWarning, nkError
 
-proc showNotification*(title, body: string,
-                       icon: string = "",
-                       kind: NotificationKind = nkInfo): bool =
-  ## Shows a transient OS notification. Returns true if the
-  ## platform helper was found and invoked successfully.
-  ##
-  ## Inputs:
-  ## - `title`: notification title (bold line).
-  ## - `body`: notification body text.
-  ## - `icon`: absolute path to a PNG icon. Some platforms ignore
-  ##   this; pass empty for default.
-  ## - `kind`: hint for urgency / styling. Linux notify-send maps
-  ##   these to `--urgency`; macOS and Windows ignore.
-  ##
-  ## Effect: fires-and-forgets. The notification appears in the
-  ## OS notification center / popup.
+# Pluggable backend. Tests can swap this to count invocations
+# without spawning real native notifications.
+var showNotificationImpl*: proc(title, body, icon: string,
+                                kind: NotificationKind): bool {.closure.} =
+  proc(title, body, icon: string, kind: NotificationKind): bool = false
+
+proc defaultShowNotification(title, body, icon: string,
+                             kind: NotificationKind): bool =
   let safeTitle = title.replace("\"", "\\\"")
   let safeBody = body.replace("\"", "\\\"")
   when defined(macosx):
@@ -86,3 +78,23 @@ proc showNotification*(title, body: string,
       return false
   else:
     return false
+
+showNotificationImpl = defaultShowNotification
+
+proc showNotification*(title, body: string,
+                       icon: string = "",
+                       kind: NotificationKind = nkInfo): bool =
+  ## Shows a transient OS notification. Returns true if the
+  ## platform helper was found and invoked successfully.
+  ##
+  ## Inputs:
+  ## - `title`: notification title (bold line).
+  ## - `body`: notification body text.
+  ## - `icon`: absolute path to a PNG icon. Some platforms ignore
+  ##   this; pass empty for default.
+  ## - `kind`: hint for urgency / styling. Linux notify-send maps
+  ##   these to `--urgency`; macOS and Windows ignore.
+  ##
+  ## Effect: fires-and-forgets. The notification appears in the
+  ## OS notification center / popup.
+  showNotificationImpl(title, body, icon, kind)
