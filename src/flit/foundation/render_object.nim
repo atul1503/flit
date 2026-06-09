@@ -325,7 +325,16 @@ proc markNeedsPaint*(r: RenderObject) =
   ## not layout. Also invokes `absorbPaintMark` on every render
   ## object along the walk so cache-bearing nodes (RepaintBoundary)
   ## can invalidate their cached output.
-  if r.isNil or r.needsPaint: return
+  ##
+  ## Important: the walk does NOT short-circuit on `needsPaint`
+  ## being already set, because a RepaintBoundary clears its own
+  ## `cacheDirty` flag at the END of its paint pass while
+  ## `needsPaint` on descendants persists across frames. If we
+  ## bailed out on `needsPaint = true`, the boundary's
+  ## `absorbPaintMark` would never run again after the first frame
+  ## and its cache would go stale (the bug that broke typing into
+  ## any TextField inside a RepaintBoundary).
+  if r.isNil: return
   r.needsPaint = true
   r.absorbPaintMark()
   if not r.parent.isNil:

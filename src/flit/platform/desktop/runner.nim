@@ -152,9 +152,12 @@ proc runDesktop*(rootWidget: Widget,
   # Optional warmup probe: paint N additional frames back-to-back so
   # we can see steady-state cost after caches warm. Enabled via
   # FLIT_PAINT_PROBE=<count>.
-  if getEnv("FLIT_SAVE_FRAME").len > 0:
-    canvas.image.writeFile(getEnv("FLIT_SAVE_FRAME"))
-    echo "[flit] saved first-frame snapshot to ", getEnv("FLIT_SAVE_FRAME")
+  proc saveSnapshotIfRequested() =
+    if getEnv("FLIT_SAVE_FRAME").len > 0:
+      canvas.image.writeFile(getEnv("FLIT_SAVE_FRAME"))
+      echo "[flit] saved snapshot to ", getEnv("FLIT_SAVE_FRAME")
+
+  saveSnapshotIfRequested()
   if getEnv("FLIT_TAP_PROBE").len > 0:
     # Synthetically tap at coordinates from FLIT_TAP_PROBE="x,y"
     # then type from FLIT_TAP_PROBE_TEXT. Drives the binding directly
@@ -209,6 +212,9 @@ proc runDesktop*(rootWidget: Widget,
       runLayout(rootElement, tightFor(binding.surfaceSize))
       canvas.clear(0xFFFFFFFF'u32)
       runPaint(rootElement, canvas)
+    # After the probe text is fully typed, snapshot again so the
+    # caller can see the post-typing canvas state.
+    saveSnapshotIfRequested()
   if getEnv("FLIT_TYPE_PROBE").len > 0:
     # Simulate typing: focus the first registered focus node (which
     # is the search field), inject 10 TextInput-equivalent key

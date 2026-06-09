@@ -59,6 +59,37 @@ suite "amazon search bar end-to-end input":
     # keystroke was consumed, dirtyRoots got at least one entry.
     check b.dirtyRoots.len > 0
 
+  test "second keystroke also invalidates boundary cache (regression for 0.11.5)":
+    # The bug was: markNeedsPaint short-circuited on r.needsPaint=true,
+    # which persisted across frames. After the first paint set the
+    # flag, subsequent keystrokes never reached the enclosing
+    # RepaintBoundary's absorbPaintMark, so cacheDirty stayed false
+    # and the boundary kept compositing the stale "empty search bar"
+    # bitmap forever. User saw the cursor but no typed characters.
+    let canvas = newDummyCanvas()
+    let b = newBinding(canvas, Size(width: 1024, height: 768))
+    let root = mountElement(nil, amzn.homeScreen(), 0)
+    b.rootElement = root
+    runLayout(root, tightFor(1024, 768))
+    runPaint(root, canvas)
+    dispatchTap(b, Offset(dx: 500, dy: 30))
+    # Two keystrokes in a row. Both must dirty the tree.
+    let fm = focusManager()
+    discard fm.handleKeyEvent(KeyEvent(kind: keDown, text: "a"))
+    check b.dirtyRoots.len > 0
+    # Drain + paint so dirty flags settle and the boundary's cache
+    # is rebuilt, mirroring what the desktop runner does each frame.
+    let snap = b.dirtyRoots
+    b.dirtyRoots.setLen(0)
+    for r in snap: rebuildElement(r)
+    runLayout(root, tightFor(1024, 768))
+    runPaint(root, canvas)
+    # Second keystroke after a complete paint cycle. This is where
+    # the bug bit: needsPaint was still true from the first paint,
+    # so the walk stopped before reaching the boundary.
+    discard fm.handleKeyEvent(KeyEvent(kind: keDown, text: "b"))
+    check b.dirtyRoots.len > 0
+
   test "tap at y=50 still inside header height also routes":
     # User reports tapping in the search bar area lands focus.
     # Make sure 50px down still hits the gesture detector since
