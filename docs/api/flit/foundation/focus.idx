@@ -17,15 +17,17 @@ nim	FocusKey	flit/foundation/focus.html#FocusKey	enum FocusKey		20
 nim	KeyHandler	flit/foundation/focus.html#KeyHandler	type KeyHandler		29
 nim	TextHandler	flit/foundation/focus.html#TextHandler	type TextHandler		30
 nim	ShortcutHandler	flit/foundation/focus.html#ShortcutHandler	type ShortcutHandler		31
-nim	FocusNode	flit/foundation/focus.html#FocusNode	type FocusNode		34
-nim	FocusManager	flit/foundation/focus.html#FocusManager	type FocusManager		48
-nim	globalFocus	flit/foundation/focus.html#globalFocus	var globalFocus		58
-nim	focusManager	flit/foundation/focus.html#focusManager_2	proc focusManager(): FocusManager		60
-nim	newFocusNode	flit/foundation/focus.html#newFocusNode,KeyHandler,TextHandler,ShortcutHandler,proc(bool)	proc newFocusNode(onKey: KeyHandler = nil; onText: TextHandler = nil;\n             onShortcut: ShortcutHandler = nil;\n             onFocusChange: proc (focused: bool) = nil): FocusNode		67
-nim	add	flit/foundation/focus.html#add,FocusManager,FocusNode	proc add(m: FocusManager; node: FocusNode)		77
-nim	remove	flit/foundation/focus.html#remove,FocusManager,FocusNode	proc remove(m: FocusManager; node: FocusNode)		85
-nim	focus	flit/foundation/focus.html#focus,FocusManager,FocusNode	proc focus(m: FocusManager; node: FocusNode)		99
-nim	unfocus	flit/foundation/focus.html#unfocus,FocusManager	proc unfocus(m: FocusManager)		114
-nim	next	flit/foundation/focus.html#next,FocusManager	proc next(m: FocusManager)		124
-nim	prev	flit/foundation/focus.html#prev,FocusManager	proc prev(m: FocusManager)		139
-nim	handleKeyEvent	flit/foundation/focus.html#handleKeyEvent,FocusManager,KeyEvent	proc handleKeyEvent(m: FocusManager; ev: KeyEvent): bool		155
+nim	ComposingHandler	flit/foundation/focus.html#ComposingHandler	type ComposingHandler		33
+nim	FocusNode	flit/foundation/focus.html#FocusNode	type FocusNode		39
+nim	FocusManager	flit/foundation/focus.html#FocusManager	type FocusManager		54
+nim	globalFocus	flit/foundation/focus.html#globalFocus	var globalFocus		64
+nim	focusManager	flit/foundation/focus.html#focusManager_2	proc focusManager(): FocusManager		66
+nim	newFocusNode	flit/foundation/focus.html#newFocusNode,KeyHandler,TextHandler,ShortcutHandler,proc(bool)	proc newFocusNode(onKey: KeyHandler = nil; onText: TextHandler = nil;\n             onShortcut: ShortcutHandler = nil;\n             onFocusChange: proc (focused: bool) = nil): FocusNode		73
+nim	add	flit/foundation/focus.html#add,FocusManager,FocusNode	proc add(m: FocusManager; node: FocusNode)		83
+nim	remove	flit/foundation/focus.html#remove,FocusManager,FocusNode	proc remove(m: FocusManager; node: FocusNode)		91
+nim	focus	flit/foundation/focus.html#focus,FocusManager,FocusNode	proc focus(m: FocusManager; node: FocusNode)		105
+nim	unfocus	flit/foundation/focus.html#unfocus,FocusManager	proc unfocus(m: FocusManager)		120
+nim	next	flit/foundation/focus.html#next,FocusManager	proc next(m: FocusManager)		130
+nim	prev	flit/foundation/focus.html#prev,FocusManager	proc prev(m: FocusManager)		145
+nim	handleComposingEvent	flit/foundation/focus.html#handleComposingEvent,FocusManager,string,int	proc handleComposingEvent(m: FocusManager; composing: string; cursorPos: int)		161
+nim	handleKeyEvent	flit/foundation/focus.html#handleKeyEvent,FocusManager,KeyEvent	proc handleKeyEvent(m: FocusManager; ev: KeyEvent): bool		169

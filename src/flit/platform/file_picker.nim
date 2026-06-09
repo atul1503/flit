@@ -27,12 +27,19 @@ type
 # platform.
 var openFileImpl*: proc(title: string, filters: seq[FileFilter]): string {.closure.} =
   proc(title: string, filters: seq[FileFilter]): string = ""
+  ## Backend used by `openFile`. Swap in tests to return a fake
+  ## path without spawning a real OS picker. The platform-specific
+  ## default is installed at module load time.
 
 var saveFileImpl*: proc(title, defaultName: string): string {.closure.} =
   proc(title, defaultName: string): string = ""
+  ## Backend used by `saveFile`. Swap in tests. The
+  ## platform-specific default is installed at module load time.
 
 var pickFolderImpl*: proc(title: string): string {.closure.} =
   proc(title: string): string = ""
+  ## Backend used by `pickFolder`. Swap in tests. The
+  ## platform-specific default is installed at module load time.
 
 when defined(macosx):
   proc osascriptPick(script: string): string =

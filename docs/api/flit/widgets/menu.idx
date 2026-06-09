@@ -1,0 +1,25 @@
+nimTitle	menu	flit/widgets/menu.html	module src/flit/widgets/menu		0
+nim	MenuItem	flit/widgets/menu.html#MenuItem	object MenuItem		22
+nim	MenuBar	flit/widgets/menu.html#MenuBar	type MenuBar		31
+nim	MenuEntry	flit/widgets/menu.html#MenuEntry	object MenuEntry		36
+nim	RenderMenuBar	flit/widgets/menu.html#RenderMenuBar	type RenderMenuBar		40
+nim	menuItem	flit/widgets/menu.html#menuItem,string,proc),string,bool	proc menuItem(label: string; onTap: proc () = nil; shortcut: string = "";\n         enabled: bool = true): MenuItem		44
+nim	menuSeparator	flit/widgets/menu.html#menuSeparator	proc menuSeparator(): MenuItem		50
+nim	menuEntry	flit/widgets/menu.html#menuEntry,string,seq[MenuItem]	proc menuEntry(title: string; items: seq[MenuItem]): MenuEntry		54
+nim	widgetTypeName	flit/widgets/menu.html#widgetTypeName.e,MenuBar	method widgetTypeName(w: MenuBar): string		58
+nim	createElement	flit/widgets/menu.html#createElement.e,MenuBar	method createElement(w: MenuBar): Element		59
+nim	createRenderObject	flit/widgets/menu.html#createRenderObject.e,MenuBar,BuildContext	method createRenderObject(w: MenuBar; ctx: BuildContext): RenderObject		60
+nim	updateRenderObject	flit/widgets/menu.html#updateRenderObject.e,MenuBar,BuildContext,RenderObject	method updateRenderObject(w: MenuBar; ctx: BuildContext; r: RenderObject)		62
+nim	performLayout	flit/widgets/menu.html#performLayout.e,RenderMenuBar	method performLayout(r: RenderMenuBar)		66
+nim	paint	flit/widgets/menu.html#paint.e,RenderMenuBar,PaintingContext,Offset	method paint(r: RenderMenuBar; ctx: PaintingContext; offset: Offset)		72
+nim	hitTest	flit/widgets/menu.html#hitTest.e,RenderMenuBar,HitTestResult,Offset	method hitTest(r: RenderMenuBar; htResult: HitTestResult; position: Offset): bool		91
+nim	menuBar	flit/widgets/menu.html#menuBar,seq[MenuEntry],Key	proc menuBar(menus: seq[MenuEntry]; key: Key = nil): MenuBar		95
+nim	ContextMenu	flit/widgets/menu.html#ContextMenu	type ContextMenu		111
+nim	ContextMenuState	flit/widgets/menu.html#ContextMenuState	type ContextMenuState		119
+nim	widgetTypeName	flit/widgets/menu.html#widgetTypeName.e,ContextMenu	method widgetTypeName(w: ContextMenu): string		123
+nim	createElement	flit/widgets/menu.html#createElement.e,ContextMenu	method createElement(w: ContextMenu): Element		124
+nim	createState	flit/widgets/menu.html#createState.e,ContextMenu	method createState(w: ContextMenu): State		125
+nim	build	flit/widgets/menu.html#build.e,ContextMenuState,BuildContext	method build(s: ContextMenuState; ctx: BuildContext): Widget		128
+nim	contextMenu	flit/widgets/menu.html#contextMenu,Widget,seq[MenuItem],Key	proc contextMenu(child: Widget; items: seq[MenuItem]; key: Key = nil): ContextMenu		137
+nimgrp	widgettypename	flit/widgets/menu.html#widgetTypeName-methods-all	method		58
+nimgrp	createelement	flit/widgets/menu.html#createElement-methods-all	method		59

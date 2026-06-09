@@ -20,17 +20,25 @@ import std/[options]
 
 type
   TrayMenuItem* = object
+    ## One row in the tray menu. A standard item carries a label
+    ## and an `onTap` callback; a `separator` row renders as a
+    ## divider and is non-interactive.
     label*: string
     onTap*: proc() {.closure.}
     separator*: bool
 
   TrayIcon* = ref object
+    ## The active system-tray registration. One per app. Created
+    ## by `setTrayIcon`; cleared by `removeTrayIcon`.
     iconPath*: string
     tooltip*:  string
     menu*:     seq[TrayMenuItem]
     onClick*:  proc() {.closure.}
 
 var activeTray* {.threadvar.}: TrayIcon
+  ## The currently installed tray icon, or nil if none. Exposed
+  ## so callers can inspect the active registration; mutate via
+  ## `setTrayIcon` / `removeTrayIcon`.
 
 proc setTrayIcon*(iconPath: string,
                   tooltip: string = "",
@@ -58,7 +66,11 @@ proc removeTrayIcon*() =
   activeTray = nil
 
 proc trayMenuItem*(label: string, onTap: proc() = nil): TrayMenuItem =
+  ## Builds a standard tray menu row. `onTap` fires when the user
+  ## picks the row; nil makes the row inert (still visible).
   TrayMenuItem(label: label, onTap: onTap, separator: false)
 
 proc trayMenuSeparator*(): TrayMenuItem =
+  ## Builds a divider row for the tray menu. Renders as a thin
+  ## horizontal line between groups of items.
   TrayMenuItem(separator: true)

@@ -1,0 +1,7 @@
+nimTitle	notifications	flit/platform/notifications.html	module src/flit/platform/notifications		0
+nim	nkInfo	flit/platform/notifications.html#nkInfo	NotificationKind.nkInfo		22
+nim	nkWarning	flit/platform/notifications.html#nkWarning	NotificationKind.nkWarning		22
+nim	nkError	flit/platform/notifications.html#nkError	NotificationKind.nkError		22
+nim	NotificationKind	flit/platform/notifications.html#NotificationKind	enum NotificationKind		22
+nim	showNotificationImpl	flit/platform/notifications.html#showNotificationImpl	var showNotificationImpl		30
+nim	showNotification	flit/platform/notifications.html#showNotification,string,string,string,NotificationKind	proc showNotification(title, body: string; icon: string = "";\n                 kind: NotificationKind = nkInfo): bool		90

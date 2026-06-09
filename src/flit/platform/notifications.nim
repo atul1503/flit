@@ -20,6 +20,9 @@ import std/[osproc, os, strutils, options]
 
 type
   NotificationKind* = enum
+    ## Urgency / styling hint for the notification. On Linux this
+    ## maps to `notify-send --urgency=low|normal|critical`; on
+    ## macOS and Windows the platform ignores it.
     nkInfo, nkWarning, nkError
 
 # Pluggable backend. Tests can swap this to count invocations
@@ -27,6 +30,9 @@ type
 var showNotificationImpl*: proc(title, body, icon: string,
                                 kind: NotificationKind): bool {.closure.} =
   proc(title, body, icon: string, kind: NotificationKind): bool = false
+  ## Backend used by `showNotification`. Swap in tests to count
+  ## invocations without firing a real OS notification. The
+  ## platform-specific default is installed at module load time.
 
 proc defaultShowNotification(title, body, icon: string,
                              kind: NotificationKind): bool =

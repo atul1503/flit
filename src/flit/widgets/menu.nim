@@ -109,6 +109,10 @@ proc menuBar*(menus: seq[MenuEntry], key: Key = nil): MenuBar =
 
 type
   ContextMenu* = ref object of StatefulWidget
+    ## Wraps a child so a long-press (right-click in the future)
+    ## pops up a menu of `items` near the pointer. The items are
+    ## standard `MenuItem`s; their `onTap` fires when the user
+    ## picks one.
     items*: seq[MenuItem]
     child*: Widget
 

@@ -1,0 +1,10 @@
+nimTitle	a11y_bridge	flit/platform/a11y_bridge.html	module src/flit/platform/a11y_bridge		0
+nim	SemanticsProvider	flit/platform/a11y_bridge.html#SemanticsProvider	type SemanticsProvider		25
+nim	activeProvider	flit/platform/a11y_bridge.html#activeProvider	var activeProvider		30
+nim	lastSnapshot	flit/platform/a11y_bridge.html#lastSnapshot	var lastSnapshot		34
+nim	exportSemanticsJsonInternal	flit/platform/a11y_bridge.html#exportSemanticsJsonInternal,Element	proc exportSemanticsJsonInternal(root: Element): string		39
+nim	defaultProvider	flit/platform/a11y_bridge.html#defaultProvider,Element	proc defaultProvider(root: Element): string		46
+nim	registerSemanticsProvider	flit/platform/a11y_bridge.html#registerSemanticsProvider,SemanticsProvider	proc registerSemanticsProvider(provider: SemanticsProvider)		50
+nim	exportSemanticsJson	flit/platform/a11y_bridge.html#exportSemanticsJson,Element	proc exportSemanticsJson(root: Element): string		56
+nim	dumpSemanticsToFile	flit/platform/a11y_bridge.html#dumpSemanticsToFile,Element,string	proc dumpSemanticsToFile(root: Element; path: string = "")		65
+nim	setupMacAccessibility	flit/platform/a11y_bridge.html#setupMacAccessibility	proc setupMacAccessibility()		83

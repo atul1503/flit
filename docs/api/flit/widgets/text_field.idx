@@ -4,44 +4,46 @@ nim	clipboardSet	flit/widgets/text_field.html#clipboardSet	var clipboardSet		29
 nim	EditSnapshot	flit/widgets/text_field.html#EditSnapshot	object EditSnapshot		32
 nim	TextEditingController	flit/widgets/text_field.html#TextEditingController	type TextEditingController		38
 nim	TextField	flit/widgets/text_field.html#TextField	type TextField		51
-nim	TextFieldState	flit/widgets/text_field.html#TextFieldState	type TextFieldState		62
-nim	RenderTextField	flit/widgets/text_field.html#RenderTextField	type RenderTextField		67
-nim	newTextEditingController	flit/widgets/text_field.html#newTextEditingController,string	proc newTextEditingController(initial: string = ""): TextEditingController		78
-nim	value	flit/widgets/text_field.html#value,TextEditingController	proc value(c: TextEditingController): string		84
-nim	value=	flit/widgets/text_field.html#value=,TextEditingController,string	proc value=(c: TextEditingController; v: string)		86
-nim	addListener	flit/widgets/text_field.html#addListener,TextEditingController,proc(string)	proc addListener(c: TextEditingController; fn: proc (value: string))		95
-nim	snapshot	flit/widgets/text_field.html#snapshot,TextEditingController	proc snapshot(c: TextEditingController): EditSnapshot		98
-nim	restore	flit/widgets/text_field.html#restore,TextEditingController,EditSnapshot	proc restore(c: TextEditingController; s: EditSnapshot)		103
-nim	pushUndo	flit/widgets/text_field.html#pushUndo,TextEditingController	proc pushUndo(c: TextEditingController)		113
-nim	undo	flit/widgets/text_field.html#undo,TextEditingController	proc undo(c: TextEditingController): bool		123
-nim	redo	flit/widgets/text_field.html#redo,TextEditingController	proc redo(c: TextEditingController): bool		133
-nim	clearSelection	flit/widgets/text_field.html#clearSelection,TextEditingController	proc clearSelection(c: TextEditingController)		143
-nim	hasSelection	flit/widgets/text_field.html#hasSelection,TextEditingController	proc hasSelection(c: TextEditingController): bool		146
-nim	selectionRange	flit/widgets/text_field.html#selectionRange,TextEditingController	proc selectionRange(c: TextEditingController): tuple[lo, hi: int]		149
-nim	deleteSelection	flit/widgets/text_field.html#deleteSelection,TextEditingController	proc deleteSelection(c: TextEditingController): bool		153
-nim	insertText	flit/widgets/text_field.html#insertText,TextEditingController,string,int	proc insertText(c: TextEditingController; s: string; maxLength: int)		162
-nim	backspace	flit/widgets/text_field.html#backspace,TextEditingController	proc backspace(c: TextEditingController)		173
-nim	forwardDelete	flit/widgets/text_field.html#forwardDelete,TextEditingController	proc forwardDelete(c: TextEditingController)		181
-nim	selectAll	flit/widgets/text_field.html#selectAll,TextEditingController	proc selectAll(c: TextEditingController)		187
-nim	selectRange	flit/widgets/text_field.html#selectRange,TextEditingController,int,int	proc selectRange(c: TextEditingController; lo, hi: int)		193
-nim	copyToString	flit/widgets/text_field.html#copyToString,TextEditingController	proc copyToString(c: TextEditingController): string		200
-nim	deleteSelectionWithUndo	flit/widgets/text_field.html#deleteSelectionWithUndo,TextEditingController	proc deleteSelectionWithUndo(c: TextEditingController): bool		207
-nim	moveLeft	flit/widgets/text_field.html#moveLeft,TextEditingController,bool	proc moveLeft(c: TextEditingController; extend: bool)		214
-nim	moveRight	flit/widgets/text_field.html#moveRight,TextEditingController,bool	proc moveRight(c: TextEditingController; extend: bool)		218
-nim	moveHome	flit/widgets/text_field.html#moveHome,TextEditingController,bool	proc moveHome(c: TextEditingController; extend: bool)		222
-nim	moveEnd	flit/widgets/text_field.html#moveEnd,TextEditingController,bool	proc moveEnd(c: TextEditingController; extend: bool)		226
-nim	widgetTypeName	flit/widgets/text_field.html#widgetTypeName.e,TextField	method widgetTypeName(w: TextField): string		230
-nim	createElement	flit/widgets/text_field.html#createElement.e,TextField	method createElement(w: TextField): Element		231
-nim	createState	flit/widgets/text_field.html#createState.e,TextField	method createState(w: TextField): State		232
-nim	TextFieldHost	flit/widgets/text_field.html#TextFieldHost	type TextFieldHost		323
-nim	build	flit/widgets/text_field.html#build.e,TextFieldState,BuildContext	method build(s: TextFieldState; ctx: BuildContext): Widget		329
-nim	widgetTypeName	flit/widgets/text_field.html#widgetTypeName.e,TextFieldHost	method widgetTypeName(w: TextFieldHost): string		347
-nim	createElement	flit/widgets/text_field.html#createElement.e,TextFieldHost	method createElement(w: TextFieldHost): Element		348
-nim	createRenderObject	flit/widgets/text_field.html#createRenderObject.e,TextFieldHost,BuildContext	method createRenderObject(w: TextFieldHost; ctx: BuildContext): RenderObject		349
-nim	updateRenderObject	flit/widgets/text_field.html#updateRenderObject.e,TextFieldHost,BuildContext,RenderObject	method updateRenderObject(w: TextFieldHost; ctx: BuildContext; r: RenderObject)		354
-nim	performLayout	flit/widgets/text_field.html#performLayout.e,RenderTextField	method performLayout(r: RenderTextField)		365
-nim	paint	flit/widgets/text_field.html#paint.e,RenderTextField,PaintingContext,Offset	method paint(r: RenderTextField; ctx: PaintingContext; offset: Offset)		373
-nim	hitTest	flit/widgets/text_field.html#hitTest.e,RenderTextField,HitTestResult,Offset	method hitTest(r: RenderTextField; htResult: HitTestResult; position: Offset): bool		419
-nim	textField	flit/widgets/text_field.html#textField,string,TextEditingController,string,TextStyle,proc(string),proc(string),bool,int,Key	proc textField(initialValue: string = ""; controller: TextEditingController = nil;\n          placeholder: string = ""; style: TextStyle = defaultTextStyle;\n          onChanged: proc (value: string) = nil;\n          onSubmitted: proc (value: string) = nil; enabled: bool = true;\n          maxLength: int = 0; key: Key = nil): TextField		423
-nimgrp	widgettypename	flit/widgets/text_field.html#widgetTypeName-methods-all	method		230
-nimgrp	createelement	flit/widgets/text_field.html#createElement-methods-all	method		231
+nim	TextFieldState	flit/widgets/text_field.html#TextFieldState	type TextFieldState		66
+nim	RenderTextField	flit/widgets/text_field.html#RenderTextField	type RenderTextField		71
+nim	newTextEditingController	flit/widgets/text_field.html#newTextEditingController,string	proc newTextEditingController(initial: string = ""): TextEditingController		84
+nim	value	flit/widgets/text_field.html#value,TextEditingController	proc value(c: TextEditingController): string		90
+nim	value=	flit/widgets/text_field.html#value=,TextEditingController,string	proc value=(c: TextEditingController; v: string)		92
+nim	addListener	flit/widgets/text_field.html#addListener,TextEditingController,proc(string)	proc addListener(c: TextEditingController; fn: proc (value: string))		104
+nim	snapshot	flit/widgets/text_field.html#snapshot,TextEditingController	proc snapshot(c: TextEditingController): EditSnapshot		107
+nim	restore	flit/widgets/text_field.html#restore,TextEditingController,EditSnapshot	proc restore(c: TextEditingController; s: EditSnapshot)		112
+nim	pushUndo	flit/widgets/text_field.html#pushUndo,TextEditingController	proc pushUndo(c: TextEditingController)		123
+nim	undo	flit/widgets/text_field.html#undo,TextEditingController	proc undo(c: TextEditingController): bool		133
+nim	redo	flit/widgets/text_field.html#redo,TextEditingController	proc redo(c: TextEditingController): bool		143
+nim	clearSelection	flit/widgets/text_field.html#clearSelection,TextEditingController	proc clearSelection(c: TextEditingController)		153
+nim	hasSelection	flit/widgets/text_field.html#hasSelection,TextEditingController	proc hasSelection(c: TextEditingController): bool		156
+nim	selectionRange	flit/widgets/text_field.html#selectionRange,TextEditingController	proc selectionRange(c: TextEditingController): tuple[lo, hi: int]		159
+nim	utf8Back	flit/widgets/text_field.html#utf8Back,string,int	proc utf8Back(s: string; byteIdx: int): int		171
+nim	utf8Forward	flit/widgets/text_field.html#utf8Forward,string,int	proc utf8Forward(s: string; byteIdx: int): int		180
+nim	deleteSelection	flit/widgets/text_field.html#deleteSelection,TextEditingController	proc deleteSelection(c: TextEditingController): bool		191
+nim	insertText	flit/widgets/text_field.html#insertText,TextEditingController,string,int	proc insertText(c: TextEditingController; s: string; maxLength: int)		200
+nim	backspace	flit/widgets/text_field.html#backspace,TextEditingController	proc backspace(c: TextEditingController)		211
+nim	forwardDelete	flit/widgets/text_field.html#forwardDelete,TextEditingController	proc forwardDelete(c: TextEditingController)		223
+nim	selectAll	flit/widgets/text_field.html#selectAll,TextEditingController	proc selectAll(c: TextEditingController)		231
+nim	selectRange	flit/widgets/text_field.html#selectRange,TextEditingController,int,int	proc selectRange(c: TextEditingController; lo, hi: int)		237
+nim	copyToString	flit/widgets/text_field.html#copyToString,TextEditingController	proc copyToString(c: TextEditingController): string		244
+nim	deleteSelectionWithUndo	flit/widgets/text_field.html#deleteSelectionWithUndo,TextEditingController	proc deleteSelectionWithUndo(c: TextEditingController): bool		251
+nim	moveLeft	flit/widgets/text_field.html#moveLeft,TextEditingController,bool	proc moveLeft(c: TextEditingController; extend: bool)		258
+nim	moveRight	flit/widgets/text_field.html#moveRight,TextEditingController,bool	proc moveRight(c: TextEditingController; extend: bool)		262
+nim	moveHome	flit/widgets/text_field.html#moveHome,TextEditingController,bool	proc moveHome(c: TextEditingController; extend: bool)		266
+nim	moveEnd	flit/widgets/text_field.html#moveEnd,TextEditingController,bool	proc moveEnd(c: TextEditingController; extend: bool)		270
+nim	widgetTypeName	flit/widgets/text_field.html#widgetTypeName.e,TextField	method widgetTypeName(w: TextField): string		274
+nim	createElement	flit/widgets/text_field.html#createElement.e,TextField	method createElement(w: TextField): Element		275
+nim	createState	flit/widgets/text_field.html#createState.e,TextField	method createState(w: TextField): State		276
+nim	TextFieldHost	flit/widgets/text_field.html#TextFieldHost	type TextFieldHost		372
+nim	build	flit/widgets/text_field.html#build.e,TextFieldState,BuildContext	method build(s: TextFieldState; ctx: BuildContext): Widget		387
+nim	widgetTypeName	flit/widgets/text_field.html#widgetTypeName.e,TextFieldHost	method widgetTypeName(w: TextFieldHost): string		428
+nim	createElement	flit/widgets/text_field.html#createElement.e,TextFieldHost	method createElement(w: TextFieldHost): Element		429
+nim	createRenderObject	flit/widgets/text_field.html#createRenderObject.e,TextFieldHost,BuildContext	method createRenderObject(w: TextFieldHost; ctx: BuildContext): RenderObject		430
+nim	updateRenderObject	flit/widgets/text_field.html#updateRenderObject.e,TextFieldHost,BuildContext,RenderObject	method updateRenderObject(w: TextFieldHost; ctx: BuildContext; r: RenderObject)		436
+nim	performLayout	flit/widgets/text_field.html#performLayout.e,RenderTextField	method performLayout(r: RenderTextField)		460
+nim	paint	flit/widgets/text_field.html#paint.e,RenderTextField,PaintingContext,Offset	method paint(r: RenderTextField; ctx: PaintingContext; offset: Offset)		477
+nim	hitTest	flit/widgets/text_field.html#hitTest.e,RenderTextField,HitTestResult,Offset	method hitTest(r: RenderTextField; htResult: HitTestResult; position: Offset): bool		586
+nim	textField	flit/widgets/text_field.html#textField,string,TextEditingController,string,TextStyle,proc(string),proc(string),bool,int,bool,bool,string,int,Key	proc textField(initialValue: string = ""; controller: TextEditingController = nil;\n          placeholder: string = ""; style: TextStyle = defaultTextStyle;\n          onChanged: proc (value: string) = nil;\n          onSubmitted: proc (value: string) = nil; enabled: bool = true;\n          maxLength: int = 0; multiline: bool = false;\n          obscureText: bool = false; obscureChar: string = "*";\n          maxLines: int = 0; key: Key = nil): TextField		590
+nimgrp	widgettypename	flit/widgets/text_field.html#widgetTypeName-methods-all	method		274
+nimgrp	createelement	flit/widgets/text_field.html#createElement-methods-all	method		275

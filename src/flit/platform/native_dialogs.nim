@@ -15,9 +15,16 @@ when not defined(js):
 
 type
   DialogKind* = enum
+    ## Visual style hint passed to native dialog APIs. Maps to
+    ## `SDL_MESSAGEBOX_INFORMATION`, `SDL_MESSAGEBOX_WARNING`,
+    ## `SDL_MESSAGEBOX_ERROR`. `dkQuestion` is treated as info on
+    ## platforms that have no native question icon.
     dkInfo, dkWarning, dkError, dkQuestion
 
   DialogChoice* = enum
+    ## Result returned by an interactive dialog. `dcOK` and
+    ## `dcCancel` are the standard two-button outcomes; `dcYes`
+    ## and `dcNo` are reserved for future yes/no variants.
     dcOK, dcCancel, dcYes, dcNo
 
 proc messageBox*(title, message: string,
@@ -43,6 +50,19 @@ proc confirm*(title, message: string,
               kind: DialogKind = dkQuestion): DialogChoice =
   ## Shows a modal dialog with two buttons. Returns the user's
   ## choice. Default button is OK; pressing Escape returns Cancel.
+  ##
+  ## Inputs:
+  ## - `title`: window title text.
+  ## - `message`: body text shown to the user.
+  ## - `okLabel`: text of the confirm button. Default `"OK"`.
+  ## - `cancelLabel`: text of the cancel button. Default `"Cancel"`.
+  ## - `kind`: visual style. Use `dkQuestion` for "are you sure"
+  ##   prompts.
+  ##
+  ## Returns `dcOK` if the user picked the confirm button (or
+  ## pressed Enter), `dcCancel` for cancel / Escape / close-box.
+  ## Blocks the calling thread until dismissed. On JS targets
+  ## this is a no-op that returns `dcCancel`.
   when defined(js):
     return dcCancel
   else:

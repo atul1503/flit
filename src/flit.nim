@@ -70,6 +70,9 @@ import flit/platform/spellcheck
 import flit/platform/haptics
 import flit/platform/system_state
 import flit/platform/locale_format
+when not defined(js):
+  import flit/platform/window_decorations
+  import flit/platform/desktop/multi_window
 import flit/material/material
 import flit/material/theme
 import flit/cupertino/cupertino
@@ -86,3 +89,6 @@ export widget, key, render_object, geometry, color, diagnostics, binding,
        a11y_bridge, notifications, spellcheck, haptics, system_state,
        locale_format,
        material, theme, cupertino, app
+
+when not defined(js):
+  export window_decorations, multi_window

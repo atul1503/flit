@@ -16,9 +16,15 @@ proc commandExists(name: string): bool = findExe(name).len > 0
 
 var copyImagePngImpl*: proc(pngBytes: string): bool =
   proc(pngBytes: string): bool = false
+  ## Backend used by `copyImagePng`. Swap in tests to capture the
+  ## bytes without writing to the real system clipboard. The
+  ## platform-specific default is installed at module load time.
 
 var pasteImagePngImpl*: proc(): string =
   proc(): string = ""
+  ## Backend used by `pasteImagePng`. Swap in tests to return
+  ## fake PNG bytes. The platform-specific default is installed
+  ## at module load time.
 
 when defined(macosx):
   proc macCopyImage(pngBytes: string): bool =

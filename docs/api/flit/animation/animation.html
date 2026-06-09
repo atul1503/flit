@@ -459,6 +459,7 @@
 <li><tt class="docutils literal"><span class="pre"><span class="Identifier">upper</span></span></tt>: maximum value. Default 1.</li>
 </ul>
 <p>Output: a fresh controller in <tt class="docutils literal"><span class="pre"><span class="Identifier">asDismissed</span></span></tt> state with <tt class="docutils literal"><span class="pre"><span class="Identifier">value</span> <span class="Operator">=</span> <span class="Identifier">lower</span></span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre"><span class="Identifier">durationSec</span></span></tt> of zero (or negative) is clamped to 1ms to avoid division by zero in the frame ticker. Animations that want to be effectively instant should set the value directly via <tt class="docutils literal"><span class="pre"><span class="Identifier">value</span> <span class="Operator">=</span></span></tt> instead of using <tt class="docutils literal"><span class="pre"><span class="Identifier">forward</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt>.</p>
 
     
   </dd>
@@ -590,7 +591,7 @@
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Sets the controller's value, clamped to <tt class="docutils literal"><span class="pre"><span class="Punctuation">[</span><span class="Identifier">lower</span><span class="Punctuation">,</span> <span class="Identifier">upper</span><span class="Punctuation">]</span></span></tt>. Notifies all listeners if the value changed. Does NOT change <tt class="docutils literal"><span class="pre"><span class="Identifier">status</span></span></tt>.
+    Sets the controller's value, clamped to <tt class="docutils literal"><span class="pre"><span class="Punctuation">[</span><span class="Identifier">lower</span><span class="Punctuation">,</span> <span class="Identifier">upper</span><span class="Punctuation">]</span></span></tt>. Notifies all listeners if the value changed. Does NOT change <tt class="docutils literal"><span class="pre"><span class="Identifier">status</span></span></tt>. Listeners are iterated over a snapshot so a listener that registers or removes listeners during the notification doesn't crash on Nim's seq-length-changed assertion.
     
   </dd>
 </div>
@@ -606,7 +607,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:33:51 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 09:53:49 UTC</small>
       </div>
     </div>
   </div>

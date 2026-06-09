@@ -28,9 +28,18 @@ type
     ## format as `semantics.toJson`).
 
 var activeProvider* {.threadvar.}: SemanticsProvider
+  ## The current semantics provider, or nil for the built-in
+  ## JSON exporter. Set via `registerSemanticsProvider`.
+
 var lastSnapshot* {.threadvar.}: string
+  ## The most recent semantics JSON that `exportSemanticsJson`
+  ## returned. Exposed so external tooling (audit scripts,
+  ## screenshot capture) can re-read without re-walking the tree.
 
 proc exportSemanticsJsonInternal*(root: Element): string =
+  ## Walks `root`'s element tree and serializes the semantics
+  ## nodes via `semantics.toJson`. Used as the default provider.
+  ## Public so external bridges can call it directly.
   let nodes = buildSemanticsTree(root)
   result = toJson(nodes)
 

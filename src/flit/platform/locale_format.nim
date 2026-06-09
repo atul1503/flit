@@ -14,9 +14,16 @@ import std/[times, strutils, strformat]
 
 type
   NumberFormat* = enum
+    ## What kind of number a value represents. Drives which
+    ## formatter to call (`formatNumber`, `formatPercent`,
+    ## `formatCurrency`). Exposed for users building dynamic
+    ## formatter dispatch on top of this module.
     nfDecimal, nfPercent, nfCurrency
 
   LocaleConfig* = object
+    ## Per-locale separators and currency settings. Returned by
+    ## `localeFor`. Pass a custom `LocaleConfig` to extend beyond
+    ## the built-in locales.
     locale*:     string         # BCP-47 (e.g. "en-US", "de-DE", "ja-JP")
     decimal*:    string         # "." or ","
     thousands*:  string         # "," or "." or " "
@@ -26,6 +33,13 @@ type
 # Built-in locales. Extend by passing a custom LocaleConfig.
 
 proc localeFor*(locale: string): LocaleConfig =
+  ## Returns the `LocaleConfig` for a BCP-47 locale string.
+  ## Accepts both dash and underscore forms (`"en-US"` /
+  ## `"en_US"`). Falls back to en-US when the locale is unknown.
+  ##
+  ## Built-in locales: en-US, en-GB, de-DE, fr-FR, ja-JP, hi-IN.
+  ## Extend by constructing your own `LocaleConfig` and passing
+  ## it directly to the formatters that take one.
   case locale.replace("_", "-")
   of "en-US", "en":
     LocaleConfig(locale: "en-US", decimal: ".", thousands: ",",

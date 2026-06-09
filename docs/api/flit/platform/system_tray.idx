@@ -1,0 +1,8 @@
+nimTitle	system_tray	flit/platform/system_tray.html	module src/flit/platform/system_tray		0
+nim	TrayMenuItem	flit/platform/system_tray.html#TrayMenuItem	object TrayMenuItem		22
+nim	TrayIcon	flit/platform/system_tray.html#TrayIcon	type TrayIcon		30
+nim	activeTray	flit/platform/system_tray.html#activeTray	var activeTray		38
+nim	setTrayIcon	flit/platform/system_tray.html#setTrayIcon,string,string,seq[TrayMenuItem],proc)	proc setTrayIcon(iconPath: string; tooltip: string = "";\n            menu: seq[TrayMenuItem] = @[]; onClick: proc () = nil)		43
+nim	removeTrayIcon	flit/platform/system_tray.html#removeTrayIcon	proc removeTrayIcon()		64
+nim	trayMenuItem	flit/platform/system_tray.html#trayMenuItem,string,proc)	proc trayMenuItem(label: string; onTap: proc () = nil): TrayMenuItem		68
+nim	trayMenuSeparator	flit/platform/system_tray.html#trayMenuSeparator	proc trayMenuSeparator(): TrayMenuItem		73

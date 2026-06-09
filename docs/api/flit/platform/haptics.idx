@@ -1,0 +1,10 @@
+nimTitle	haptics	flit/platform/haptics.html	module src/flit/platform/haptics		0
+nim	hkLight	flit/platform/haptics.html#hkLight	HapticKind.hkLight		17
+nim	hkMedium	flit/platform/haptics.html#hkMedium	HapticKind.hkMedium		17
+nim	hkHeavy	flit/platform/haptics.html#hkHeavy	HapticKind.hkHeavy		17
+nim	hkSuccess	flit/platform/haptics.html#hkSuccess	HapticKind.hkSuccess		17
+nim	hkWarning	flit/platform/haptics.html#hkWarning	HapticKind.hkWarning		17
+nim	hkError	flit/platform/haptics.html#hkError	HapticKind.hkError		17
+nim	hkSelection	flit/platform/haptics.html#hkSelection	HapticKind.hkSelection		17
+nim	HapticKind	flit/platform/haptics.html#HapticKind	enum HapticKind		17
+nim	hapticFeedback	flit/platform/haptics.html#hapticFeedback,HapticKind	proc hapticFeedback(kind: HapticKind = hkLight)		21

@@ -1,0 +1,8 @@
+nimTitle	file_picker	flit/platform/file_picker.html	module src/flit/platform/file_picker		0
+nim	FileFilter	flit/platform/file_picker.html#FileFilter	object FileFilter		19
+nim	openFileImpl	flit/platform/file_picker.html#openFileImpl	var openFileImpl		28
+nim	saveFileImpl	flit/platform/file_picker.html#saveFileImpl	var saveFileImpl		34
+nim	pickFolderImpl	flit/platform/file_picker.html#pickFolderImpl	var pickFolderImpl		39
+nim	openFile	flit/platform/file_picker.html#openFile,string,seq[FileFilter]	proc openFile(title: string = "Open file"; filters: seq[FileFilter] = @[]): string		180
+nim	saveFile	flit/platform/file_picker.html#saveFile,string,string	proc saveFile(title: string = "Save file"; defaultName: string = "untitled"): string		187
+nim	pickFolder	flit/platform/file_picker.html#pickFolder,string	proc pickFolder(title: string = "Choose folder"): string		193

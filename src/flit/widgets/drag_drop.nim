@@ -27,8 +27,14 @@ import ../gestures/detector
 
 type
   FileDropHandler* = proc(path: string) {.closure.}
+    ## Callback fired when the OS drops a file path on the window.
+    ## Receives one absolute path per call. If the user drops
+    ## multiple files at once the runner calls the handler once
+    ## per file.
 
 var fileDropHandlers* {.threadvar.}: seq[FileDropHandler]
+  ## Registry of file-drop callbacks. Mutate via `onFileDrop`;
+  ## the platform runner reads this on SDL DropFile events.
 
 proc onFileDrop*(cb: FileDropHandler) =
   ## Registers `cb` to be called when the OS drops a file path
@@ -60,6 +66,10 @@ type
     currentPos: Offset
 
 var activeDrag* {.threadvar.}: ActiveDrag
+  ## The drag currently in flight, or nil. Set by a `DragSource`
+  ## when a pan starts; cleared by the matching DropTarget on
+  ## release. Exposed so custom widgets can render a ghost or
+  ## decide hit-test behavior during a drag.
 
 type
   DragSource* = ref object of StatefulWidget
@@ -135,18 +145,37 @@ proc dragSource*(child: Widget,
                  data: DragData,
                  ghost: Widget = nil,
                  key: Key = nil): DragSource =
+  ## Builds a `DragSource`.
+  ##
   ## Wraps `child` so that a pan on it starts a drag carrying
   ## `data`. `ghost` is an optional preview widget; when nil the
   ## drag is "invisible" (the source widget stays in place).
+  ##
+  ## Inputs:
+  ## - `child`: the widget the user can pick up.
+  ## - `data`: the payload to deliver to a DropTarget on release.
+  ## - `ghost`: optional widget that follows the pointer while
+  ##   dragging. nil for no ghost.
+  ## - `key`: optional reconciliation key.
   DragSource(key: key, child: child, data: data, ghost: ghost)
 
 proc dropTarget*(child: Widget,
                  onDrop: proc(data: DragData),
                  accept: proc(data: DragData): bool = nil,
                  key: Key = nil): DropTarget =
+  ## Builds a `DropTarget`.
+  ##
   ## Wraps `child` so it receives drops. `onDrop` fires when the
   ## user releases a drag over this widget. `accept` filters
   ## (return true to accept, false to ignore); nil accepts all.
+  ##
+  ## Inputs:
+  ## - `child`: the visible drop zone.
+  ## - `onDrop`: called with the dragged payload on release.
+  ## - `accept`: predicate that decides whether this target wants
+  ##   the drag. nil accepts every drag. Use to scope drops by
+  ##   `data.kind`.
+  ## - `key`: optional reconciliation key.
   DropTarget(key: key, child: child, onDrop: onDrop, accept: accept)
 
 proc dragData*(kind: string, payload: pointer = nil): DragData =

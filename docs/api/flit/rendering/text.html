@@ -58,7 +58,12 @@
   <details open>
     <summary><a class="reference reference-toplevel" href="#7" id="57">Types</a></summary>
     <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#RenderParagraph" title="RenderParagraph = ref object of RenderObject
+      <li><a class="reference" href="#MeasureKey" title="MeasureKey = object
+  text*: string
+  family*: string
+  size*: float32
+  weight*: int16">MeasureKey</a></li>
+<li><a class="reference" href="#RenderParagraph" title="RenderParagraph = ref object of RenderObject
   text*: string
   style*: TextStyle
   align*: TextAlign
@@ -83,7 +88,10 @@
   <details open>
     <summary><a class="reference reference-toplevel" href="#8" id="58">Vars</a></summary>
     <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#measureText" title="measureText: proc (text: string; style: TextStyle): Size">measureText</a></li>
+      <li><a class="reference" href="#measureCache" title="measureCache {.threadvar.}: Table[MeasureKey, Size]">measureCache</a></li>
+<li><a class="reference" href="#measureCacheHits" title="measureCacheHits {.threadvar.}: int">measureCacheHits</a></li>
+<li><a class="reference" href="#measureCacheMisses" title="measureCacheMisses {.threadvar.}: int">measureCacheMisses</a></li>
+<li><a class="reference" href="#measureText" title="measureText: proc (text: string; style: TextStyle): Size">measureText</a></li>
 
     </ul>
   </details>
@@ -103,12 +111,30 @@
   <details open>
     <summary><a class="reference reference-toplevel" href="#12" id="62">Procs</a></summary>
     <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">textStyle
+      <ul class="simple nested-toc-section">==
+  <li><a class="reference" href="#%3D%3D%2CMeasureKey%2CMeasureKey" title="`==`(a, b: MeasureKey): bool">`==`(a, b: MeasureKey): bool</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">clearMeasureTextCache
+  <li><a class="reference" href="#clearMeasureTextCache" title="clearMeasureTextCache()">clearMeasureTextCache()</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">hash
+  <li><a class="reference" href="#hash%2CMeasureKey" title="hash(k: MeasureKey): Hash">hash(k: MeasureKey): Hash</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">textStyle
   <li><a class="reference" href="#textStyle%2Cfloat32%2Cstring%2Cint%2Cfloat32%2Cfloat32" title="textStyle(color = colorBlack; fontSize = 14.0'f32; fontFamily = &quot;system&quot;;
           fontWeight = 400; italic = false; letterSpacing = 0.0'f32;
           height = 1.2'f32): TextStyle">textStyle(color = colorBlack; fontSize = 14.0'f32; fontFamily = &quot;system&quot;;
           fontWeight = 400; italic = false; letterSpacing = 0.0'f32;
           height = 1.2'f32): TextStyle</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">wrapMeasureWithCache
+  <li><a class="reference" href="#wrapMeasureWithCache%2Cproc%28string%2CTextStyle%29" title="wrapMeasureWithCache(inner: proc (text: string; style: TextStyle): Size): proc (
+    text: string; style: TextStyle): Size">wrapMeasureWithCache(inner: proc (text: string; style: TextStyle): Size): proc (
+    text: string; style: TextStyle): Size</a></li>
 
 </ul>
 
@@ -149,7 +175,19 @@
 <div class="section" id="7">
   <h1><a class="toc-backref" href="#7">Types</a></h1>
   <dl class="item">
-    <div id="RenderParagraph">
+    <div id="MeasureKey">
+  <dt><pre><a href="text.html#MeasureKey"><span class="Identifier">MeasureKey</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">text</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">family</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">size</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>
+  <span class="Identifier">weight</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int16</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="RenderParagraph">
   <dt><pre><a href="text.html#RenderParagraph"><span class="Identifier">RenderParagraph</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <a href="../foundation/render_object.html#RenderObject"><span class="Identifier">RenderObject</span></a>
   <span class="Identifier">text</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
   <span class="Identifier">style</span><span class="Operator">*</span><span class="Other">:</span> <a href="text.html#TextStyle"><span class="Identifier">TextStyle</span></a>
@@ -201,7 +239,31 @@
 <div class="section" id="8">
   <h1><a class="toc-backref" href="#8">Vars</a></h1>
   <dl class="item">
-    <div id="measureText">
+    <div id="measureCache">
+  <dt><pre><a href="text.html#measureCache"><span class="Identifier">measureCache</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">Table</span><span class="Other">[</span><a href="text.html#MeasureKey"><span class="Identifier">MeasureKey</span></a><span class="Other">,</span> <a href="../foundation/geometry.html#Size"><span class="Identifier">Size</span></a><span class="Other">]</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="measureCacheHits">
+  <dt><pre><a href="text.html#measureCacheHits"><span class="Identifier">measureCacheHits</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">int</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="measureCacheMisses">
+  <dt><pre><a href="text.html#measureCacheMisses"><span class="Identifier">measureCacheMisses</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">int</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="measureText">
   <dt><pre><a href="text.html#measureText"><span class="Identifier">measureText</span></a><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">text</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">style</span><span class="Other">:</span> <a href="text.html#TextStyle"><span class="Identifier">TextStyle</span></a><span class="Other">)</span><span class="Other">:</span> <a href="../foundation/geometry.html#Size"><span class="Identifier">Size</span></a></pre></dt>
   <dd>
     
@@ -231,7 +293,40 @@
 <div class="section" id="12">
   <h1><a class="toc-backref" href="#12">Procs</a></h1>
   <dl class="item">
-    <div id="textStyle-procs-all">
+    <div id="==-procs-all">
+  <div id="==,MeasureKey,MeasureKey">
+  <dt><pre><span class="Keyword">proc</span> <a href="#%3D%3D%2CMeasureKey%2CMeasureKey"><span class="Identifier">`==`</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">,</span> <span class="Identifier">b</span><span class="Other">:</span> <a href="text.html#MeasureKey"><span class="Identifier">MeasureKey</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+
+</div>
+<div id="clearMeasureTextCache-procs-all">
+  <div id="clearMeasureTextCache">
+  <dt><pre><span class="Keyword">proc</span> <a href="#clearMeasureTextCache"><span class="Identifier">clearMeasureTextCache</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Drops every entry from the text measurement cache. Call when the font set changes at runtime.
+    
+  </dd>
+</div>
+
+</div>
+<div id="hash-procs-all">
+  <div id="hash,MeasureKey">
+  <dt><pre><span class="Keyword">proc</span> <a href="#hash%2CMeasureKey"><span class="Identifier">hash</span></a><span class="Other">(</span><span class="Identifier">k</span><span class="Other">:</span> <a href="text.html#MeasureKey"><span class="Identifier">MeasureKey</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Hash</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+
+</div>
+<div id="textStyle-procs-all">
   <div id="textStyle,float32,string,int,float32,float32">
   <dt><pre><span class="Keyword">proc</span> <a href="#textStyle%2Cfloat32%2Cstring%2Cint%2Cfloat32%2Cfloat32"><span class="Identifier">textStyle</span></a><span class="Other">(</span><span class="Identifier">color</span> <span class="Other">=</span> <span class="Identifier">colorBlack</span><span class="Other">;</span> <span class="Identifier">fontSize</span> <span class="Other">=</span> <span class="FloatNumber">14.0'f32</span><span class="Other">;</span> <span class="Identifier">fontFamily</span> <span class="Other">=</span> <span class="StringLit">&quot;system&quot;</span><span class="Other">;</span>
                <span class="Identifier">fontWeight</span> <span class="Other">=</span> <span class="DecNumber">400</span><span class="Other">;</span> <span class="Identifier">italic</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">;</span> <span class="Identifier">letterSpacing</span> <span class="Other">=</span> <span class="FloatNumber">0.0'f32</span><span class="Other">;</span>
@@ -249,6 +344,23 @@
 <li><tt class="docutils literal"><span class="pre"><span class="Identifier">height</span></span></tt>: line-height multiplier.</li>
 </ul>
 <p>Output: a populated <tt class="docutils literal"><span class="pre"><span class="Identifier">TextStyle</span></span></tt> value.</p>
+
+    
+  </dd>
+</div>
+
+</div>
+<div id="wrapMeasureWithCache-procs-all">
+  <div id="wrapMeasureWithCache,proc(string,TextStyle)">
+  <dt><pre><span class="Keyword">proc</span> <a href="#wrapMeasureWithCache%2Cproc%28string%2CTextStyle%29"><span class="Identifier">wrapMeasureWithCache</span></a><span class="Other">(</span><span class="Identifier">inner</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">text</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">style</span><span class="Other">:</span> <a href="text.html#TextStyle"><span class="Identifier">TextStyle</span></a><span class="Other">)</span><span class="Other">:</span> <a href="../foundation/geometry.html#Size"><span class="Identifier">Size</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span>
+    <span class="Identifier">text</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">style</span><span class="Other">:</span> <a href="text.html#TextStyle"><span class="Identifier">TextStyle</span></a><span class="Other">)</span><span class="Other">:</span> <a href="../foundation/geometry.html#Size"><span class="Identifier">Size</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    <p>Returns a memoizing wrapper around <tt class="docutils literal"><span class="pre"><span class="Identifier">inner</span></span></tt>. Cache key is (text, fontFamily, fontSize, fontWeight); the same string at the same style returns the cached <tt class="docutils literal"><span class="pre"><span class="Identifier">Size</span></span></tt> without calling <tt class="docutils literal"><span class="pre"><span class="Identifier">inner</span></span></tt> again.</p>
+<p>Wire this up in your backend's font-installation hook:</p>
+<pre class="listing"><span class="Identifier">measureText</span> <span class="Operator">=</span> <span class="Identifier">wrapMeasureWithCache</span><span class="Punctuation">(</span><span class="Keyword">proc</span><span class="Punctuation">(</span><span class="Identifier">text</span><span class="Punctuation">,</span> <span class="Identifier">style</span><span class="Punctuation">)</span><span class="Punctuation">:</span> <span class="Identifier">Size</span> <span class="Operator">=</span>
+  <span class="Comment"># actual Pixie typeset here</span>
+  <span class="Operator">...</span><span class="Punctuation">)</span></pre><p>Empty cache before first call.</p>
 
     
   </dd>
@@ -295,7 +407,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:33:49 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 09:53:47 UTC</small>
       </div>
     </div>
   </div>

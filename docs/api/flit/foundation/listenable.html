@@ -333,7 +333,9 @@
   <dt><pre><span class="Keyword">proc</span> <a href="#value%3D%2CValueNotifier%5BT%5D%2CT"><span class="Identifier">value=</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <a href="listenable.html#ValueNotifier"><span class="Identifier">ValueNotifier</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">v</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span></pre></dt>
   <dd>
     
-    Assigns a new value. If the new value differs from the current one (per <tt class="docutils literal"><span class="pre"><span class="Identifier">equalsFn</span></span></tt>), every registered listener is called with <tt class="docutils literal"><span class="pre"><span class="Identifier">v</span></span></tt> synchronously. Listener errors are NOT caught; they propagate to the caller of <tt class="docutils literal"><span class="pre"><span class="Identifier">value</span> <span class="Operator">=</span></span></tt>.
+    <p>Assigns a new value. If the new value differs from the current one (per <tt class="docutils literal"><span class="pre"><span class="Identifier">equalsFn</span></span></tt>), every registered listener is called with <tt class="docutils literal"><span class="pre"><span class="Identifier">v</span></span></tt> synchronously. Listener errors are NOT caught; they propagate to the caller of <tt class="docutils literal"><span class="pre"><span class="Identifier">value</span> <span class="Operator">=</span></span></tt>.</p>
+<p>Listeners are iterated over a snapshot of the list, so a listener that registers or unregisters listeners during the notification is safe (the new registration takes effect on the next notify, not the current one).</p>
+
     
   </dd>
 </div>
@@ -436,7 +438,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 05:33:49 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 09:53:47 UTC</small>
       </div>
     </div>
   </div>

@@ -1,0 +1,7 @@
+nimTitle	spellcheck	flit/platform/spellcheck.html	module src/flit/platform/spellcheck		0
+nim	MisspelledRange	flit/platform/spellcheck.html#MisspelledRange	object MisspelledRange		18
+nim	SpellChecker	flit/platform/spellcheck.html#SpellChecker	type SpellChecker		26
+nim	activeSpellChecker	flit/platform/spellcheck.html#activeSpellChecker	var activeSpellChecker		28
+nim	setSpellChecker	flit/platform/spellcheck.html#setSpellChecker,SpellChecker	proc setSpellChecker(fn: SpellChecker)		35
+nim	checkSpelling	flit/platform/spellcheck.html#checkSpelling,string,string	proc checkSpelling(text: string; locale: string = "en-US"): seq[MisspelledRange]		40
+nim	demoSpellChecker	flit/platform/spellcheck.html#demoSpellChecker,string,string	proc demoSpellChecker(text: string; locale: string): seq[MisspelledRange]		53

@@ -1,0 +1,10 @@
+nimTitle	multi_window	flit/platform/desktop/multi_window.html	module src/flit/platform/desktop/multi_window		0
+nim	FlitWindow	flit/platform/desktop/multi_window.html#FlitWindow	type FlitWindow		24
+nim	WindowConfig	flit/platform/desktop/multi_window.html#WindowConfig	object WindowConfig		37
+nim	defaultWindowConfig	flit/platform/desktop/multi_window.html#defaultWindowConfig	proc defaultWindowConfig(): WindowConfig		46
+nim	windows	flit/platform/desktop/multi_window.html#windows	var windows		53
+nim	openWindow	flit/platform/desktop/multi_window.html#openWindow,Widget,WindowConfig,proc)	proc openWindow(rootWidget: Widget; config: WindowConfig = defaultWindowConfig();\n           onClose: proc () = nil): FlitWindow		59
+nim	closeWindow	flit/platform/desktop/multi_window.html#closeWindow,FlitWindow	proc closeWindow(w: FlitWindow)		100
+nim	findWindow	flit/platform/desktop/multi_window.html#findWindow,uint32	proc findWindow(id: uint32): FlitWindow		111
+nim	allWindows	flit/platform/desktop/multi_window.html#allWindows	proc allWindows(): seq[FlitWindow]		116
+nim	windowCount	flit/platform/desktop/multi_window.html#windowCount	proc windowCount(): int		121

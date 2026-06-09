@@ -3,18 +3,18 @@ nim	ValueNotifier	flit/foundation/listenable.html#ValueNotifier	type ValueNotifi
 nim	newValueNotifier	flit/foundation/listenable.html#newValueNotifier,T,proc(T,T)	proc newValueNotifier[T](initial: T; equals: proc (a, b: T): bool = nil): ValueNotifier[\n    T]		45
 nim	value	flit/foundation/listenable.html#value,ValueNotifier[T]	proc value[T](n: ValueNotifier[T]): T		59
 nim	value=	flit/foundation/listenable.html#value=,ValueNotifier[T],T	proc value=[T](n: ValueNotifier[T]; v: T)		62
-nim	notify	flit/foundation/listenable.html#notify,ValueNotifier[T]	proc notify[T](n: ValueNotifier[T])		71
-nim	addListener	flit/foundation/listenable.html#addListener,ValueNotifier[T],proc(T)	proc addListener[T](n: ValueNotifier[T]; fn: proc (v: T))		77
-nim	removeListener	flit/foundation/listenable.html#removeListener,ValueNotifier[T],proc(T)	proc removeListener[T](n: ValueNotifier[T]; fn: proc (v: T))		83
-nim	dispose	flit/foundation/listenable.html#dispose,ValueNotifier[T]	proc dispose[T](n: ValueNotifier[T])		92
-nim	hasListeners	flit/foundation/listenable.html#hasListeners,ValueNotifier[T]	proc hasListeners[T](n: ValueNotifier[T]): bool		98
-nim	ListenableBuilder	flit/foundation/listenable.html#ListenableBuilder	type ListenableBuilder		106
-nim	ListenableBuilderState	flit/foundation/listenable.html#ListenableBuilderState	type ListenableBuilderState		116
-nim	widgetTypeName	flit/foundation/listenable.html#widgetTypeName.e,ListenableBuilder[T]	method widgetTypeName[T](w: ListenableBuilder[T]): string		126
-nim	createElement	flit/foundation/listenable.html#createElement.e,ListenableBuilder[T]	method createElement[T](w: ListenableBuilder[T]): Element		127
-nim	createState	flit/foundation/listenable.html#createState.e,ListenableBuilder[T]	method createState[T](w: ListenableBuilder[T]): State		129
-nim	initState	flit/foundation/listenable.html#initState.e,ListenableBuilderState	method initState(s: ListenableBuilderState)		157
-nim	didUpdateWidget	flit/foundation/listenable.html#didUpdateWidget.e,ListenableBuilderState,StatefulWidget	method didUpdateWidget(s: ListenableBuilderState; old: StatefulWidget)		165
-nim	dispose	flit/foundation/listenable.html#dispose.e,ListenableBuilderState	method dispose(s: ListenableBuilderState)		170
-nim	build	flit/foundation/listenable.html#build.e,ListenableBuilderState,BuildContext	method build(s: ListenableBuilderState; ctx: BuildContext): Widget		178
-nim	listenableBuilder	flit/foundation/listenable.html#listenableBuilder,ValueNotifier[T],proc(BuildContext,T),Key	proc listenableBuilder[T](listenable: ValueNotifier[T];\n                     builder: proc (ctx: BuildContext; value: T): Widget;\n                     key: Key = nil): ListenableBuilder[T]		184
+nim	notify	flit/foundation/listenable.html#notify,ValueNotifier[T]	proc notify[T](n: ValueNotifier[T])		77
+nim	addListener	flit/foundation/listenable.html#addListener,ValueNotifier[T],proc(T)	proc addListener[T](n: ValueNotifier[T]; fn: proc (v: T))		84
+nim	removeListener	flit/foundation/listenable.html#removeListener,ValueNotifier[T],proc(T)	proc removeListener[T](n: ValueNotifier[T]; fn: proc (v: T))		90
+nim	dispose	flit/foundation/listenable.html#dispose,ValueNotifier[T]	proc dispose[T](n: ValueNotifier[T])		99
+nim	hasListeners	flit/foundation/listenable.html#hasListeners,ValueNotifier[T]	proc hasListeners[T](n: ValueNotifier[T]): bool		105
+nim	ListenableBuilder	flit/foundation/listenable.html#ListenableBuilder	type ListenableBuilder		113
+nim	ListenableBuilderState	flit/foundation/listenable.html#ListenableBuilderState	type ListenableBuilderState		123
+nim	widgetTypeName	flit/foundation/listenable.html#widgetTypeName.e,ListenableBuilder[T]	method widgetTypeName[T](w: ListenableBuilder[T]): string		133
+nim	createElement	flit/foundation/listenable.html#createElement.e,ListenableBuilder[T]	method createElement[T](w: ListenableBuilder[T]): Element		134
+nim	createState	flit/foundation/listenable.html#createState.e,ListenableBuilder[T]	method createState[T](w: ListenableBuilder[T]): State		136
+nim	initState	flit/foundation/listenable.html#initState.e,ListenableBuilderState	method initState(s: ListenableBuilderState)		164
+nim	didUpdateWidget	flit/foundation/listenable.html#didUpdateWidget.e,ListenableBuilderState,StatefulWidget	method didUpdateWidget(s: ListenableBuilderState; old: StatefulWidget)		172
+nim	dispose	flit/foundation/listenable.html#dispose.e,ListenableBuilderState	method dispose(s: ListenableBuilderState)		177
+nim	build	flit/foundation/listenable.html#build.e,ListenableBuilderState,BuildContext	method build(s: ListenableBuilderState; ctx: BuildContext): Widget		185
+nim	listenableBuilder	flit/foundation/listenable.html#listenableBuilder,ValueNotifier[T],proc(BuildContext,T),Key	proc listenableBuilder[T](listenable: ValueNotifier[T];\n                     builder: proc (ctx: BuildContext; value: T): Widget;\n                     key: Key = nil): ListenableBuilder[T]		191

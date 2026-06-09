@@ -11,5 +11,13 @@ nim	RenderParagraph	flit/rendering/text.html#RenderParagraph	type RenderParagrap
 nim	defaultTextStyle	flit/rendering/text.html#defaultTextStyle	const defaultTextStyle		47
 nim	textStyle	flit/rendering/text.html#textStyle,float32,string,int,float32,float32	proc textStyle(color = colorBlack; fontSize = 14.0'f32; fontFamily = "system";\n          fontWeight = 400; italic = false; letterSpacing = 0.0'f32;\n          height = 1.2'f32): TextStyle		53
 nim	measureText	flit/rendering/text.html#measureText	var measureText		73
-nim	performLayout	flit/rendering/text.html#performLayout.e,RenderParagraph	method performLayout(r: RenderParagraph)		109
-nim	paint	flit/rendering/text.html#paint.e,RenderParagraph,PaintingContext,Offset	method paint(r: RenderParagraph; ctx: PaintingContext; offset: Offset)		131
+nim	MeasureKey	flit/rendering/text.html#MeasureKey	object MeasureKey		99
+nim	measureCache	flit/rendering/text.html#measureCache	var measureCache		105
+nim	measureCacheHits	flit/rendering/text.html#measureCacheHits	var measureCacheHits		106
+nim	measureCacheMisses	flit/rendering/text.html#measureCacheMisses	var measureCacheMisses		107
+nim	hash	flit/rendering/text.html#hash,MeasureKey	proc hash(k: MeasureKey): Hash		109
+nim	`==`	flit/rendering/text.html#==,MeasureKey,MeasureKey	proc `==`(a, b: MeasureKey): bool		117
+nim	wrapMeasureWithCache	flit/rendering/text.html#wrapMeasureWithCache,proc(string,TextStyle)	proc wrapMeasureWithCache(inner: proc (text: string; style: TextStyle): Size): proc (\n    text: string; style: TextStyle): Size		121
+nim	clearMeasureTextCache	flit/rendering/text.html#clearMeasureTextCache	proc clearMeasureTextCache()		148
+nim	performLayout	flit/rendering/text.html#performLayout.e,RenderParagraph	method performLayout(r: RenderParagraph)		180
+nim	paint	flit/rendering/text.html#paint.e,RenderParagraph,PaintingContext,Offset	method paint(r: RenderParagraph; ctx: PaintingContext; offset: Offset)		202

@@ -17,6 +17,9 @@ import ../rendering/[text, decoration]
 
 type
   ColorPicker* = ref object of StatefulWidget
+    ## Modal-style color picker. Renders a labeled current-color
+    ## preview and a palette grid. Tapping a swatch updates the
+    ## current color and fires `onChange`.
     initial*:  Color
     onChange*: proc(c: Color) {.closure.}
 
@@ -24,6 +27,9 @@ type
     current: Color
 
   FontPicker* = ref object of StatefulWidget
+    ## Modal-style font picker. Lists each family in `families`,
+    ## rendered in its own font. Tapping a row sets the current
+    ## family on the held `TextStyle` and fires `onChange`.
     initial*:  TextStyle
     onChange*: proc(s: TextStyle) {.closure.}
     families*: seq[string]   # available families to pick from
@@ -121,7 +127,16 @@ proc fontPicker*(initial: TextStyle = defaultTextStyle,
                  families: seq[string] = @["system"],
                  onChange: proc(s: TextStyle) = nil,
                  key: Key = nil): FontPicker =
-  ## Builds a font picker. `families` is the list to choose from
-  ## (typically populated from system fonts at startup).
+  ## Builds a font picker.
+  ##
+  ## Inputs:
+  ## - `initial`: starting text style. Only the `fontFamily` field
+  ##   is updated by the picker; size and color stay as supplied.
+  ## - `families`: list of family names to choose from. Typically
+  ##   populated from your platform's font enumeration at startup.
+  ##   Defaults to `@["system"]`.
+  ## - `onChange`: fires every time the user picks a row, with the
+  ##   updated `TextStyle`.
+  ## - `key`: optional reconciliation key.
   FontPicker(key: key, initial: initial, families: families,
              onChange: onChange)

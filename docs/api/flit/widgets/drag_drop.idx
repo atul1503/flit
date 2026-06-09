@@ -1,0 +1,24 @@
+nimTitle	drag_drop	flit/widgets/drag_drop.html	module src/flit/widgets/drag_drop		0
+nim	FileDropHandler	flit/widgets/drag_drop.html#FileDropHandler	type FileDropHandler		29
+nim	fileDropHandlers	flit/widgets/drag_drop.html#fileDropHandlers	var fileDropHandlers		35
+nim	onFileDrop	flit/widgets/drag_drop.html#onFileDrop,FileDropHandler	proc onFileDrop(cb: FileDropHandler)		39
+nim	dispatchFileDrop	flit/widgets/drag_drop.html#dispatchFileDrop,string	proc dispatchFileDrop(path: string)		45
+nim	DragData	flit/widgets/drag_drop.html#DragData	type DragData		56
+nim	activeDrag	flit/widgets/drag_drop.html#activeDrag	var activeDrag		68
+nim	DragSource	flit/widgets/drag_drop.html#DragSource	type DragSource		75
+nim	DropTarget	flit/widgets/drag_drop.html#DropTarget	type DropTarget		84
+nim	widgetTypeName	flit/widgets/drag_drop.html#widgetTypeName.e,DragSource	method widgetTypeName(w: DragSource): string		95
+nim	createElement	flit/widgets/drag_drop.html#createElement.e,DragSource	method createElement(w: DragSource): Element		96
+nim	createState	flit/widgets/drag_drop.html#createState.e,DragSource	method createState(w: DragSource): State		97
+nim	build	flit/widgets/drag_drop.html#build.e,DragSourceState,BuildContext	method build(s: DragSourceState; ctx: BuildContext): Widget		99
+nim	widgetTypeName	flit/widgets/drag_drop.html#widgetTypeName.e,DropTarget	method widgetTypeName(w: DropTarget): string		117
+nim	createElement	flit/widgets/drag_drop.html#createElement.e,DropTarget	method createElement(w: DropTarget): Element		118
+nim	createState	flit/widgets/drag_drop.html#createState.e,DropTarget	method createState(w: DropTarget): State		119
+nim	build	flit/widgets/drag_drop.html#build.e,DropTargetState,BuildContext	method build(s: DropTargetState; ctx: BuildContext): Widget		121
+nim	dragSource	flit/widgets/drag_drop.html#dragSource,Widget,DragData,Widget,Key	proc dragSource(child: Widget; data: DragData; ghost: Widget = nil; key: Key = nil): DragSource		144
+nim	dropTarget	flit/widgets/drag_drop.html#dropTarget,Widget,proc(DragData),proc(DragData),Key	proc dropTarget(child: Widget; onDrop: proc (data: DragData);\n           accept: proc (data: DragData): bool = nil; key: Key = nil): DropTarget		162
+nim	dragData	flit/widgets/drag_drop.html#dragData,string,pointer	proc dragData(kind: string; payload: pointer = nil): DragData		181
+nimgrp	widgettypename	flit/widgets/drag_drop.html#widgetTypeName-methods-all	method		95
+nimgrp	createstate	flit/widgets/drag_drop.html#createState-methods-all	method		97
+nimgrp	createelement	flit/widgets/drag_drop.html#createElement-methods-all	method		96
+nimgrp	build	flit/widgets/drag_drop.html#build-methods-all	method		99

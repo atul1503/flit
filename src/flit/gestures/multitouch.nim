@@ -37,6 +37,11 @@ type
 
 type
   PinchEvent* = object
+    ## A single multi-touch update from the OS. The runner pushes
+    ## one of these per SDL MultiGesture event. Detectors that
+    ## care about scale read `deltaScale`; rotation detectors read
+    ## `deltaTheta`. Cumulative state lives in the detector
+    ## widget, not the event.
     deltaScale*:  float32  # multiplicative delta this frame
     deltaTheta*:  float32  # rotation delta this frame (radians)
     x*, y*:       float32  # center of the gesture
@@ -85,8 +90,15 @@ proc pinchDetector*(child: Widget,
                     onPinch: proc(scale: float32),
                     onPinchEnd: proc() = nil,
                     key: Key = nil): PinchDetector =
+  ## Builds a `PinchDetector`.
+  ##
   ## Wraps `child` so two-finger pinch on touch hardware drives
-  ## the `onPinch` callback with the cumulative scale factor.
+  ## the `onPinch` callback with the cumulative scale factor
+  ## (1.0 = no change, 2.0 = pinched outward to double, 0.5 =
+  ## pinched in to half). `onPinchEnd` fires when the gesture
+  ## releases.
+  ##
+  ## On desktop without touch hardware this detector never fires.
   PinchDetector(key: key, child: child, onPinch: onPinch,
                 onPinchEnd: onPinchEnd)
 
@@ -94,7 +106,11 @@ proc rotateDetector*(child: Widget,
                      onRotate: proc(radians: float32),
                      onRotateEnd: proc() = nil,
                      key: Key = nil): RotateDetector =
+  ## Builds a `RotateDetector`.
+  ##
   ## Wraps `child` so two-finger rotation drives the `onRotate`
-  ## callback with cumulative radians.
+  ## callback with cumulative radians. Positive radians indicate
+  ## counter-clockwise rotation, matching the SDL convention.
+  ## `onRotateEnd` fires when the gesture releases.
   RotateDetector(key: key, child: child, onRotate: onRotate,
                  onRotateEnd: onRotateEnd)

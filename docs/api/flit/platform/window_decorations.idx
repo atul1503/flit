@@ -1,0 +1,11 @@
+nimTitle	window_decorations	flit/platform/window_decorations.html	module src/flit/platform/window_decorations		0
+nim	weNone	flit/platform/window_decorations.html#weNone	WindowEffect.weNone		17
+nim	weVibrancyLight	flit/platform/window_decorations.html#weVibrancyLight	WindowEffect.weVibrancyLight		17
+nim	weVibrancyDark	flit/platform/window_decorations.html#weVibrancyDark	WindowEffect.weVibrancyDark		17
+nim	weAcrylic	flit/platform/window_decorations.html#weAcrylic	WindowEffect.weAcrylic		17
+nim	weBlur	flit/platform/window_decorations.html#weBlur	WindowEffect.weBlur		17
+nim	WindowEffect	flit/platform/window_decorations.html#WindowEffect	enum WindowEffect		17
+nim	setWindowBorderless	flit/platform/window_decorations.html#setWindowBorderless,WindowPtr,bool	proc setWindowBorderless(window: WindowPtr; borderless: bool)		25
+nim	setAlwaysOnTop	flit/platform/window_decorations.html#setAlwaysOnTop,WindowPtr,bool	proc setAlwaysOnTop(window: WindowPtr; onTop: bool)		30
+nim	setOpacity	flit/platform/window_decorations.html#setOpacity,WindowPtr,float32	proc setOpacity(window: WindowPtr; opacity: float32)		36
+nim	setWindowEffect	flit/platform/window_decorations.html#setWindowEffect,WindowPtr,WindowEffect	proc setWindowEffect(window: WindowPtr; effect: WindowEffect)		42

@@ -1,0 +1,14 @@
+nimTitle	native_dialogs	flit/platform/native_dialogs.html	module src/flit/platform/native_dialogs		0
+nim	dkInfo	flit/platform/native_dialogs.html#dkInfo	DialogKind.dkInfo		17
+nim	dkWarning	flit/platform/native_dialogs.html#dkWarning	DialogKind.dkWarning		17
+nim	dkError	flit/platform/native_dialogs.html#dkError	DialogKind.dkError		17
+nim	dkQuestion	flit/platform/native_dialogs.html#dkQuestion	DialogKind.dkQuestion		17
+nim	DialogKind	flit/platform/native_dialogs.html#DialogKind	enum DialogKind		17
+nim	dcOK	flit/platform/native_dialogs.html#dcOK	DialogChoice.dcOK		24
+nim	dcCancel	flit/platform/native_dialogs.html#dcCancel	DialogChoice.dcCancel		24
+nim	dcYes	flit/platform/native_dialogs.html#dcYes	DialogChoice.dcYes		24
+nim	dcNo	flit/platform/native_dialogs.html#dcNo	DialogChoice.dcNo		24
+nim	DialogChoice	flit/platform/native_dialogs.html#DialogChoice	enum DialogChoice		24
+nim	messageBox	flit/platform/native_dialogs.html#messageBox,string,string,DialogKind	proc messageBox(title, message: string; kind: DialogKind = dkInfo): DialogChoice		30
+nim	confirm	flit/platform/native_dialogs.html#confirm,string,string,string,string,DialogKind	proc confirm(title, message: string; okLabel: string = "OK";\n        cancelLabel: string = "Cancel"; kind: DialogKind = dkQuestion): DialogChoice		47
+nim	askYesNo	flit/platform/native_dialogs.html#askYesNo,string,string	proc askYesNo(title, message: string): bool		94

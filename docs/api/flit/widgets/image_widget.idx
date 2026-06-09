@@ -13,7 +13,7 @@ nim	createElement	flit/widgets/image_widget.html#createElement.e,ImageWidget	met
 nim	createRenderObject	flit/widgets/image_widget.html#createRenderObject.e,ImageWidget,BuildContext	method createRenderObject(w: ImageWidget; ctx: BuildContext): RenderObject		88
 nim	updateRenderObject	flit/widgets/image_widget.html#updateRenderObject.e,ImageWidget,BuildContext,RenderObject	method updateRenderObject(w: ImageWidget; ctx: BuildContext; r: RenderObject)		95
 nim	performLayout	flit/widgets/image_widget.html#performLayout.e,RenderImage	method performLayout(r: RenderImage)		107
-nim	paint	flit/widgets/image_widget.html#paint.e,RenderImage,PaintingContext,Offset	method paint(r: RenderImage; ctx: PaintingContext; offset: Offset)		137
-nim	hitTest	flit/widgets/image_widget.html#hitTest.e,RenderImage,HitTestResult,Offset	method hitTest(r: RenderImage; htResult: HitTestResult; position: Offset): bool		182
-nim	image	flit/widgets/image_widget.html#image,string,ImageFit,float32,float32,Key	proc image(path: string; fit: ImageFit = ifContain; width: float32 = 0.0;\n      height: float32 = 0.0; key: Key = nil): ImageWidget		186
-nim	imageMemory	flit/widgets/image_widget.html#imageMemory,string,ImageFit,float32,float32,Key	proc imageMemory(bytes: string; fit: ImageFit = ifContain; width: float32 = 0.0;\n            height: float32 = 0.0; key: Key = nil): ImageWidget		205
+nim	paint	flit/widgets/image_widget.html#paint.e,RenderImage,PaintingContext,Offset	method paint(r: RenderImage; ctx: PaintingContext; offset: Offset)		139
+nim	hitTest	flit/widgets/image_widget.html#hitTest.e,RenderImage,HitTestResult,Offset	method hitTest(r: RenderImage; htResult: HitTestResult; position: Offset): bool		187
+nim	image	flit/widgets/image_widget.html#image,string,ImageFit,float32,float32,Key	proc image(path: string; fit: ImageFit = ifContain; width: float32 = 0.0;\n      height: float32 = 0.0; key: Key = nil): ImageWidget		191
+nim	imageMemory	flit/widgets/image_widget.html#imageMemory,string,ImageFit,float32,float32,Key	proc imageMemory(bytes: string; fit: ImageFit = ifContain; width: float32 = 0.0;\n            height: float32 = 0.0; key: Key = nil): ImageWidget		210

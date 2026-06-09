@@ -1,0 +1,18 @@
+nimTitle	system_state	flit/platform/system_state.html	module src/flit/platform/system_state		0
+nim	bsUnknown	flit/platform/system_state.html#bsUnknown	BatteryState.bsUnknown		16
+nim	bsCharging	flit/platform/system_state.html#bsCharging	BatteryState.bsCharging		16
+nim	bsDischarging	flit/platform/system_state.html#bsDischarging	BatteryState.bsDischarging		16
+nim	bsFull	flit/platform/system_state.html#bsFull	BatteryState.bsFull		16
+nim	bsNoBattery	flit/platform/system_state.html#bsNoBattery	BatteryState.bsNoBattery		16
+nim	BatteryState	flit/platform/system_state.html#BatteryState	enum BatteryState		16
+nim	ntUnknown	flit/platform/system_state.html#ntUnknown	NetworkType.ntUnknown		22
+nim	ntNone	flit/platform/system_state.html#ntNone	NetworkType.ntNone		22
+nim	ntEthernet	flit/platform/system_state.html#ntEthernet	NetworkType.ntEthernet		22
+nim	ntWifi	flit/platform/system_state.html#ntWifi	NetworkType.ntWifi		22
+nim	ntCellular	flit/platform/system_state.html#ntCellular	NetworkType.ntCellular		22
+nim	NetworkType	flit/platform/system_state.html#NetworkType	enum NetworkType		22
+nim	batteryLevel	flit/platform/system_state.html#batteryLevel	proc batteryLevel(): float32		28
+nim	batteryState	flit/platform/system_state.html#batteryState_2	proc batteryState(): BatteryState		45
+nim	isCharging	flit/platform/system_state.html#isCharging	proc isCharging(): bool		58
+nim	networkType	flit/platform/system_state.html#networkType_2	proc networkType(): NetworkType		64
+nim	isOnline	flit/platform/system_state.html#isOnline	proc isOnline(): bool		79

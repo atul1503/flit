@@ -15,6 +15,11 @@ import sdl2
 
 type
   WindowEffect* = enum
+    ## Native window-background effect to apply. Maps to per-OS
+    ## APIs: `weVibrancyLight` / `weVibrancyDark` use macOS's
+    ## NSVisualEffectView; `weAcrylic` uses Windows DWM acrylic;
+    ## `weBlur` uses the Linux compositor's blur hint. `weNone`
+    ## removes any active effect.
     weNone, weVibrancyLight, weVibrancyDark, weAcrylic, weBlur
 
 proc setWindowBorderless*(window: WindowPtr, borderless: bool) =

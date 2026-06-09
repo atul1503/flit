@@ -35,16 +35,26 @@ type
     onClose*:      proc() {.closure.}
 
   WindowConfig* = object
+    ## Construction settings for a new window. Pass to `openWindow`
+    ## or take `defaultWindowConfig()` and tweak the fields you
+    ## care about.
     title*: string
     width*, height*: int
     resizable*, highDpi*, vsync*: bool
     fontPath*: string
 
 proc defaultWindowConfig*(): WindowConfig =
+  ## Returns the standard window configuration: title "flit",
+  ## 800x600, resizable, high-DPI, vsync on. Use as the base for
+  ## per-window overrides.
   WindowConfig(title: "flit", width: 800, height: 600,
                resizable: true, highDpi: true, vsync: true)
 
 var windows* {.threadvar.}: Table[uint32, FlitWindow]
+  ## Registry of every open window keyed by SDL window ID. The
+  ## desktop runner reads this each frame to dispatch events and
+  ## paint. Exposed so callers can inspect window state directly;
+  ## mutate via `openWindow` / `closeWindow`.
 
 proc openWindow*(rootWidget: Widget, config: WindowConfig = defaultWindowConfig(),
                  onClose: proc() = nil): FlitWindow =

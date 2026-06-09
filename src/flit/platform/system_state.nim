@@ -14,9 +14,15 @@ import std/[osproc, strutils, os, options]
 
 type
   BatteryState* = enum
+    ## Power source / charge state for the active battery. Desktop
+    ## machines without a battery report `bsNoBattery`; `isCharging`
+    ## treats that as charging since there's no risk of running out.
     bsUnknown, bsCharging, bsDischarging, bsFull, bsNoBattery
 
   NetworkType* = enum
+    ## Active network interface category. Reported best-effort;
+    ## some platforms can't distinguish Wi-Fi from Ethernet and
+    ## return `ntUnknown`.
     ntUnknown, ntNone, ntEthernet, ntWifi, ntCellular
 
 proc batteryLevel*(): float32 =

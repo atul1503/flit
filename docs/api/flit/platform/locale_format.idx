@@ -1,0 +1,11 @@
+nimTitle	locale_format	flit/platform/locale_format.html	module src/flit/platform/locale_format		0
+nim	nfDecimal	flit/platform/locale_format.html#nfDecimal	NumberFormat.nfDecimal		16
+nim	nfPercent	flit/platform/locale_format.html#nfPercent	NumberFormat.nfPercent		16
+nim	nfCurrency	flit/platform/locale_format.html#nfCurrency	NumberFormat.nfCurrency		16
+nim	NumberFormat	flit/platform/locale_format.html#NumberFormat	enum NumberFormat		16
+nim	LocaleConfig	flit/platform/locale_format.html#LocaleConfig	object LocaleConfig		23
+nim	localeFor	flit/platform/locale_format.html#localeFor,string	proc localeFor(locale: string): LocaleConfig		35
+nim	formatNumber	flit/platform/locale_format.html#formatNumber,float,int,string	proc formatNumber(n: float; decimals: int = 2; locale: string = "en-US"): string		67
+nim	formatCurrency	flit/platform/locale_format.html#formatCurrency,float,string,string	proc formatCurrency(n: float; currency: string = ""; locale: string = "en-US"): string		90
+nim	formatPercent	flit/platform/locale_format.html#formatPercent,float,int,string	proc formatPercent(n: float; decimals: int = 1; locale: string = "en-US"): string		108
+nim	formatDate	flit/platform/locale_format.html#formatDate,DateTime,string,string	proc formatDate(t: DateTime; pattern: string = "yyyy-MM-dd"; locale: string = "en-US"): string		113

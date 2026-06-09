@@ -1,0 +1,20 @@
+nimTitle	multitouch	flit/gestures/multitouch.html	module src/flit/gestures/multitouch		0
+nim	PinchDetector	flit/gestures/multitouch.html#PinchDetector	type PinchDetector		17
+nim	RotateDetector	flit/gestures/multitouch.html#RotateDetector	type RotateDetector		24
+nim	PinchEvent	flit/gestures/multitouch.html#PinchEvent	object PinchEvent		39
+nim	pinchListeners	flit/gestures/multitouch.html#pinchListeners	var pinchListeners		49
+nim	dispatchMultiGesture	flit/gestures/multitouch.html#dispatchMultiGesture,PinchEvent	proc dispatchMultiGesture(ev: PinchEvent)		51
+nim	widgetTypeName	flit/gestures/multitouch.html#widgetTypeName.e,PinchDetector	method widgetTypeName(w: PinchDetector): string		57
+nim	createElement	flit/gestures/multitouch.html#createElement.e,PinchDetector	method createElement(w: PinchDetector): Element		58
+nim	createState	flit/gestures/multitouch.html#createState.e,PinchDetector	method createState(w: PinchDetector): State		59
+nim	build	flit/gestures/multitouch.html#build.e,PinchState,BuildContext	method build(s: PinchState; ctx: BuildContext): Widget		69
+nim	widgetTypeName	flit/gestures/multitouch.html#widgetTypeName.e,RotateDetector	method widgetTypeName(w: RotateDetector): string		73
+nim	createElement	flit/gestures/multitouch.html#createElement.e,RotateDetector	method createElement(w: RotateDetector): Element		74
+nim	createState	flit/gestures/multitouch.html#createState.e,RotateDetector	method createState(w: RotateDetector): State		75
+nim	build	flit/gestures/multitouch.html#build.e,RotateState,BuildContext	method build(s: RotateState; ctx: BuildContext): Widget		85
+nim	pinchDetector	flit/gestures/multitouch.html#pinchDetector,Widget,proc(float32),proc),Key	proc pinchDetector(child: Widget; onPinch: proc (scale: float32);\n              onPinchEnd: proc () = nil; key: Key = nil): PinchDetector		89
+nim	rotateDetector	flit/gestures/multitouch.html#rotateDetector,Widget,proc(float32),proc),Key	proc rotateDetector(child: Widget; onRotate: proc (radians: float32);\n               onRotateEnd: proc () = nil; key: Key = nil): RotateDetector		105
+nimgrp	widgettypename	flit/gestures/multitouch.html#widgetTypeName-methods-all	method		57
+nimgrp	createstate	flit/gestures/multitouch.html#createState-methods-all	method		59
+nimgrp	createelement	flit/gestures/multitouch.html#createElement-methods-all	method		58
+nimgrp	build	flit/gestures/multitouch.html#build-methods-all	method		69

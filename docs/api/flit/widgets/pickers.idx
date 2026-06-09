@@ -1,0 +1,19 @@
+nimTitle	pickers	flit/widgets/pickers.html	module src/flit/widgets/pickers		0
+nim	ColorPicker	flit/widgets/pickers.html#ColorPicker	type ColorPicker		19
+nim	ColorPickerState	flit/widgets/pickers.html#ColorPickerState	type ColorPickerState		26
+nim	FontPicker	flit/widgets/pickers.html#FontPicker	type FontPicker		29
+nim	FontPickerState	flit/widgets/pickers.html#FontPickerState	type FontPickerState		37
+nim	widgetTypeName	flit/widgets/pickers.html#widgetTypeName.e,ColorPicker	method widgetTypeName(w: ColorPicker): string		40
+nim	createElement	flit/widgets/pickers.html#createElement.e,ColorPicker	method createElement(w: ColorPicker): Element		41
+nim	createState	flit/widgets/pickers.html#createState.e,ColorPicker	method createState(w: ColorPicker): State		42
+nim	build	flit/widgets/pickers.html#build.e,ColorPickerState,BuildContext	method build(s: ColorPickerState; ctx: BuildContext): Widget		56
+nim	widgetTypeName	flit/widgets/pickers.html#widgetTypeName.e,FontPicker	method widgetTypeName(w: FontPicker): string		88
+nim	createElement	flit/widgets/pickers.html#createElement.e,FontPicker	method createElement(w: FontPicker): Element		89
+nim	createState	flit/widgets/pickers.html#createState.e,FontPicker	method createState(w: FontPicker): State		90
+nim	build	flit/widgets/pickers.html#build.e,FontPickerState,BuildContext	method build(s: FontPickerState; ctx: BuildContext): Widget		92
+nim	colorPicker	flit/widgets/pickers.html#colorPicker,Color,proc(Color),Key	proc colorPicker(initial: Color = colorBlack; onChange: proc (c: Color) = nil;\n            key: Key = nil): ColorPicker		118
+nim	fontPicker	flit/widgets/pickers.html#fontPicker,TextStyle,seq[string],proc(TextStyle),Key	proc fontPicker(initial: TextStyle = defaultTextStyle;\n           families: seq[string] = @["system"];\n           onChange: proc (s: TextStyle) = nil; key: Key = nil): FontPicker		126
+nimgrp	widgettypename	flit/widgets/pickers.html#widgetTypeName-methods-all	method		40
+nimgrp	createstate	flit/widgets/pickers.html#createState-methods-all	method		42
+nimgrp	createelement	flit/widgets/pickers.html#createElement-methods-all	method		41
+nimgrp	build	flit/widgets/pickers.html#build-methods-all	method		56

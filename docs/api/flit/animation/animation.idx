@@ -19,21 +19,21 @@ nim	newTicker	flit/animation/animation.html#newTicker,TickerCallback	proc newTic
 nim	start	flit/animation/animation.html#start,Ticker,Binding	proc start(t: Ticker; b: Binding)		106
 nim	stop	flit/animation/animation.html#stop,Ticker	proc stop(t: Ticker)		120
 nim	newAnimationController	flit/animation/animation.html#newAnimationController,float32,float32,float32	proc newAnimationController(durationSec: float32; lower = 0.0'f32; upper = 1.0'f32): AnimationController		124
-nim	addListener	flit/animation/animation.html#addListener,AnimationController,proc(float32)	proc addListener(c: AnimationController; fn: proc (v: float32))		140
-nim	addStatusListener	flit/animation/animation.html#addStatusListener,AnimationController,proc(AnimationStatus)	proc addStatusListener(c: AnimationController; fn: proc (s: AnimationStatus))		145
-nim	removeListener	flit/animation/animation.html#removeListener,AnimationController,proc(float32)	proc removeListener(c: AnimationController; fn: proc (v: float32))		150
-nim	removeStatusListener	flit/animation/animation.html#removeStatusListener,AnimationController,proc(AnimationStatus)	proc removeStatusListener(c: AnimationController; fn: proc (s: AnimationStatus))		159
-nim	stop	flit/animation/animation.html#stop,AnimationController	proc stop(c: AnimationController)		167
-nim	dispose	flit/animation/animation.html#dispose,AnimationController	proc dispose(c: AnimationController)		173
-nim	value=	flit/animation/animation.html#value=,AnimationController,float32	proc value=(c: AnimationController; v: float32)		183
-nim	forward	flit/animation/animation.html#forward,AnimationController,Binding,Curve	proc forward(c: AnimationController; b: Binding; curve: Curve = curveLinear)		199
-nim	reverse	flit/animation/animation.html#reverse,AnimationController,Binding,Curve	proc reverse(c: AnimationController; b: Binding; curve: Curve = curveLinear)		213
-nim	repeat	flit/animation/animation.html#repeat,AnimationController,Binding,Curve,bool	proc repeat(c: AnimationController; b: Binding; curve: Curve = curveLinear;\n       reverse: bool = false)		228
-nim	animateTo	flit/animation/animation.html#animateTo,AnimationController,Binding,float32,float32,Curve	proc animateTo(c: AnimationController; b: Binding; target: float32;\n          durationSec: float32 = -1.0; curve: Curve = curveLinear)		253
-nim	Tween	flit/animation/animation.html#Tween	object Tween		275
-nim	tween	flit/animation/animation.html#tween,T,T	proc tween[T](begin, ending: T): Tween[T]		283
-nim	lerp	flit/animation/animation.html#lerp,T,T,float32	proc lerp[T: SomeFloat](a, b: T; t: float32): T		287
-nim	lerp	flit/animation/animation.html#lerp,int,int,float32	proc lerp(a, b: int; t: float32): int		290
-nim	evaluate	flit/animation/animation.html#evaluate,Tween[T],AnimationController	proc evaluate[T](tw: Tween[T]; c: AnimationController): T		293
+nim	addListener	flit/animation/animation.html#addListener,AnimationController,proc(float32)	proc addListener(c: AnimationController; fn: proc (v: float32))		146
+nim	addStatusListener	flit/animation/animation.html#addStatusListener,AnimationController,proc(AnimationStatus)	proc addStatusListener(c: AnimationController; fn: proc (s: AnimationStatus))		151
+nim	removeListener	flit/animation/animation.html#removeListener,AnimationController,proc(float32)	proc removeListener(c: AnimationController; fn: proc (v: float32))		156
+nim	removeStatusListener	flit/animation/animation.html#removeStatusListener,AnimationController,proc(AnimationStatus)	proc removeStatusListener(c: AnimationController; fn: proc (s: AnimationStatus))		165
+nim	stop	flit/animation/animation.html#stop,AnimationController	proc stop(c: AnimationController)		173
+nim	dispose	flit/animation/animation.html#dispose,AnimationController	proc dispose(c: AnimationController)		179
+nim	value=	flit/animation/animation.html#value=,AnimationController,float32	proc value=(c: AnimationController; v: float32)		189
+nim	forward	flit/animation/animation.html#forward,AnimationController,Binding,Curve	proc forward(c: AnimationController; b: Binding; curve: Curve = curveLinear)		211
+nim	reverse	flit/animation/animation.html#reverse,AnimationController,Binding,Curve	proc reverse(c: AnimationController; b: Binding; curve: Curve = curveLinear)		225
+nim	repeat	flit/animation/animation.html#repeat,AnimationController,Binding,Curve,bool	proc repeat(c: AnimationController; b: Binding; curve: Curve = curveLinear;\n       reverse: bool = false)		240
+nim	animateTo	flit/animation/animation.html#animateTo,AnimationController,Binding,float32,float32,Curve	proc animateTo(c: AnimationController; b: Binding; target: float32;\n          durationSec: float32 = -1.0; curve: Curve = curveLinear)		265
+nim	Tween	flit/animation/animation.html#Tween	object Tween		287
+nim	tween	flit/animation/animation.html#tween,T,T	proc tween[T](begin, ending: T): Tween[T]		295
+nim	lerp	flit/animation/animation.html#lerp,T,T,float32	proc lerp[T: SomeFloat](a, b: T; t: float32): T		299
+nim	lerp	flit/animation/animation.html#lerp,int,int,float32	proc lerp(a, b: int; t: float32): int		302
+nim	evaluate	flit/animation/animation.html#evaluate,Tween[T],AnimationController	proc evaluate[T](tw: Tween[T]; c: AnimationController): T		305
 nimgrp	stop	flit/animation/animation.html#stop-procs-all	proc		120
-nimgrp	lerp	flit/animation/animation.html#lerp-procs-all	proc		287
+nimgrp	lerp	flit/animation/animation.html#lerp-procs-all	proc		299

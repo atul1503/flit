@@ -1,0 +1,5 @@
+nimTitle	image_clipboard	flit/platform/image_clipboard.html	module src/flit/platform/image_clipboard		0
+nim	copyImagePngImpl	flit/platform/image_clipboard.html#copyImagePngImpl	var copyImagePngImpl		17
+nim	pasteImagePngImpl	flit/platform/image_clipboard.html#pasteImagePngImpl	var pasteImagePngImpl		23
+nim	copyImagePng	flit/platform/image_clipboard.html#copyImagePng,string	proc copyImagePng(pngBytes: string): bool		166
+nim	pasteImagePng	flit/platform/image_clipboard.html#pasteImagePng	proc pasteImagePng(): string		171

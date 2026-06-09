@@ -14,21 +14,23 @@ nim	scale	flit/rendering/canvas_gpu.html#scale.e,GpuCanvas,float32,float32	metho
 nim	rotate	flit/rendering/canvas_gpu.html#rotate.e,GpuCanvas,float32	method rotate(c: GpuCanvas; radians: float32)		243
 nim	clipRect	flit/rendering/canvas_gpu.html#clipRect.e,GpuCanvas,	method clipRect(c: GpuCanvas; r: geom.Rect)		247
 nim	GpuSubCanvas	flit/rendering/canvas_gpu.html#GpuSubCanvas	type GpuSubCanvas		257
-nim	clear	flit/rendering/canvas_gpu.html#clear.e,GpuSubCanvas,uint32	method clear(s: GpuSubCanvas; color: uint32)		277
-nim	drawRect	flit/rendering/canvas_gpu.html#drawRect.e,GpuSubCanvas,,uint32	method drawRect(s: GpuSubCanvas; r: geom.Rect; fill: uint32)		283
-nim	drawLine	flit/rendering/canvas_gpu.html#drawLine.e,GpuSubCanvas,,,uint32,float32	method drawLine(s: GpuSubCanvas; p0, p1: geom.Offset; color: uint32; width: float32)		290
-nim	drawRRect	flit/rendering/canvas_gpu.html#drawRRect.e,GpuSubCanvas,,uint32	method drawRRect(s: GpuSubCanvas; r: geom.RRect; fill: uint32)		298
-nim	drawCircle	flit/rendering/canvas_gpu.html#drawCircle.e,GpuSubCanvas,,float32,uint32	method drawCircle(s: GpuSubCanvas; center: geom.Offset; radius: float32; fill: uint32)		315
-nim	drawText	flit/rendering/canvas_gpu.html#drawText.e,GpuSubCanvas,string,,uint32,float32,string	method drawText(s: GpuSubCanvas; text: string; pos: geom.Offset; color: uint32;\n         fontSize: float32; fontFamily: string)		330
-nim	save	flit/rendering/canvas_gpu.html#save.e,GpuSubCanvas	method save(s: GpuSubCanvas)		344
-nim	restore	flit/rendering/canvas_gpu.html#restore.e,GpuSubCanvas	method restore(s: GpuSubCanvas)		345
-nim	translate	flit/rendering/canvas_gpu.html#translate.e,GpuSubCanvas,float32,float32	method translate(s: GpuSubCanvas; dx, dy: float32)		346
-nim	scale	flit/rendering/canvas_gpu.html#scale.e,GpuSubCanvas,float32,float32	method scale(s: GpuSubCanvas; sx, sy: float32)		347
-nim	rotate	flit/rendering/canvas_gpu.html#rotate.e,GpuSubCanvas,float32	method rotate(s: GpuSubCanvas; radians: float32)		348
-nim	clipRect	flit/rendering/canvas_gpu.html#clipRect.e,GpuSubCanvas,	method clipRect(s: GpuSubCanvas; r: geom.Rect)		349
-nim	createSubCanvas	flit/rendering/canvas_gpu.html#createSubCanvas.e,GpuCanvas,int,int	method createSubCanvas(c: GpuCanvas; w, h: int): Canvas		351
-nim	compositeSubCanvas	flit/rendering/canvas_gpu.html#compositeSubCanvas.e,GpuCanvas,Canvas,,	method compositeSubCanvas(c: GpuCanvas; sub: Canvas; offset: geom.Offset;\n                   size: geom.Size)		354
-nim	present	flit/rendering/canvas_gpu.html#present,GpuCanvas	proc present(c: GpuCanvas)		363
+nim	disposeSubCanvas	flit/rendering/canvas_gpu.html#disposeSubCanvas,GpuSubCanvas	proc disposeSubCanvas(s: GpuSubCanvas)		271
+nim	trimShapeCache	flit/rendering/canvas_gpu.html#trimShapeCache,GpuCanvas,int	proc trimShapeCache(c: GpuCanvas; maxEntries: int = 256)		279
+nim	clear	flit/rendering/canvas_gpu.html#clear.e,GpuSubCanvas,uint32	method clear(s: GpuSubCanvas; color: uint32)		307
+nim	drawRect	flit/rendering/canvas_gpu.html#drawRect.e,GpuSubCanvas,,uint32	method drawRect(s: GpuSubCanvas; r: geom.Rect; fill: uint32)		313
+nim	drawLine	flit/rendering/canvas_gpu.html#drawLine.e,GpuSubCanvas,,,uint32,float32	method drawLine(s: GpuSubCanvas; p0, p1: geom.Offset; color: uint32; width: float32)		320
+nim	drawRRect	flit/rendering/canvas_gpu.html#drawRRect.e,GpuSubCanvas,,uint32	method drawRRect(s: GpuSubCanvas; r: geom.RRect; fill: uint32)		328
+nim	drawCircle	flit/rendering/canvas_gpu.html#drawCircle.e,GpuSubCanvas,,float32,uint32	method drawCircle(s: GpuSubCanvas; center: geom.Offset; radius: float32; fill: uint32)		345
+nim	drawText	flit/rendering/canvas_gpu.html#drawText.e,GpuSubCanvas,string,,uint32,float32,string	method drawText(s: GpuSubCanvas; text: string; pos: geom.Offset; color: uint32;\n         fontSize: float32; fontFamily: string)		360
+nim	save	flit/rendering/canvas_gpu.html#save.e,GpuSubCanvas	method save(s: GpuSubCanvas)		374
+nim	restore	flit/rendering/canvas_gpu.html#restore.e,GpuSubCanvas	method restore(s: GpuSubCanvas)		375
+nim	translate	flit/rendering/canvas_gpu.html#translate.e,GpuSubCanvas,float32,float32	method translate(s: GpuSubCanvas; dx, dy: float32)		376
+nim	scale	flit/rendering/canvas_gpu.html#scale.e,GpuSubCanvas,float32,float32	method scale(s: GpuSubCanvas; sx, sy: float32)		377
+nim	rotate	flit/rendering/canvas_gpu.html#rotate.e,GpuSubCanvas,float32	method rotate(s: GpuSubCanvas; radians: float32)		378
+nim	clipRect	flit/rendering/canvas_gpu.html#clipRect.e,GpuSubCanvas,	method clipRect(s: GpuSubCanvas; r: geom.Rect)		379
+nim	createSubCanvas	flit/rendering/canvas_gpu.html#createSubCanvas.e,GpuCanvas,int,int	method createSubCanvas(c: GpuCanvas; w, h: int): Canvas		381
+nim	compositeSubCanvas	flit/rendering/canvas_gpu.html#compositeSubCanvas.e,GpuCanvas,Canvas,,	method compositeSubCanvas(c: GpuCanvas; sub: Canvas; offset: geom.Offset;\n                   size: geom.Size)		384
+nim	present	flit/rendering/canvas_gpu.html#present,GpuCanvas	proc present(c: GpuCanvas)		393
 nimgrp	drawrrect	flit/rendering/canvas_gpu.html#drawRRect-methods-all	method		153
 nimgrp	scale	flit/rendering/canvas_gpu.html#scale-methods-all	method		237
 nimgrp	drawcircle	flit/rendering/canvas_gpu.html#drawCircle-methods-all	method		195

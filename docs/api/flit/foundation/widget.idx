@@ -38,9 +38,9 @@ nim	markNeedsBuild	flit/foundation/widget.html#markNeedsBuild,Element	proc markN
 nim	updateChild	flit/foundation/widget.html#updateChild,Element,Element,Widget,int	proc updateChild(parent: Element; oldChild: Element; newWidget: Widget; slot: int): Element		299
 nim	performRebuild	flit/foundation/widget.html#performRebuild.e,Element	method performRebuild(e: Element)		339
 nim	visit	flit/foundation/widget.html#visit,Element,proc(Element)	proc visit(e: Element; fn: proc (child: Element))		348
-nim	visitDeep	flit/foundation/widget.html#visitDeep,Element,proc(Element)	proc visitDeep(e: Element; fn: proc (child: Element))		353
-nim	findInheritedOfType	flit/foundation/widget.html#findInheritedOfType,Element	proc findInheritedOfType[T: InheritedWidget](e: Element): T		361
-nim	dependOnInheritedOfType	flit/foundation/widget.html#dependOnInheritedOfType,BuildContext	proc dependOnInheritedOfType[T: InheritedWidget](ctx: BuildContext): T		374
-nim	notifyInheritedDependents	flit/foundation/widget.html#notifyInheritedDependents,Element	proc notifyInheritedDependents(e: Element)		395
-nim	debugDescribe	flit/foundation/widget.html#debugDescribe,Element	proc debugDescribe(e: Element): DiagnosticsNode		407
+nim	visitDeep	flit/foundation/widget.html#visitDeep,Element,proc(Element)	proc visitDeep(e: Element; fn: proc (child: Element))		355
+nim	findInheritedOfType	flit/foundation/widget.html#findInheritedOfType,Element	proc findInheritedOfType[T: InheritedWidget](e: Element): T		364
+nim	dependOnInheritedOfType	flit/foundation/widget.html#dependOnInheritedOfType,BuildContext	proc dependOnInheritedOfType[T: InheritedWidget](ctx: BuildContext): T		377
+nim	notifyInheritedDependents	flit/foundation/widget.html#notifyInheritedDependents,Element	proc notifyInheritedDependents(e: Element)		398
+nim	debugDescribe	flit/foundation/widget.html#debugDescribe,Element	proc debugDescribe(e: Element): DiagnosticsNode		415
 nimgrp	build	flit/foundation/widget.html#build-methods-all	method		181
