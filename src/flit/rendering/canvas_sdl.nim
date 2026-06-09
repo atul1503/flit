@@ -111,6 +111,16 @@ when not defined(js):
     path.lineTo(p1.dx, p1.dy)
     c.ctx.stroke(path)
 
+  method fillPolygon*(c: SdlCanvas, points: seq[geom.Offset], fill: uint32) =
+    if points.len < 3: return
+    c.ctx.fillStyle = argbToPaint(c, fill)
+    var path = newPath()
+    path.moveTo(points[0].dx, points[0].dy)
+    for i in 1 ..< points.len:
+      path.lineTo(points[i].dx, points[i].dy)
+    path.closePath()
+    c.ctx.fill(path)
+
   method drawText*(c: SdlCanvas, text: string, pos: geom.Offset, color: uint32,
                    fontSize: float32, fontFamily: string) =
     var f = c.fonts.getOrDefault(fontFamily, c.defaultFont)
@@ -251,6 +261,17 @@ when not defined(js):
     path.moveTo(p0.dx, p0.dy)
     path.lineTo(p1.dx, p1.dy)
     s.ctx.stroke(path)
+    s.textureDirty = true
+
+  method fillPolygon*(s: SdlSubCanvas, points: seq[geom.Offset], fill: uint32) =
+    if points.len < 3: return
+    s.ctx.fillStyle = subArgbToPaint(s, fill)
+    var path = newPath()
+    path.moveTo(points[0].dx, points[0].dy)
+    for i in 1 ..< points.len:
+      path.lineTo(points[i].dx, points[i].dy)
+    path.closePath()
+    s.ctx.fill(path)
     s.textureDirty = true
 
   method drawText*(s: SdlSubCanvas, text: string, pos: geom.Offset, color: uint32,

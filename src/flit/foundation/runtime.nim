@@ -458,14 +458,20 @@ proc processPointerEvents*(b: Binding) =
   let rE = descendantRenderElement(b.rootElement)
   if rE.isNil: return
 
-  # Coalesce consecutive peMove events into just the last one: SDL emits
-  # one mouse-motion event per pixel of travel and processing every one
-  # rebuilds the tree per pixel. Only the final position matters.
+  # Coalesce consecutive peMove and peScroll events. SDL emits one
+  # mouse-motion event per pixel of travel and many wheel events per
+  # trackpad flick; processing each one independently repaints once
+  # per pixel and hangs the UI. For peMove we keep only the final
+  # position; for peScroll we sum the deltas at the latest position.
   var coalesced: seq[PointerEvent]
   while b.pendingPointers.len > 0:
     let ev = b.pendingPointers.popFirst()
     if ev.kind == peMove and coalesced.len > 0 and coalesced[^1].kind == peMove:
       coalesced[^1] = ev
+    elif ev.kind == peScroll and coalesced.len > 0 and coalesced[^1].kind == peScroll:
+      coalesced[^1].scrollDelta = coalesced[^1].scrollDelta + ev.scrollDelta
+      coalesced[^1].position = ev.position
+      coalesced[^1].timestamp = ev.timestamp
     else:
       coalesced.add(ev)
 

@@ -57,6 +57,9 @@ import flit/widgets/directionality
 import flit/widgets/drag_drop
 import flit/widgets/menu
 import flit/widgets/pickers
+import flit/widgets/icon as icon_widget
+import flit/widgets/dropdown
+import flit/widgets/network_image
 import flit/gestures/detector
 import flit/gestures/multitouch
 import flit/animation/animation
@@ -83,7 +86,7 @@ export widget, key, render_object, geometry, color, diagnostics, binding,
        canvas_gl, glyph_atlas, raster_pool, text, decoration, proxy_box,
        flex, stack, sliver_list, basic, lazy_list, text_field, image_widget,
        transitions, nav_widget, form_widget, directionality,
-       drag_drop, menu, pickers,
+       drag_drop, menu, pickers, icon_widget, dropdown, network_image,
        detector, multitouch, animation,
        native_dialogs, file_picker, image_clipboard, system_tray,
        a11y_bridge, notifications, spellcheck, haptics, system_state,

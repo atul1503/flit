@@ -343,6 +343,52 @@ proc expanded*(child: Widget, flex = 1, key: Key = nil): Flexible =
   ## `Expanded`.
   flexible(child = child, flex = flex, fit = ffTight, key = key)
 
+proc gridView*(children: seq[Widget],
+               crossAxisCount: int = 2,
+               crossAxisSpacing: float32 = 8,
+               mainAxisSpacing: float32 = 8,
+               key: Key = nil): Column =
+  ## Builds a fixed-N-column grid by chunking `children` into rows.
+  ##
+  ## Inputs:
+  ## - `children`: items to arrange.
+  ## - `crossAxisCount`: how many columns per row. Default 2.
+  ## - `crossAxisSpacing`: horizontal gap between items in a row.
+  ## - `mainAxisSpacing`: vertical gap between rows.
+  ## - `key`: optional reconciliation key.
+  ##
+  ## Layout: items left-to-right, wrapping to a new row every
+  ## `crossAxisCount`. Each row uses equal-flex children so columns
+  ## have equal width. The grid sizes itself to its children
+  ## (`mainAxisSize = msMin`); wrap in `expanded` to fill available
+  ## height.
+  ##
+  ## This is the simple "static" grid (all children built up-front).
+  ## For lazy grids with thousands of items, build on top of
+  ## `listViewBuilder` directly.
+  let n = max(1, crossAxisCount)
+  var rows: seq[Widget]
+  var i = 0
+  while i < children.len:
+    var slots: seq[Widget]
+    for j in 0 ..< n:
+      let idx = i + j
+      if j > 0:
+        slots.add(Widget(SizedBox(width: crossAxisSpacing)))
+      if idx < children.len:
+        slots.add(Widget(Flexible(flex: 1, fit: ffLoose, child: children[idx])))
+      else:
+        slots.add(Widget(Flexible(flex: 1, fit: ffLoose, child: SizedBox())))
+    if i > 0:
+      rows.add(Widget(SizedBox(height: mainAxisSpacing)))
+    rows.add(Widget(Row(children: slots,
+                        crossAxisAlignment: caStart,
+                        mainAxisSize: msMax)))
+    i += n
+  Column(key: key, children: rows,
+         crossAxisAlignment: caStart,
+         mainAxisSize: msMin)
+
 # ----- Positioned (Stack child) -----
 
 type

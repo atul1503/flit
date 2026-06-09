@@ -64,13 +64,31 @@ method paint*(r: RenderViewport, ctx: PaintingContext, offset: Offset) =
   ## draws a thin dark scrollbar thumb on the trailing edge when
   ## `maxScroll > 0`. Thumb length is `viewportExtent /
   ## totalContentExtent` and position is `scrollOffset / maxScroll`.
+  ##
+  ## Sets a cull rect on the child context so render objects whose
+  ## absolute bounds fall outside the visible viewport are skipped
+  ## by `paintChild`. This keeps scroll cheap on tall columns.
   if r.child.isNil: return
   ctx.canvas.save()
   ctx.canvas.clipRect(rectFromOffsetSize(offset, r.size))
   let shift =
     if r.direction == axVertical: Offset(dx: 0, dy: -r.scrollOffset)
     else:                          Offset(dx: -r.scrollOffset, dy: 0)
+  let viewRect = rectFromOffsetSize(offset, r.size)
+  let prevHas = ctx.hasCull
+  let prevRect = ctx.cullRect
+  if prevHas:
+    ctx.cullRect = Rect(
+      left:   max(prevRect.left,   viewRect.left),
+      top:    max(prevRect.top,    viewRect.top),
+      right:  min(prevRect.right,  viewRect.right),
+      bottom: min(prevRect.bottom, viewRect.bottom))
+  else:
+    ctx.cullRect = viewRect
+    ctx.hasCull = true
   ctx.paintChild(r.child, shift)
+  ctx.hasCull = prevHas
+  ctx.cullRect = prevRect
   ctx.canvas.restore()
 
   # Scrollbar indicator. Drawn only if there's something to scroll, and

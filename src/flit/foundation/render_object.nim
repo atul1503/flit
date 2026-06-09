@@ -28,8 +28,15 @@ type
     ## Carries the current canvas and the absolute origin of whoever
     ## is painting into it. Pass to `paintChild` to descend into a
     ## subtree.
+    ##
+    ## `cullRect` is the visible region in absolute (canvas) space.
+    ## When `hasCull` is true, `paintChild` skips children whose
+    ## absolute bounding box does not intersect `cullRect`. The
+    ## viewport sets this so off-screen content is not walked.
     canvas*: Canvas
     offset*: Offset
+    cullRect*: Rect
+    hasCull*: bool
 
   HitTestEntry* = object
     ## A single entry in a hit-test path: the render object the
@@ -124,6 +131,18 @@ method drawLine*(c: Canvas, p0, p1: Offset, color: uint32, width: float32) {.bas
   ## Strokes a line from `p0` to `p1` with the given `color` and
   ## `width` in logical pixels.
 
+method fillPolygon*(c: Canvas, points: seq[Offset], fill: uint32) {.base.} =
+  ## Fills a closed polygon defined by `points` with color `fill`.
+  ## Used by the icon widget for vector glyphs (stars, arrows).
+  ## Default falls back to a stroked outline via `drawLine`; backends
+  ## that have native path-fill (Pixie-backed SDL canvas, GPU canvas)
+  ## override for filled drawing.
+  if points.len < 2: return
+  for i in 0 ..< points.len:
+    let a = points[i]
+    let b = points[(i + 1) mod points.len]
+    c.drawLine(a, b, fill, 1.0'f32)
+
 method drawText*(c: Canvas, text: string, pos: Offset, color: uint32,
                  fontSize: float32, fontFamily: string) {.base.} = discard
   ## Draws `text` at `pos` (top-left of the first glyph) in `color`
@@ -194,9 +213,27 @@ proc paintChild*(ctx: PaintingContext, child: RenderObject, offset: Offset) =
   ## position relative to `ctx`'s origin. The child paints at the
   ## absolute position `ctx.offset + offset`. Safe to call with
   ## `child == nil` (no-op).
+  ##
+  ## If `ctx.hasCull` is true, the child's absolute bounding box is
+  ## checked against `ctx.cullRect`. When they do not intersect the
+  ## child is skipped entirely. This is what makes long scrollable
+  ## columns cheap: rows that are scrolled out of view never enter
+  ## paint at all.
   if child.isNil: return
-  let childCtx = newPaintingContext(ctx.canvas, ctx.offset + offset)
-  paint(child, childCtx, ctx.offset + offset)
+  let abs = ctx.offset + offset
+  if ctx.hasCull:
+    let cs = if child.sizeOpt.isSome: child.sizeOpt.get else: SizeZero
+    let childRect = Rect(left: abs.dx, top: abs.dy,
+                         right: abs.dx + cs.width,
+                         bottom: abs.dy + cs.height)
+    if childRect.right  <= ctx.cullRect.left  or
+       childRect.left   >= ctx.cullRect.right or
+       childRect.bottom <= ctx.cullRect.top   or
+       childRect.top    >= ctx.cullRect.bottom:
+      return
+  let childCtx = PaintingContext(canvas: ctx.canvas, offset: abs,
+                                 cullRect: ctx.cullRect, hasCull: ctx.hasCull)
+  paint(child, childCtx, abs)
 
 method paint*(r: RenderObject, ctx: PaintingContext, offset: Offset) = discard
   ## Paints `r` at the given absolute `offset`. Default no-op;

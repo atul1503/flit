@@ -15,6 +15,7 @@ import ../../foundation/[widget, render_object, binding, geometry,
 import ../../rendering/canvas_sdl
 import ../../widgets/text_field
 import ../../widgets/drag_drop
+import ../../widgets/network_image
 
 type
   DesktopWindowConfig* = object
@@ -235,6 +236,11 @@ proc runDesktop*(rootWidget: Widget,
     # Drain pointer events into gesture detectors. May enqueue dirty roots
     # via setState callbacks.
     processPointerEvents(binding)
+
+    # Pump async network-image fetches. If a worker thread finished a
+    # fetch since the last frame, this bumps the trigger ValueNotifier
+    # so subscribed widgets rebuild.
+    pumpNetworkImageEvents()
 
     # Rebuild dirty subtrees. Snapshot and clear FIRST because
     # rebuildElement can add to dirtyRoots (via InheritedWidget
