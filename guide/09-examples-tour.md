@@ -89,6 +89,64 @@ nim c -r examples/notes/main.nim
 This is the example to study when you're ready to build a real
 app. Every pattern you'll need in production is in it.
 
+## Amazon
+
+`examples/amazon/main.nim`
+
+A 1600-line Amazon storefront clone. The largest example and the
+one closest to a production e-commerce UI. Used internally as the
+"does the framework actually scale to a real app" smoke test.
+
+Screens:
+
+- Home: navy header (logo, address picker, search, language,
+  account, returns, cart badge), sub-nav bar, hero banner,
+  2x2 category grid, recommendation rows, dark footer
+- Product detail: image, brand link, title, star rating, price
+  with strikethrough list, About-this-item bullets, side buy box
+  with Qty stepper + Add to Cart + Buy Now + Add to List
+- Cart: line items with Qty controls, running subtotal,
+  checkout box
+- Search results: filter sidebar + sort dropdown + product list
+- Category browse: filter sidebar + sort dropdown + 3-column grid
+- Today's Deals: 4-column grid of discounted products
+- Orders, Sign in (with obscured-password TextField), Account &
+  Lists, Wishlist, Customer Service, Gift Cards, Sell
+
+Things to study here:
+
+- 12-product fake catalog with `imageUrl` pointing at
+  picsum.photos; uses `networkImage` to load real product photos
+  asynchronously
+- Per-URL `notifierForUrl` so each NetworkImage subscribes only
+  to its own URL's load event (avoids "every image rebuild
+  invalidates every card" flicker)
+- `repaintBoundary` wrappers on every productCard, categoryCard,
+  hero, header, sub-nav, and footer - steady-state scroll paint
+  drops from ~60 ms to ~0.5 ms because most widgets are cached
+  composites
+- `gridView`, `dropdown`, `icon` (search / cart / heart / star /
+  chevron / check) replacing what used to be text-glyph hacks
+- ValueNotifier-backed `cartStore`, `wishlistStore`,
+  `ordersStore`, `signedInUser`. The header reactively updates
+  ("Hello, sign in" vs "Hello, <name>") based on whichever store
+  is observed via `listenableBuilder`
+- `currentNavigator().push(proc(): Widget = X(), transition = trNone)`
+  for instant navigation. Drop `transition = trNone` to get the
+  default 250ms slide-in.
+- `pageChrome(title, body)` helper that gives every secondary
+  screen the same header / sub-nav / footer chrome
+
+Run it:
+
+```
+nim c -d:release -o:bin/amazon examples/amazon/main.nim
+bin/amazon
+```
+
+Then tap "See more" on a category card, the cart icon, "Hello,
+sign in" - every clickable should route instantly.
+
 ## Showcase
 
 `examples/showcase/main.nim`
@@ -162,8 +220,10 @@ works well:
 2. `src/flit/foundation/widget.nim` (the three widget base types)
 3. `src/flit/widgets/basic.nim` (the layout widgets)
 4. `examples/showcase/main.nim` (everything wired together)
-5. `src/flit/foundation/runtime.nim` (mount, rebuild, reconcile)
-6. `src/flit/rendering/proxy_box.nim` (render-object templates)
+5. `examples/notes/main.nim` (state, navigation, persistence)
+6. `examples/amazon/main.nim` (a real-world-shaped app)
+7. `src/flit/foundation/runtime.nim` (mount, rebuild, reconcile)
+8. `src/flit/rendering/proxy_box.nim` (render-object templates)
 
 ## Next step
 

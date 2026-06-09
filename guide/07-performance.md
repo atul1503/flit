@@ -28,10 +28,15 @@ repaintBoundary(
 What happens:
 
 1. First paint: the subtree rasterizes into an off-screen sub-canvas.
-2. Subsequent paints: the sub-canvas is composited via `SDL_RenderCopy`
-   (GPU) without re-rasterizing.
+2. Subsequent paints: the sub-canvas is composited onto the parent
+   via Pixie's vectorized `Image.draw`. No re-rasterization, no
+   per-draw-call overhead.
 3. Anything inside the boundary that calls `markNeedsPaint` flips the
    boundary's `cacheDirty` flag, so the next paint re-rasterizes once.
+4. Boundaries rasterize eagerly during the initial paint (set via the
+   `skipsCull` flag) so the FIRST time a card scrolls into view it
+   composites instead of rasterizing fresh. That was a real ~15ms
+   spike before 0.11.2.
 
 Use it around:
 
@@ -297,6 +302,70 @@ on hover), only that card's texture re-rasterizes. The list itself only
 mounts the visible cards. Net cost per scroll frame: one mount of any
 newly-visible card + N composites of unchanged boundaries (one GPU
 texture copy each).
+
+## SDL canvas perf caches
+
+These run automatically when you use the default desktop runner;
+nothing for you to configure. Listed here so you understand what's
+happening:
+
+- **Text bitmap cache** (`sdlTextCache`). Pixie's `fillText` is the
+  most expensive per-call paint primitive. The SDL canvas rasterizes
+  each `(text, family, size, color)` tuple once into a small Pixie
+  image and blits via `Image.draw` on every subsequent call. Stable
+  strings (item titles, button labels) become cache hits. Inspect
+  hit / miss counters via `sdlTextCacheHits` / `sdlTextCacheMisses`.
+- **Rounded-rect bitmap cache** (`sdlRRectCache`). Same idea for
+  filled rrects: each `(width, height, radii, color)` rasterizes
+  once and blits thereafter. Card backgrounds, button shells, the
+  search box outline all become cache hits. Counters:
+  `sdlRRectCacheHits` / `sdlRRectCacheMisses`.
+- **Cull rect**. The `RenderViewport` (the render object behind
+  `scrollView`) sets a cull rect on the `PaintingContext` so
+  `paintChild` skips children whose absolute bounding box falls
+  outside the visible area. Long scrollable columns never walk
+  off-screen rows. RepaintBoundary opts out via `skipsCull = true`
+  so its cache builds eagerly on the initial paint.
+- **Pixie-backed `measureText`**. The desktop runner installs a
+  memoizing Pixie measurer on startup so layout knows real glyph
+  widths instead of falling back to a `len * 0.55 * fontSize`
+  approximation.
+
+Call `clearSdlTextCache()` or `clearSdlRRectCache()` to flush either
+cache (useful if you swap fonts or themes at runtime).
+
+## Diagnostic env vars
+
+The desktop runner respects a few env vars for profiling. They're
+gated on `getEnv` at startup so they cost nothing when unset.
+
+| Env var | What it does |
+|---|---|
+| `FLIT_FRAME_LOG=1` | Logs one line per dirty-rebuild and scroll-only frame with rebuild / layout / paint / present timings in milliseconds. Use to find slow frames during interactive use. |
+| `FLIT_PAINT_PROBE=<N>` | Paints the initial mount `N` extra times back-to-back at startup and logs per-frame timing + cache hit counts. Use to measure steady-state paint cost. |
+| `FLIT_TYPE_PROBE=1` | Synthetically focuses the first registered focus node and types `"echo dot 5th gen"`. Reports per-keystroke timing. Use to reproduce typing-lag reports without depending on real input. |
+| `FLIT_TAP_PROBE="x,y" FLIT_TAP_PROBE_TEXT="..."` | Synthetic tap at `(x, y)` followed by the optional text. Dumps the hit path (number of entries + number of `RenderGestureDetector`s) so you can confirm a coordinate is reaching the intended widget. |
+| `FLIT_SAVE_FRAME=path.png` | Writes the SDL canvas's CPU Pixie image to disk after the initial mount and after any probe runs. Use to verify the rendered output visually. |
+| `FLIT_INPUT_LOG=1` | Logs every SDL `TextInput` event with the current focus state. Use when typing doesn't reach a TextField - the log will say `focused=false` if focus was never set. |
+
+Typical reproduction recipe for a "the app feels slow" report:
+
+```
+nim c -d:release -o:bin/app examples/yourapp/main.nim
+FLIT_FRAME_LOG=1 bin/app
+# interact, take screenshot of terminal output
+```
+
+If a specific element seems broken:
+
+```
+FLIT_TAP_PROBE="500,40" FLIT_TAP_PROBE_TEXT="abc" \
+  FLIT_SAVE_FRAME=/tmp/after.png bin/app
+```
+
+The `/tmp/after.png` shows the canvas after the tap + typing - if
+your text doesn't appear there, the bug is in your widget tree, not
+in the input system.
 
 ## Next step
 

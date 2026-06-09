@@ -1,0 +1,18 @@
+nimTitle	network_image	flit/widgets/network_image.html	module src/flit/widgets/network_image		0
+nim	nfsPending	flit/widgets/network_image.html#nfsPending	NetworkFetchStatus.nfsPending		25
+nim	nfsLoaded	flit/widgets/network_image.html#nfsLoaded	NetworkFetchStatus.nfsLoaded		25
+nim	nfsError	flit/widgets/network_image.html#nfsError	NetworkFetchStatus.nfsError		25
+nim	NetworkFetchStatus	flit/widgets/network_image.html#NetworkFetchStatus	enum NetworkFetchStatus		25
+nim	networkImageTrigger	flit/widgets/network_image.html#networkImageTrigger	let networkImageTrigger		43
+nim	notifierForUrl	flit/widgets/network_image.html#notifierForUrl,string	proc notifierForUrl(url: string): ValueNotifier[int]		51
+nim	requestNetworkImage	flit/widgets/network_image.html#requestNetworkImage,string	proc requestNetworkImage(url: string): NetworkFetchStatus		89
+nim	networkImageBytes	flit/widgets/network_image.html#networkImageBytes,string	proc networkImageBytes(url: string): string		101
+nim	clearNetworkImageCache	flit/widgets/network_image.html#clearNetworkImageCache	proc clearNetworkImageCache()		108
+nim	pumpNetworkImageEvents	flit/widgets/network_image.html#pumpNetworkImageEvents	proc pumpNetworkImageEvents()		115
+nim	NetworkImage	flit/widgets/network_image.html#NetworkImage	type NetworkImage		140
+nim	NetworkImageState	flit/widgets/network_image.html#NetworkImageState	type NetworkImageState		150
+nim	widgetTypeName	flit/widgets/network_image.html#widgetTypeName.e,NetworkImage	method widgetTypeName(w: NetworkImage): string		152
+nim	createElement	flit/widgets/network_image.html#createElement.e,NetworkImage	method createElement(w: NetworkImage): Element		153
+nim	createState	flit/widgets/network_image.html#createState.e,NetworkImage	method createState(w: NetworkImage): State		154
+nim	build	flit/widgets/network_image.html#build.e,NetworkImageState,BuildContext	method build(s: NetworkImageState; ctx: BuildContext): Widget		156
+nim	networkImage	flit/widgets/network_image.html#networkImage,string,float32,float32,ImageFit,Color,Key	proc networkImage(url: string; width: float32 = 0.0; height: float32 = 0.0;\n             fit: ImageFit = ifCover;\n             placeholderColor: Color = rgb(228, 230, 235); key: Key = nil): NetworkImage		183

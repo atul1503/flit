@@ -863,7 +863,7 @@
   <dt><pre><span class="Keyword">method</span> <a href="#performLayout.e%2CRenderTextField"><span class="Identifier">performLayout</span></a><span class="Other">(</span><span class="Identifier">r</span><span class="Other">:</span> <a href="text_field.html#RenderTextField"><span class="Identifier">RenderTextField</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Single-line: parent width by 1.6 * fontSize (min 32). Multi-line: parent width by line-count * fontSize * style.height (clamped to maxLines if positive, with vertical padding).
+    Single-line: parent width by 1.6 * fontSize (min 32), or by the parent's bounded height if larger. The &quot;fill bounded height&quot; rule expands the hit target so taps anywhere in a taller wrapper container (e.g. a 40px search box) reach the TextField's gesture detector instead of just the inner 32px. Multi-line: parent width by line-count * fontSize * style.height (clamped to maxLines if positive, with vertical padding).
     
   </dd>
 </div>
@@ -911,7 +911,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 09:53:49 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 14:45:27 UTC</small>
       </div>
     </div>
   </div>

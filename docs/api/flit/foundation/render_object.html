@@ -70,7 +70,9 @@
   path*: seq[HitTestEntry]">HitTestResult</a></li>
 <li><a class="reference" href="#PaintingContext" title="PaintingContext = ref object
   canvas*: Canvas
-  offset*: Offset">PaintingContext</a></li>
+  offset*: Offset
+  cullRect*: Rect
+  hasCull*: bool">PaintingContext</a></li>
 <li><a class="reference" href="#RenderObject" title="RenderObject = ref object of RootObj
   parent*: RenderObject
   constraints*: Constraints
@@ -79,7 +81,13 @@
   needsLayout*: bool
   needsPaint*: bool
   attached*: bool
-  debugLabel*: string">RenderObject</a></li>
+  debugLabel*: string
+  skipsCull*: bool ## When true, `paintChild` does NOT cull this render object even
+                   ## when it's outside the parent's cull rect. RepaintBoundary
+                   ## sets this so its cached bitmap is built eagerly during
+                   ## initial paint, eliminating the &quot;first time scrolled into
+                   ## view&quot; rasterization spike. The boundary handles its own
+                   ## visibility check at composite time.">RenderObject</a></li>
 
     </ul>
   </details>
@@ -198,6 +206,10 @@
          fontFamily: string)</a></li>
 
 </ul>
+<ul class="simple nested-toc-section">fillPolygon
+  <li><a class="reference" href="#fillPolygon.e%2CCanvas%2Cseq%5BOffset%5D%2Cuint32" title="fillPolygon(c: Canvas; points: seq[Offset]; fill: uint32)">fillPolygon(c: Canvas; points: seq[Offset]; fill: uint32)</a></li>
+
+</ul>
 <ul class="simple nested-toc-section">hitTest
   <li><a class="reference" href="#hitTest.e%2CRenderObject%2CHitTestResult%2COffset" title="hitTest(r: RenderObject; htResult: HitTestResult; position: Offset): bool">hitTest(r: RenderObject; htResult: HitTestResult; position: Offset): bool</a></li>
 
@@ -290,10 +302,14 @@
 <div id="PaintingContext">
   <dt><pre><a href="render_object.html#PaintingContext"><span class="Identifier">PaintingContext</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">canvas</span><span class="Operator">*</span><span class="Other">:</span> <a href="render_object.html#Canvas"><span class="Identifier">Canvas</span></a>
-  <span class="Identifier">offset</span><span class="Operator">*</span><span class="Other">:</span> <a href="geometry.html#Offset"><span class="Identifier">Offset</span></a></pre></dt>
+  <span class="Identifier">offset</span><span class="Operator">*</span><span class="Other">:</span> <a href="geometry.html#Offset"><span class="Identifier">Offset</span></a>
+  <span class="Identifier">cullRect</span><span class="Operator">*</span><span class="Other">:</span> <a href="geometry.html#Rect"><span class="Identifier">Rect</span></a>
+  <span class="Identifier">hasCull</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span></pre></dt>
   <dd>
     
-    Carries the current canvas and the absolute origin of whoever is painting into it. Pass to <tt class="docutils literal"><span class="pre"><span class="Identifier">paintChild</span></span></tt> to descend into a subtree.
+    <p>Carries the current canvas and the absolute origin of whoever is painting into it. Pass to <tt class="docutils literal"><span class="pre"><span class="Identifier">paintChild</span></span></tt> to descend into a subtree.</p>
+<p><tt class="docutils literal"><span class="pre"><span class="Identifier">cullRect</span></span></tt> is the visible region in absolute (canvas) space. When <tt class="docutils literal"><span class="pre"><span class="Identifier">hasCull</span></span></tt> is true, <tt class="docutils literal"><span class="pre"><span class="Identifier">paintChild</span></span></tt> skips children whose absolute bounding box does not intersect <tt class="docutils literal"><span class="pre"><span class="Identifier">cullRect</span></span></tt>. The viewport sets this so off-screen content is not walked.</p>
+
     
   </dd>
 </div>
@@ -306,7 +322,13 @@
   <span class="Identifier">needsLayout</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
   <span class="Identifier">needsPaint</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
   <span class="Identifier">attached</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
-  <span class="Identifier">debugLabel</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span></pre></dt>
+  <span class="Identifier">debugLabel</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">skipsCull</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Comment">## When true, `paintChild` does NOT cull this render object even</span>
+                   <span class="Comment">## when it's outside the parent's cull rect. RepaintBoundary</span>
+                   <span class="Comment">## sets this so its cached bitmap is built eagerly during</span>
+                   <span class="Comment">## initial paint, eliminating the &quot;first time scrolled into</span>
+                   <span class="Comment">## view&quot; rasterization spike. The boundary handles its own</span>
+                   <span class="Comment">## visibility check at composite time.</span></pre></dt>
   <dd>
     
     Base of the render tree. Subclasses override <tt class="docutils literal"><span class="pre"><span class="Identifier">performLayout</span></span></tt>, <tt class="docutils literal"><span class="pre"><span class="Identifier">paint</span></span></tt>, and (optionally) <tt class="docutils literal"><span class="pre"><span class="Identifier">hitTest</span></span></tt>. Fields:<ul class="simple"><li><tt class="docutils literal"><span class="pre"><span class="Identifier">parent</span></span></tt>: parent render object, set by attachment.</li>
@@ -418,7 +440,9 @@
                                        <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Marks <tt class="docutils literal"><span class="pre"><span class="Identifier">r</span></span></tt> and all ancestors as needing repaint. Call this when a property changes that affects only appearance (color, etc.), not layout. Also invokes <tt class="docutils literal"><span class="pre"><span class="Identifier">absorbPaintMark</span></span></tt> on every render object along the walk so cache-bearing nodes (RepaintBoundary) can invalidate their cached output.
+    <p>Marks <tt class="docutils literal"><span class="pre"><span class="Identifier">r</span></span></tt> and all ancestors as needing repaint. Call this when a property changes that affects only appearance (color, etc.), not layout. Also invokes <tt class="docutils literal"><span class="pre"><span class="Identifier">absorbPaintMark</span></span></tt> on every render object along the walk so cache-bearing nodes (RepaintBoundary) can invalidate their cached output.</p>
+<p>Important: the walk does NOT short-circuit on <tt class="docutils literal"><span class="pre"><span class="Identifier">needsPaint</span></span></tt> being already set, because a RepaintBoundary clears its own <tt class="docutils literal"><span class="pre"><span class="Identifier">cacheDirty</span></span></tt> flag at the END of its paint pass while <tt class="docutils literal"><span class="pre"><span class="Identifier">needsPaint</span></span></tt> on descendants persists across frames. If we bailed out on <tt class="docutils literal"><span class="pre"><span class="Identifier">needsPaint</span> <span class="Operator">=</span> <span class="Identifier">true</span></span></tt>, the boundary's <tt class="docutils literal"><span class="pre"><span class="Identifier">absorbPaintMark</span></span></tt> would never run again after the first frame and its cache would go stale (the bug that broke typing into any TextField inside a RepaintBoundary).</p>
+
     
   </dd>
 </div>
@@ -442,7 +466,9 @@
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Recursively paints a child render object. <tt class="docutils literal"><span class="pre"><span class="Identifier">offset</span></span></tt> is the child's position relative to <tt class="docutils literal"><span class="pre"><span class="Identifier">ctx</span></span></tt>'s origin. The child paints at the absolute position <tt class="docutils literal"><span class="pre"><span class="Identifier">ctx</span><span class="Operator">.</span><span class="Identifier">offset</span> <span class="Operator">+</span> <span class="Identifier">offset</span></span></tt>. Safe to call with <tt class="docutils literal"><span class="pre"><span class="Identifier">child</span> <span class="Operator">==</span> <span class="Keyword">nil</span></span></tt> (no-op).
+    <p>Recursively paints a child render object. <tt class="docutils literal"><span class="pre"><span class="Identifier">offset</span></span></tt> is the child's position relative to <tt class="docutils literal"><span class="pre"><span class="Identifier">ctx</span></span></tt>'s origin. The child paints at the absolute position <tt class="docutils literal"><span class="pre"><span class="Identifier">ctx</span><span class="Operator">.</span><span class="Identifier">offset</span> <span class="Operator">+</span> <span class="Identifier">offset</span></span></tt>. Safe to call with <tt class="docutils literal"><span class="pre"><span class="Identifier">child</span> <span class="Operator">==</span> <span class="Keyword">nil</span></span></tt> (no-op).</p>
+<p>If <tt class="docutils literal"><span class="pre"><span class="Identifier">ctx</span><span class="Operator">.</span><span class="Identifier">hasCull</span></span></tt> is true, the child's absolute bounding box is checked against <tt class="docutils literal"><span class="pre"><span class="Identifier">ctx</span><span class="Operator">.</span><span class="Identifier">cullRect</span></span></tt>. When they do not intersect the child is skipped entirely. This is what makes long scrollable columns cheap: rows that are scrolled out of view never enter paint at all.</p>
+
     
   </dd>
 </div>
@@ -629,6 +655,18 @@
 </div>
 
 </div>
+<div id="fillPolygon-methods-all">
+  <div id="fillPolygon.e,Canvas,seq[Offset],uint32">
+  <dt><pre><span class="Keyword">method</span> <a href="#fillPolygon.e%2CCanvas%2Cseq%5BOffset%5D%2Cuint32"><span class="Identifier">fillPolygon</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="render_object.html#Canvas"><span class="Identifier">Canvas</span></a><span class="Other">;</span> <span class="Identifier">points</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="geometry.html#Offset"><span class="Identifier">Offset</span></a><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">fill</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">)</span> {.<span class="Identifier">base</span><span class="Other">,</span>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Fills a closed polygon defined by <tt class="docutils literal"><span class="pre"><span class="Identifier">points</span></span></tt> with color <tt class="docutils literal"><span class="pre"><span class="Identifier">fill</span></span></tt>. Used by the icon widget for vector glyphs (stars, arrows). Default falls back to a stroked outline via <tt class="docutils literal"><span class="pre"><span class="Identifier">drawLine</span></span></tt>; backends that have native path-fill (Pixie-backed SDL canvas, GPU canvas) override for filled drawing.
+    
+  </dd>
+</div>
+
+</div>
 <div id="hitTest-methods-all">
   <div id="hitTest.e,RenderObject,HitTestResult,Offset">
   <dt><pre><span class="Keyword">method</span> <a href="#hitTest.e%2CRenderObject%2CHitTestResult%2COffset"><span class="Identifier">hitTest</span></a><span class="Other">(</span><span class="Identifier">r</span><span class="Other">:</span> <a href="render_object.html#RenderObject"><span class="Identifier">RenderObject</span></a><span class="Other">;</span> <span class="Identifier">htResult</span><span class="Other">:</span> <a href="render_object.html#HitTestResult"><span class="Identifier">HitTestResult</span></a><span class="Other">;</span> <span class="Identifier">position</span><span class="Other">:</span> <a href="geometry.html#Offset"><span class="Identifier">Offset</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.
@@ -738,7 +776,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 09:53:47 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 14:45:25 UTC</small>
       </div>
     </div>
   </div>

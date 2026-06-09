@@ -1,0 +1,10 @@
+nimTitle	icon	flit/widgets/icon.html	module src/flit/widgets/icon		0
+nim	Icon	flit/widgets/icon.html#Icon	type Icon		29
+nim	RenderIcon	flit/widgets/icon.html#RenderIcon	type RenderIcon		37
+nim	widgetTypeName	flit/widgets/icon.html#widgetTypeName.e,Icon	method widgetTypeName(w: Icon): string		42
+nim	createElement	flit/widgets/icon.html#createElement.e,Icon	method createElement(w: Icon): Element		43
+nim	createRenderObject	flit/widgets/icon.html#createRenderObject.e,Icon,BuildContext	method createRenderObject(w: Icon; ctx: BuildContext): RenderObject		44
+nim	updateRenderObject	flit/widgets/icon.html#updateRenderObject.e,Icon,BuildContext,RenderObject	method updateRenderObject(w: Icon; ctx: BuildContext; r: RenderObject)		46
+nim	performLayout	flit/widgets/icon.html#performLayout.e,RenderIcon	method performLayout(r: RenderIcon)		53
+nim	paint	flit/widgets/icon.html#paint.e,RenderIcon,PaintingContext,Offset	method paint(r: RenderIcon; ctx: PaintingContext; offset: Offset)		211
+nim	icon	flit/widgets/icon.html#icon,string,float32,Color,Key	proc icon(name: string; size: float32 = 16.0; color: Color = colorBlack;\n     key: Key = nil): Icon		230

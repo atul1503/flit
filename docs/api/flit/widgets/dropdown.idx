@@ -1,0 +1,8 @@
+nimTitle	dropdown	flit/widgets/dropdown.html	module src/flit/widgets/dropdown		0
+nim	Dropdown	flit/widgets/dropdown.html#Dropdown	type Dropdown		22
+nim	DropdownState	flit/widgets/dropdown.html#DropdownState	type DropdownState		33
+nim	widgetTypeName	flit/widgets/dropdown.html#widgetTypeName.e,Dropdown[T]	method widgetTypeName[T](w: Dropdown[T]): string		36
+nim	createElement	flit/widgets/dropdown.html#createElement.e,Dropdown[T]	method createElement[T](w: Dropdown[T]): Element		37
+nim	createState	flit/widgets/dropdown.html#createState.e,Dropdown[T]	method createState[T](w: Dropdown[T]): State		38
+nim	build	flit/widgets/dropdown.html#build.e,DropdownState[T],BuildContext	method build[T](s: DropdownState[T]; ctx: BuildContext): Widget		40
+nim	dropdown	flit/widgets/dropdown.html#dropdown,seq[T],T,proc(T),proc(T),float32,string,Key	proc dropdown[T](items: seq[T]; value: T; onChange: proc (v: T) = nil;\n            displayBuilder: proc (v: T): string = nil; width: float32 = 200.0;\n            placeholder: string = ""; key: Key = nil): Dropdown[T]		95

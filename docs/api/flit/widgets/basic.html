@@ -201,6 +201,14 @@
   <li><a class="reference" href="#flexible%2CWidget%2Cint%2CKey" title="flexible(child: Widget; flex = 1; fit = ffLoose; key: Key = nil): Flexible">flexible(child: Widget; flex = 1; fit = ffLoose; key: Key = nil): Flexible</a></li>
 
 </ul>
+<ul class="simple nested-toc-section">gridView
+  <li><a class="reference" href="#gridView%2Cseq%5BWidget%5D%2Cint%2Cfloat32%2Cfloat32%2CKey" title="gridView(children: seq[Widget]; crossAxisCount: int = 2;
+         crossAxisSpacing: float32 = 8.0; mainAxisSpacing: float32 = 8.0;
+         key: Key = nil): Column">gridView(children: seq[Widget]; crossAxisCount: int = 2;
+         crossAxisSpacing: float32 = 8.0; mainAxisSpacing: float32 = 8.0;
+         key: Key = nil): Column</a></li>
+
+</ul>
 <ul class="simple nested-toc-section">opacity
   <li><a class="reference" href="#opacity%2CWidget%2Cfloat32%2CKey" title="opacity(child: Widget; opacity: float32; key: Key = nil): OpacityWidget">opacity(child: Widget; opacity: float32; key: Key = nil): OpacityWidget</a></li>
 
@@ -820,6 +828,29 @@
 <li><tt class="docutils literal"><span class="pre"><span class="Identifier">key</span></span></tt>: optional reconciliation key.</li>
 </ul>
 <p>Effect: contributes parent data to the enclosing flex container so the layout pass distributes space proportionally.</p>
+
+    
+  </dd>
+</div>
+
+</div>
+<div id="gridView-procs-all">
+  <div id="gridView,seq[Widget],int,float32,float32,Key">
+  <dt><pre><span class="Keyword">proc</span> <a href="#gridView%2Cseq%5BWidget%5D%2Cint%2Cfloat32%2Cfloat32%2CKey"><span class="Identifier">gridView</span></a><span class="Other">(</span><span class="Identifier">children</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="../foundation/widget.html#Widget"><span class="Identifier">Widget</span></a><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">crossAxisCount</span><span class="Other">:</span> <span class="Identifier">int</span> <span class="Other">=</span> <span class="DecNumber">2</span><span class="Other">;</span>
+              <span class="Identifier">crossAxisSpacing</span><span class="Other">:</span> <span class="Identifier">float32</span> <span class="Other">=</span> <span class="FloatNumber">8.0</span><span class="Other">;</span> <span class="Identifier">mainAxisSpacing</span><span class="Other">:</span> <span class="Identifier">float32</span> <span class="Other">=</span> <span class="FloatNumber">8.0</span><span class="Other">;</span>
+              <span class="Identifier">key</span><span class="Other">:</span> <a href="../foundation/key.html#Key"><span class="Identifier">Key</span></a> <span class="Other">=</span> <span class="Keyword">nil</span><span class="Other">)</span><span class="Other">:</span> <a href="basic.html#Column"><span class="Identifier">Column</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    <p>Builds a fixed-N-column grid by chunking <tt class="docutils literal"><span class="pre"><span class="Identifier">children</span></span></tt> into rows.</p>
+<p>Inputs:</p>
+<ul class="simple"><li><tt class="docutils literal"><span class="pre"><span class="Identifier">children</span></span></tt>: items to arrange.</li>
+<li><tt class="docutils literal"><span class="pre"><span class="Identifier">crossAxisCount</span></span></tt>: how many columns per row. Default 2.</li>
+<li><tt class="docutils literal"><span class="pre"><span class="Identifier">crossAxisSpacing</span></span></tt>: horizontal gap between items in a row.</li>
+<li><tt class="docutils literal"><span class="pre"><span class="Identifier">mainAxisSpacing</span></span></tt>: vertical gap between rows.</li>
+<li><tt class="docutils literal"><span class="pre"><span class="Identifier">key</span></span></tt>: optional reconciliation key.</li>
+</ul>
+<p>Layout: items left-to-right, wrapping to a new row every <tt class="docutils literal"><span class="pre"><span class="Identifier">crossAxisCount</span></span></tt>. Each row uses equal-flex children so columns have equal width. The grid sizes itself to its children (<tt class="docutils literal"><span class="pre"><span class="Identifier">mainAxisSize</span> <span class="Operator">=</span> <span class="Identifier">msMin</span></span></tt>); wrap in <tt class="docutils literal"><span class="pre"><span class="Identifier">expanded</span></span></tt> to fill available height.</p>
+<p>This is the simple &quot;static&quot; grid (all children built up-front). For lazy grids with thousands of items, build on top of <tt class="docutils literal"><span class="pre"><span class="Identifier">listViewBuilder</span></span></tt> directly.</p>
 
     
   </dd>
@@ -1691,7 +1722,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 09:53:47 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 14:45:25 UTC</small>
       </div>
     </div>
   </div>

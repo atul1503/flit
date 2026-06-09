@@ -47,73 +47,74 @@ nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Flexible	method widg
 nim	createElement	flit/widgets/basic.html#createElement.e,Flexible	method createElement(w: Flexible): Element		321
 nim	flexible	flit/widgets/basic.html#flexible,Widget,int,Key	proc flexible(child: Widget; flex = 1; fit = ffLoose; key: Key = nil): Flexible		323
 nim	expanded	flit/widgets/basic.html#expanded,Widget,int,Key	proc expanded(child: Widget; flex = 1; key: Key = nil): Flexible		340
-nim	Positioned	flit/widgets/basic.html#Positioned	type Positioned		349
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Positioned	method widgetTypeName(w: Positioned): string		357
-nim	createElement	flit/widgets/basic.html#createElement.e,Positioned	method createElement(w: Positioned): Element		358
-nim	positioned	flit/widgets/basic.html#positioned,Widget,Key	proc positioned(child: Widget; left = unsetF; top = unsetF; right = unsetF;\n           bottom = unsetF; width = unsetF; height = unsetF; key: Key = nil): Positioned		360
-nim	Stack	flit/widgets/basic.html#Stack	type Stack		385
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Stack	method widgetTypeName(w: Stack): string		394
-nim	createElement	flit/widgets/basic.html#createElement.e,Stack	method createElement(w: Stack): Element		395
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,Stack,BuildContext	method createRenderObject(w: Stack; ctx: BuildContext): RenderObject		396
-nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,Stack,BuildContext,RenderObject	method updateRenderObject(w: Stack; ctx: BuildContext; r: RenderObject)		398
-nim	stack	flit/widgets/basic.html#stack,seq[Widget],Key	proc stack(children: seq[Widget] = @[]; alignment = alignTopLeft; fit = sfLoose;\n      key: Key = nil): Stack		404
-nim	ScrollView	flit/widgets/basic.html#ScrollView	type ScrollView		427
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,ScrollView	method widgetTypeName(w: ScrollView): string		435
-nim	createElement	flit/widgets/basic.html#createElement.e,ScrollView	method createElement(w: ScrollView): Element		436
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,ScrollView,BuildContext	method createRenderObject(w: ScrollView; ctx: BuildContext): RenderObject		437
-nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,ScrollView,BuildContext,RenderObject	method updateRenderObject(w: ScrollView; ctx: BuildContext; r: RenderObject)		439
-nim	scrollView	flit/widgets/basic.html#scrollView,Widget,Key	proc scrollView(child: Widget; direction = axVertical; key: Key = nil): ScrollView		443
-nim	Text	flit/widgets/basic.html#Text	type Text		464
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Text	method widgetTypeName(w: Text): string		474
-nim	createElement	flit/widgets/basic.html#createElement.e,Text	method createElement(w: Text): Element		475
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,Text,BuildContext	method createRenderObject(w: Text; ctx: BuildContext): RenderObject		476
-nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,Text,BuildContext,RenderObject	method updateRenderObject(w: Text; ctx: BuildContext; r: RenderObject)		479
-nim	text	flit/widgets/basic.html#text,string,int,Key	proc text(data: string; style = defaultTextStyle; textAlign = taStart;\n     softWrap = true; maxLines = 0; key: Key = nil): Text		488
-nim	ConstrainedBox	flit/widgets/basic.html#ConstrainedBox	type ConstrainedBox		515
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,ConstrainedBox	method widgetTypeName(w: ConstrainedBox): string		522
-nim	createElement	flit/widgets/basic.html#createElement.e,ConstrainedBox	method createElement(w: ConstrainedBox): Element		523
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,ConstrainedBox,BuildContext	method createRenderObject(w: ConstrainedBox; ctx: BuildContext): RenderObject		524
-nim	constrainedBox	flit/widgets/basic.html#constrainedBox,Widget,Constraints,Key	proc constrainedBox(child: Widget; boxConstraints: Constraints; key: Key = nil): ConstrainedBox		527
-nim	AspectRatio	flit/widgets/basic.html#AspectRatio	type AspectRatio		546
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,AspectRatio	method widgetTypeName(w: AspectRatio): string		553
-nim	createElement	flit/widgets/basic.html#createElement.e,AspectRatio	method createElement(w: AspectRatio): Element		554
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,AspectRatio,BuildContext	method createRenderObject(w: AspectRatio; ctx: BuildContext): RenderObject		555
-nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,AspectRatio,BuildContext,RenderObject	method updateRenderObject(w: AspectRatio; ctx: BuildContext; r: RenderObject)		557
-nim	aspectRatio	flit/widgets/basic.html#aspectRatio,Widget,float32,Key	proc aspectRatio(child: Widget; aspectRatio: float32; key: Key = nil): AspectRatio		561
-nim	ClipRect	flit/widgets/basic.html#ClipRect	type ClipRect		579
-nim	ClipRRect	flit/widgets/basic.html#ClipRRect	type ClipRRect		584
-nim	OpacityWidget	flit/widgets/basic.html#OpacityWidget	type OpacityWidget		591
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,ClipRect	method widgetTypeName(w: ClipRect): string		597
-nim	createElement	flit/widgets/basic.html#createElement.e,ClipRect	method createElement(w: ClipRect): Element		598
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,ClipRect,BuildContext	method createRenderObject(w: ClipRect; ctx: BuildContext): RenderObject		599
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,ClipRRect	method widgetTypeName(w: ClipRRect): string		602
-nim	createElement	flit/widgets/basic.html#createElement.e,ClipRRect	method createElement(w: ClipRRect): Element		603
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,ClipRRect,BuildContext	method createRenderObject(w: ClipRRect; ctx: BuildContext): RenderObject		604
-nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,ClipRRect,BuildContext,RenderObject	method updateRenderObject(w: ClipRRect; ctx: BuildContext; r: RenderObject)		606
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,OpacityWidget	method widgetTypeName(w: OpacityWidget): string		610
-nim	createElement	flit/widgets/basic.html#createElement.e,OpacityWidget	method createElement(w: OpacityWidget): Element		611
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,OpacityWidget,BuildContext	method createRenderObject(w: OpacityWidget; ctx: BuildContext): RenderObject		612
-nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,OpacityWidget,BuildContext,RenderObject	method updateRenderObject(w: OpacityWidget; ctx: BuildContext; r: RenderObject)		614
-nim	clipRect	flit/widgets/basic.html#clipRect,Widget,Key	proc clipRect(child: Widget; key: Key = nil): ClipRect		618
-nim	clipRRect	flit/widgets/basic.html#clipRRect,Widget,float32,Key	proc clipRRect(child: Widget; radius: float32; key: Key = nil): ClipRRect		623
-nim	RepaintBoundary	flit/widgets/basic.html#RepaintBoundary	type RepaintBoundary		635
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,RepaintBoundary	method widgetTypeName(w: RepaintBoundary): string		650
-nim	createElement	flit/widgets/basic.html#createElement.e,RepaintBoundary	method createElement(w: RepaintBoundary): Element		651
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,RepaintBoundary,BuildContext	method createRenderObject(w: RepaintBoundary; ctx: BuildContext): RenderObject		652
-nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,RepaintBoundary,BuildContext,RenderObject	method updateRenderObject(w: RepaintBoundary; ctx: BuildContext; r: RenderObject)		654
-nim	repaintBoundary	flit/widgets/basic.html#repaintBoundary,Widget,Key	proc repaintBoundary(child: Widget; key: Key = nil): RepaintBoundary		659
-nim	TransformWidget	flit/widgets/basic.html#TransformWidget	type TransformWidget		675
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,TransformWidget	method widgetTypeName(w: TransformWidget): string		683
-nim	createElement	flit/widgets/basic.html#createElement.e,TransformWidget	method createElement(w: TransformWidget): Element		684
-nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,TransformWidget,BuildContext	method createRenderObject(w: TransformWidget; ctx: BuildContext): RenderObject		685
-nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,TransformWidget,BuildContext,RenderObject	method updateRenderObject(w: TransformWidget; ctx: BuildContext; r: RenderObject)		688
-nim	transform	flit/widgets/basic.html#transform,Widget,Offset,float32,float32,Key	proc transform(child: Widget; translation: Offset = Offset(dx: 0.0, dy: 0.0);\n          rotation: float32 = 0.0; scale: float32 = 1.0; key: Key = nil): TransformWidget		695
-nim	opacity	flit/widgets/basic.html#opacity,Widget,float32,Key	proc opacity(child: Widget; opacity: float32; key: Key = nil): OpacityWidget		713
-nim	Container	flit/widgets/basic.html#Container	type Container		736
-nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Container	method widgetTypeName(w: Container): string		753
-nim	createElement	flit/widgets/basic.html#createElement.e,Container	method createElement(w: Container): Element		754
-nim	build	flit/widgets/basic.html#build.e,Container,BuildContext	method build(w: Container; ctx: BuildContext): Widget		755
-nim	container	flit/widgets/basic.html#container,Widget,float32,float32,Key	proc container(child: Widget = nil; width = 0.0'f32; height = 0.0'f32;\n          color = colorTransparent; padding = edgeInsetsAll(0);\n          margin = edgeInsetsAll(0); alignment = alignCenter;\n          decoration = BoxDecoration(); hasColor = false; hasDecoration = false;\n          hasAlignment = false; key: Key = nil): Container		795
+nim	gridView	flit/widgets/basic.html#gridView,seq[Widget],int,float32,float32,Key	proc gridView(children: seq[Widget]; crossAxisCount: int = 2;\n         crossAxisSpacing: float32 = 8.0; mainAxisSpacing: float32 = 8.0;\n         key: Key = nil): Column		346
+nim	Positioned	flit/widgets/basic.html#Positioned	type Positioned		395
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Positioned	method widgetTypeName(w: Positioned): string		403
+nim	createElement	flit/widgets/basic.html#createElement.e,Positioned	method createElement(w: Positioned): Element		404
+nim	positioned	flit/widgets/basic.html#positioned,Widget,Key	proc positioned(child: Widget; left = unsetF; top = unsetF; right = unsetF;\n           bottom = unsetF; width = unsetF; height = unsetF; key: Key = nil): Positioned		406
+nim	Stack	flit/widgets/basic.html#Stack	type Stack		431
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Stack	method widgetTypeName(w: Stack): string		440
+nim	createElement	flit/widgets/basic.html#createElement.e,Stack	method createElement(w: Stack): Element		441
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,Stack,BuildContext	method createRenderObject(w: Stack; ctx: BuildContext): RenderObject		442
+nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,Stack,BuildContext,RenderObject	method updateRenderObject(w: Stack; ctx: BuildContext; r: RenderObject)		444
+nim	stack	flit/widgets/basic.html#stack,seq[Widget],Key	proc stack(children: seq[Widget] = @[]; alignment = alignTopLeft; fit = sfLoose;\n      key: Key = nil): Stack		450
+nim	ScrollView	flit/widgets/basic.html#ScrollView	type ScrollView		473
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,ScrollView	method widgetTypeName(w: ScrollView): string		481
+nim	createElement	flit/widgets/basic.html#createElement.e,ScrollView	method createElement(w: ScrollView): Element		482
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,ScrollView,BuildContext	method createRenderObject(w: ScrollView; ctx: BuildContext): RenderObject		483
+nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,ScrollView,BuildContext,RenderObject	method updateRenderObject(w: ScrollView; ctx: BuildContext; r: RenderObject)		485
+nim	scrollView	flit/widgets/basic.html#scrollView,Widget,Key	proc scrollView(child: Widget; direction = axVertical; key: Key = nil): ScrollView		489
+nim	Text	flit/widgets/basic.html#Text	type Text		510
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Text	method widgetTypeName(w: Text): string		520
+nim	createElement	flit/widgets/basic.html#createElement.e,Text	method createElement(w: Text): Element		521
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,Text,BuildContext	method createRenderObject(w: Text; ctx: BuildContext): RenderObject		522
+nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,Text,BuildContext,RenderObject	method updateRenderObject(w: Text; ctx: BuildContext; r: RenderObject)		525
+nim	text	flit/widgets/basic.html#text,string,int,Key	proc text(data: string; style = defaultTextStyle; textAlign = taStart;\n     softWrap = true; maxLines = 0; key: Key = nil): Text		534
+nim	ConstrainedBox	flit/widgets/basic.html#ConstrainedBox	type ConstrainedBox		561
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,ConstrainedBox	method widgetTypeName(w: ConstrainedBox): string		568
+nim	createElement	flit/widgets/basic.html#createElement.e,ConstrainedBox	method createElement(w: ConstrainedBox): Element		569
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,ConstrainedBox,BuildContext	method createRenderObject(w: ConstrainedBox; ctx: BuildContext): RenderObject		570
+nim	constrainedBox	flit/widgets/basic.html#constrainedBox,Widget,Constraints,Key	proc constrainedBox(child: Widget; boxConstraints: Constraints; key: Key = nil): ConstrainedBox		573
+nim	AspectRatio	flit/widgets/basic.html#AspectRatio	type AspectRatio		592
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,AspectRatio	method widgetTypeName(w: AspectRatio): string		599
+nim	createElement	flit/widgets/basic.html#createElement.e,AspectRatio	method createElement(w: AspectRatio): Element		600
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,AspectRatio,BuildContext	method createRenderObject(w: AspectRatio; ctx: BuildContext): RenderObject		601
+nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,AspectRatio,BuildContext,RenderObject	method updateRenderObject(w: AspectRatio; ctx: BuildContext; r: RenderObject)		603
+nim	aspectRatio	flit/widgets/basic.html#aspectRatio,Widget,float32,Key	proc aspectRatio(child: Widget; aspectRatio: float32; key: Key = nil): AspectRatio		607
+nim	ClipRect	flit/widgets/basic.html#ClipRect	type ClipRect		625
+nim	ClipRRect	flit/widgets/basic.html#ClipRRect	type ClipRRect		630
+nim	OpacityWidget	flit/widgets/basic.html#OpacityWidget	type OpacityWidget		637
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,ClipRect	method widgetTypeName(w: ClipRect): string		643
+nim	createElement	flit/widgets/basic.html#createElement.e,ClipRect	method createElement(w: ClipRect): Element		644
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,ClipRect,BuildContext	method createRenderObject(w: ClipRect; ctx: BuildContext): RenderObject		645
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,ClipRRect	method widgetTypeName(w: ClipRRect): string		648
+nim	createElement	flit/widgets/basic.html#createElement.e,ClipRRect	method createElement(w: ClipRRect): Element		649
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,ClipRRect,BuildContext	method createRenderObject(w: ClipRRect; ctx: BuildContext): RenderObject		650
+nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,ClipRRect,BuildContext,RenderObject	method updateRenderObject(w: ClipRRect; ctx: BuildContext; r: RenderObject)		652
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,OpacityWidget	method widgetTypeName(w: OpacityWidget): string		656
+nim	createElement	flit/widgets/basic.html#createElement.e,OpacityWidget	method createElement(w: OpacityWidget): Element		657
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,OpacityWidget,BuildContext	method createRenderObject(w: OpacityWidget; ctx: BuildContext): RenderObject		658
+nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,OpacityWidget,BuildContext,RenderObject	method updateRenderObject(w: OpacityWidget; ctx: BuildContext; r: RenderObject)		660
+nim	clipRect	flit/widgets/basic.html#clipRect,Widget,Key	proc clipRect(child: Widget; key: Key = nil): ClipRect		664
+nim	clipRRect	flit/widgets/basic.html#clipRRect,Widget,float32,Key	proc clipRRect(child: Widget; radius: float32; key: Key = nil): ClipRRect		669
+nim	RepaintBoundary	flit/widgets/basic.html#RepaintBoundary	type RepaintBoundary		681
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,RepaintBoundary	method widgetTypeName(w: RepaintBoundary): string		696
+nim	createElement	flit/widgets/basic.html#createElement.e,RepaintBoundary	method createElement(w: RepaintBoundary): Element		697
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,RepaintBoundary,BuildContext	method createRenderObject(w: RepaintBoundary; ctx: BuildContext): RenderObject		698
+nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,RepaintBoundary,BuildContext,RenderObject	method updateRenderObject(w: RepaintBoundary; ctx: BuildContext; r: RenderObject)		702
+nim	repaintBoundary	flit/widgets/basic.html#repaintBoundary,Widget,Key	proc repaintBoundary(child: Widget; key: Key = nil): RepaintBoundary		707
+nim	TransformWidget	flit/widgets/basic.html#TransformWidget	type TransformWidget		723
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,TransformWidget	method widgetTypeName(w: TransformWidget): string		731
+nim	createElement	flit/widgets/basic.html#createElement.e,TransformWidget	method createElement(w: TransformWidget): Element		732
+nim	createRenderObject	flit/widgets/basic.html#createRenderObject.e,TransformWidget,BuildContext	method createRenderObject(w: TransformWidget; ctx: BuildContext): RenderObject		733
+nim	updateRenderObject	flit/widgets/basic.html#updateRenderObject.e,TransformWidget,BuildContext,RenderObject	method updateRenderObject(w: TransformWidget; ctx: BuildContext; r: RenderObject)		736
+nim	transform	flit/widgets/basic.html#transform,Widget,Offset,float32,float32,Key	proc transform(child: Widget; translation: Offset = Offset(dx: 0.0, dy: 0.0);\n          rotation: float32 = 0.0; scale: float32 = 1.0; key: Key = nil): TransformWidget		743
+nim	opacity	flit/widgets/basic.html#opacity,Widget,float32,Key	proc opacity(child: Widget; opacity: float32; key: Key = nil): OpacityWidget		761
+nim	Container	flit/widgets/basic.html#Container	type Container		784
+nim	widgetTypeName	flit/widgets/basic.html#widgetTypeName.e,Container	method widgetTypeName(w: Container): string		801
+nim	createElement	flit/widgets/basic.html#createElement.e,Container	method createElement(w: Container): Element		802
+nim	build	flit/widgets/basic.html#build.e,Container,BuildContext	method build(w: Container; ctx: BuildContext): Widget		803
+nim	container	flit/widgets/basic.html#container,Widget,float32,float32,Key	proc container(child: Widget = nil; width = 0.0'f32; height = 0.0'f32;\n          color = colorTransparent; padding = edgeInsetsAll(0);\n          margin = edgeInsetsAll(0); alignment = alignCenter;\n          decoration = BoxDecoration(); hasColor = false; hasDecoration = false;\n          hasAlignment = false; key: Key = nil): Container		843
 nimgrp	createrenderobject	flit/widgets/basic.html#createRenderObject-methods-all	method		34
 nimgrp	updaterenderobject	flit/widgets/basic.html#updateRenderObject-methods-all	method		36
 nimgrp	widgettypename	flit/widgets/basic.html#widgetTypeName-methods-all	method		32

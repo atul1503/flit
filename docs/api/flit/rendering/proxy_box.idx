@@ -27,6 +27,6 @@ nim	paint	flit/rendering/proxy_box.html#paint.e,RenderClipRect,PaintingContext,O
 nim	paint	flit/rendering/proxy_box.html#paint.e,RenderClipRRect,PaintingContext,Offset	method paint(r: RenderClipRRect; ctx: PaintingContext; offset: Offset)		290
 nim	absorbPaintMark	flit/rendering/proxy_box.html#absorbPaintMark.e,RenderRepaintBoundary	method absorbPaintMark(r: RenderRepaintBoundary)		307
 nim	paint	flit/rendering/proxy_box.html#paint.e,RenderRepaintBoundary,PaintingContext,Offset	method paint(r: RenderRepaintBoundary; ctx: PaintingContext; offset: Offset)		310
-nim	paint	flit/rendering/proxy_box.html#paint.e,RenderTransform,PaintingContext,Offset	method paint(r: RenderTransform; ctx: PaintingContext; offset: Offset)		340
+nim	paint	flit/rendering/proxy_box.html#paint.e,RenderTransform,PaintingContext,Offset	method paint(r: RenderTransform; ctx: PaintingContext; offset: Offset)		350
 nimgrp	paint	flit/rendering/proxy_box.html#paint-methods-all	method		116
 nimgrp	performlayout	flit/rendering/proxy_box.html#performLayout-methods-all	method		102

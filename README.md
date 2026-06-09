@@ -6,7 +6,7 @@ Linux.
 
 [![ci](https://github.com/atul1503/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/atul1503/flit/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-atul1503.github.io%2Fflit-blue)](https://atul1503.github.io/flit/)
-[![version](https://img.shields.io/badge/version-0.11.7-orange)](#)
+[![version](https://img.shields.io/badge/version-0.11.8-orange)](#)
 [![license](https://img.shields.io/badge/license-BSD--3--Clause-green)](#license)
 
 ## Status
@@ -130,6 +130,9 @@ State management:
 Performance:
 
 - RepaintBoundary with GPU texture caching
+- SDL canvas text and rrect bitmap caches (per-process)
+- Cull rect on `scrollView` so off-screen rows skip paint
+- Per-URL `notifierForUrl` so a single image load doesn't rebuild every NetworkImage
 - GpuCanvas: SDL_Renderer-based hardware draws
 - GlCanvas: OpenGL 3.3 SDF shaders for paths
 - GlyphAtlas for cached rasterized text
@@ -147,7 +150,22 @@ Animations:
 Images:
 
 - Image widget with PNG / JPEG / BMP / GIF loading via Pixie
+- NetworkImage widget with async HTTP fetch and per-URL cache
 - Multiple fit modes: contain, cover, fill, none
+
+Layout helpers:
+
+- `gridView(children, crossAxisCount, ...)` for fixed N-column grids
+- `icon(name, size, color)` with built-in glyphs (search, cart, star, chevron, check, heart, plus, minus, close, menu)
+- `dropdown[T](items, value, onChange, ...)` generic select widget
+
+Diagnostics:
+
+- `FLIT_FRAME_LOG=1`: per-frame rebuild / layout / paint / present timing
+- `FLIT_PAINT_PROBE=<N>`: paint N steady-state frames after mount and report
+- `FLIT_TAP_PROBE="x,y" FLIT_TAP_PROBE_TEXT="..."`: synthetic tap + type
+- `FLIT_SAVE_FRAME=path.png`: snapshot the canvas to a PNG
+- `FLIT_INPUT_LOG=1`: log every SDL TextInput event with focus state
 
 Tooling:
 

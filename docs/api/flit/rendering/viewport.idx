@@ -3,4 +3,4 @@ nim	RenderViewport	flit/rendering/viewport.html#RenderViewport	type RenderViewpo
 nim	clampScroll	flit/rendering/viewport.html#clampScroll,RenderViewport	proc clampScroll(r: RenderViewport)		28
 nim	performLayout	flit/rendering/viewport.html#performLayout.e,RenderViewport	method performLayout(r: RenderViewport)		34
 nim	paint	flit/rendering/viewport.html#paint.e,RenderViewport,PaintingContext,Offset	method paint(r: RenderViewport; ctx: PaintingContext; offset: Offset)		60
-nim	hitTest	flit/rendering/viewport.html#hitTest.e,RenderViewport,HitTestResult,Offset	method hitTest(r: RenderViewport; htResult: HitTestResult; position: Offset): bool		100
+nim	hitTest	flit/rendering/viewport.html#hitTest.e,RenderViewport,HitTestResult,Offset	method hitTest(r: RenderViewport; htResult: HitTestResult; position: Offset): bool		118

@@ -154,6 +154,62 @@ Available key kinds:
 - `GlobalKey()`: a key whose identity is stable across the entire app.
   Used in advanced scenarios (cross-tree state sharing).
 
+## Built-in widget reference (added in 0.11.x)
+
+A few widgets added in the 0.11 series that round out a typical
+app's UI:
+
+| Widget | Where | Purpose |
+|---|---|---|
+| `gridView(children, crossAxisCount, ...)` | `widgets/basic.nim` | Fixed N-column grid. Pass any number of children; they wrap to a new row every `crossAxisCount`. |
+| `icon(name, size, color)` | `widgets/icon.nim` | Vector glyphs drawn through `Canvas.fillPolygon`. Built-in names: `search`, `cart`, `star`, `chevron.{up,down,left,right}`, `close`, `menu`, `heart`, `check`, `plus`, `minus`. |
+| `dropdown[T](items, value, onChange, displayBuilder, width)` | `widgets/dropdown.nim` | Generic select. Tap to open a panel of `items`; tap an option to fire `onChange(v)`. |
+| `networkImage(url, width, height, fit, placeholderColor)` | `widgets/network_image.nim` | Fetches an image over HTTP in a background worker, caches per URL, blits when bytes arrive. Subscribes only to its own URL's notifier so unrelated images don't rebuild it. |
+| `repaintBoundary(child)` | `widgets/basic.nim` | Caches the rasterized output of `child` in a sub-canvas. Composite on subsequent paints is a single GPU blit. Use on static-shape subtrees inside a scrolling list (product cards, list rows, hero banners) to avoid re-rasterizing on every scroll frame. See `07-performance.md`. |
+
+### Example: a 3-column product grid
+
+```nim
+gridView(
+  crossAxisCount = 3,
+  crossAxisSpacing = 12,
+  mainAxisSpacing = 12,
+  children = products.mapIt(Widget(productCard(it))))
+```
+
+### Example: an icon button
+
+```nim
+gestureDetector(onTap = openCart,
+  child = container(
+    width = 40, height = 40,
+    hasDecoration = true,
+    decoration = boxDecoration(color = amazonOrange, borderRadius = 20),
+    child = center(child = icon("cart", size = 22, color = colorWhite))))
+```
+
+### Example: a dropdown bound to a ValueNotifier
+
+```nim
+let sortBy = newValueNotifier[string]("Featured")
+
+dropdown[string](
+  items = @["Featured", "Price: Low to High",
+            "Price: High to Low", "Avg. Customer Review"],
+  value = sortBy.value,
+  onChange = proc(v: string) = sortBy.value = v,
+  width = 200)
+```
+
+### Example: a network image with placeholder
+
+```nim
+networkImage(url = product.imageUrl,
+             width = 200, height = 200,
+             fit = ifCover,
+             placeholderColor = rgb(228, 230, 235))
+```
+
 ## Next step
 
 Read `03-layout.md` to learn how widgets size and position themselves.

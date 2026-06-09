@@ -79,9 +79,33 @@
 </li>
 <li>
   <details open>
+    <summary><a class="reference reference-toplevel" href="#8" id="58">Vars</a></summary>
+    <ul class="simple simple-toc-section">
+      <li><a class="reference" href="#sdlRRectCache" title="sdlRRectCache {.threadvar.}: Table[SdlRRectKey, SdlRRectEntry]">sdlRRectCache</a></li>
+<li><a class="reference" href="#sdlRRectCacheHits" title="sdlRRectCacheHits {.threadvar.}: int">sdlRRectCacheHits</a></li>
+<li><a class="reference" href="#sdlRRectCacheLimit" title="sdlRRectCacheLimit = 512">sdlRRectCacheLimit</a></li>
+<li><a class="reference" href="#sdlRRectCacheMisses" title="sdlRRectCacheMisses {.threadvar.}: int">sdlRRectCacheMisses</a></li>
+<li><a class="reference" href="#sdlTextCache" title="sdlTextCache {.threadvar.}: Table[SdlTextCacheKey, SdlTextCacheEntry]">sdlTextCache</a></li>
+<li><a class="reference" href="#sdlTextCacheHits" title="sdlTextCacheHits {.threadvar.}: int">sdlTextCacheHits</a></li>
+<li><a class="reference" href="#sdlTextCacheLimit" title="sdlTextCacheLimit = 2048">sdlTextCacheLimit</a></li>
+<li><a class="reference" href="#sdlTextCacheMisses" title="sdlTextCacheMisses {.threadvar.}: int">sdlTextCacheMisses</a></li>
+
+    </ul>
+  </details>
+</li>
+<li>
+  <details open>
     <summary><a class="reference reference-toplevel" href="#12" id="62">Procs</a></summary>
     <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">disposeSubCanvas
+      <ul class="simple nested-toc-section">clearSdlRRectCache
+  <li><a class="reference" href="#clearSdlRRectCache" title="clearSdlRRectCache()">clearSdlRRectCache()</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">clearSdlTextCache
+  <li><a class="reference" href="#clearSdlTextCache" title="clearSdlTextCache()">clearSdlTextCache()</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">disposeSubCanvas
   <li><a class="reference" href="#disposeSubCanvas%2CSdlSubCanvas" title="disposeSubCanvas(s: SdlSubCanvas)">disposeSubCanvas(s: SdlSubCanvas)</a></li>
 
 </ul>
@@ -162,6 +186,11 @@
 <li><a class="reference" href="#drawText.e%2CSdlSubCanvas%2Cstring%2C%2Cuint32%2Cfloat32%2Cstring" title="drawText(s: SdlSubCanvas; text: string; pos: geom.Offset; color: uint32;
          fontSize: float32; fontFamily: string)">drawText(s: SdlSubCanvas; text: string; pos: geom.Offset; color: uint32;
          fontSize: float32; fontFamily: string)</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">fillPolygon
+  <li><a class="reference" href="#fillPolygon.e%2CSdlCanvas%2Cseq%5B%5D%2Cuint32" title="fillPolygon(c: SdlCanvas; points: seq[geom.Offset]; fill: uint32)">fillPolygon(c: SdlCanvas; points: seq[geom.Offset]; fill: uint32)</a></li>
+<li><a class="reference" href="#fillPolygon.e%2CSdlSubCanvas%2Cseq%5B%5D%2Cuint32" title="fillPolygon(s: SdlSubCanvas; points: seq[geom.Offset]; fill: uint32)">fillPolygon(s: SdlSubCanvas; points: seq[geom.Offset]; fill: uint32)</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">restore
@@ -246,10 +275,102 @@
 
   </dl>
 </div>
+<div class="section" id="8">
+  <h1><a class="toc-backref" href="#8">Vars</a></h1>
+  <dl class="item">
+    <div id="sdlRRectCache">
+  <dt><pre><a href="canvas_sdl.html#sdlRRectCache"><span class="Identifier">sdlRRectCache</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">Table</span><span class="Other">[</span><span class="Identifier">SdlRRectKey</span><span class="Other">,</span> <span class="Identifier">SdlRRectEntry</span><span class="Other">]</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="sdlRRectCacheHits">
+  <dt><pre><a href="canvas_sdl.html#sdlRRectCacheHits"><span class="Identifier">sdlRRectCacheHits</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">int</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="sdlRRectCacheLimit">
+  <dt><pre><a href="canvas_sdl.html#sdlRRectCacheLimit"><span class="Identifier">sdlRRectCacheLimit</span></a> <span class="Other">=</span> <span class="DecNumber">512</span></pre></dt>
+  <dd>
+    
+    Cap on number of cached rrect bitmaps. Clears wholesale on overflow.
+    
+  </dd>
+</div>
+<div id="sdlRRectCacheMisses">
+  <dt><pre><a href="canvas_sdl.html#sdlRRectCacheMisses"><span class="Identifier">sdlRRectCacheMisses</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">int</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="sdlTextCache">
+  <dt><pre><a href="canvas_sdl.html#sdlTextCache"><span class="Identifier">sdlTextCache</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">Table</span><span class="Other">[</span><span class="Identifier">SdlTextCacheKey</span><span class="Other">,</span> <span class="Identifier">SdlTextCacheEntry</span><span class="Other">]</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="sdlTextCacheHits">
+  <dt><pre><a href="canvas_sdl.html#sdlTextCacheHits"><span class="Identifier">sdlTextCacheHits</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">int</span></pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="sdlTextCacheLimit">
+  <dt><pre><a href="canvas_sdl.html#sdlTextCacheLimit"><span class="Identifier">sdlTextCacheLimit</span></a> <span class="Other">=</span> <span class="DecNumber">2048</span></pre></dt>
+  <dd>
+    
+    Maximum number of rasterized text bitmaps to keep. Eviction is &quot;drop everything when full&quot; today; LRU is a follow-up.
+    
+  </dd>
+</div>
+<div id="sdlTextCacheMisses">
+  <dt><pre><a href="canvas_sdl.html#sdlTextCacheMisses"><span class="Identifier">sdlTextCacheMisses</span></a> {.<span class="Identifier">threadvar</span>.}<span class="Other">:</span> <span class="Identifier">int</span></pre></dt>
+  <dd>
+    
+    Per-thread counters; useful for confirming the cache actually hits in interactive workloads.
+    
+  </dd>
+</div>
+
+  </dl>
+</div>
 <div class="section" id="12">
   <h1><a class="toc-backref" href="#12">Procs</a></h1>
   <dl class="item">
-    <div id="disposeSubCanvas-procs-all">
+    <div id="clearSdlRRectCache-procs-all">
+  <div id="clearSdlRRectCache">
+  <dt><pre><span class="Keyword">proc</span> <a href="#clearSdlRRectCache"><span class="Identifier">clearSdlRRectCache</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+
+</div>
+<div id="clearSdlTextCache-procs-all">
+  <div id="clearSdlTextCache">
+  <dt><pre><span class="Keyword">proc</span> <a href="#clearSdlTextCache"><span class="Identifier">clearSdlTextCache</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Drops every rasterized text image from the SDL canvas cache.
+    
+  </dd>
+</div>
+
+</div>
+<div id="disposeSubCanvas-procs-all">
   <div id="disposeSubCanvas,SdlSubCanvas">
   <dt><pre><span class="Keyword">proc</span> <a href="#disposeSubCanvas%2CSdlSubCanvas"><span class="Identifier">disposeSubCanvas</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlSubCanvas"><span class="Identifier">SdlSubCanvas</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -367,7 +488,8 @@
 <div id="compositeSubCanvas-methods-all">
   <div id="compositeSubCanvas.e,SdlCanvas,Canvas,,">
   <dt><pre><span class="Keyword">method</span> <a href="#compositeSubCanvas.e%2CSdlCanvas%2CCanvas%2C%2C"><span class="Identifier">compositeSubCanvas</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlCanvas"><span class="Identifier">SdlCanvas</span></a><span class="Other">;</span> <span class="Identifier">sub</span><span class="Other">:</span> <a href="../foundation/render_object.html#Canvas"><span class="Identifier">Canvas</span></a><span class="Other">;</span> <span class="Identifier">offset</span><span class="Other">:</span> <span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Offset</span><span class="Other">;</span>
-                          <span class="Identifier">size</span><span class="Other">:</span> <span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Size</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+                          <span class="Identifier">size</span><span class="Other">:</span> <span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Size</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     
@@ -469,7 +591,7 @@
 <div id="drawRRect-methods-all">
   <div id="drawRRect.e,SdlCanvas,,uint32">
   <dt><pre><span class="Keyword">method</span> <a href="#drawRRect.e%2CSdlCanvas%2C%2Cuint32"><span class="Identifier">drawRRect</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlCanvas"><span class="Identifier">SdlCanvas</span></a><span class="Other">;</span> <span class="Identifier">r</span><span class="Other">:</span> <span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">RRect</span><span class="Other">;</span> <span class="Identifier">fill</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">PixieError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     
@@ -490,8 +612,8 @@
 <div id="drawText-methods-all">
   <div id="drawText.e,SdlCanvas,string,,uint32,float32,string">
   <dt><pre><span class="Keyword">method</span> <a href="#drawText.e%2CSdlCanvas%2Cstring%2C%2Cuint32%2Cfloat32%2Cstring"><span class="Identifier">drawText</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlCanvas"><span class="Identifier">SdlCanvas</span></a><span class="Other">;</span> <span class="Identifier">text</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">pos</span><span class="Other">:</span> <span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Offset</span><span class="Other">;</span> <span class="Identifier">color</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">;</span>
-                <span class="Identifier">fontSize</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">;</span> <span class="Identifier">fontFamily</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+                <span class="Identifier">fontSize</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">;</span> <span class="Identifier">fontFamily</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     
@@ -502,6 +624,27 @@
   <dt><pre><span class="Keyword">method</span> <a href="#drawText.e%2CSdlSubCanvas%2Cstring%2C%2Cuint32%2Cfloat32%2Cstring"><span class="Identifier">drawText</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlSubCanvas"><span class="Identifier">SdlSubCanvas</span></a><span class="Other">;</span> <span class="Identifier">text</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">pos</span><span class="Other">:</span> <span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Offset</span><span class="Other">;</span> <span class="Identifier">color</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">;</span>
                 <span class="Identifier">fontSize</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">;</span> <span class="Identifier">fontFamily</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+
+</div>
+<div id="fillPolygon-methods-all">
+  <div id="fillPolygon.e,SdlCanvas,seq[],uint32">
+  <dt><pre><span class="Keyword">method</span> <a href="#fillPolygon.e%2CSdlCanvas%2Cseq%5B%5D%2Cuint32"><span class="Identifier">fillPolygon</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlCanvas"><span class="Identifier">SdlCanvas</span></a><span class="Other">;</span> <span class="Identifier">points</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Offset</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">fill</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    
+    
+  </dd>
+</div>
+<div id="fillPolygon.e,SdlSubCanvas,seq[],uint32">
+  <dt><pre><span class="Keyword">method</span> <a href="#fillPolygon.e%2CSdlSubCanvas%2Cseq%5B%5D%2Cuint32"><span class="Identifier">fillPolygon</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <a href="canvas_sdl.html#SdlSubCanvas"><span class="Identifier">SdlSubCanvas</span></a><span class="Other">;</span> <span class="Identifier">points</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">geom</span><span class="Other">.</span><span class="Identifier">Offset</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">fill</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     
@@ -622,7 +765,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 09:53:50 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-06-09 14:45:28 UTC</small>
       </div>
     </div>
   </div>
