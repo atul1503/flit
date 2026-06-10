@@ -133,6 +133,11 @@ else:
   proc clearNetworkImageCache*() = discard
   proc pumpNetworkImageEvents*() = discard
   let networkImageTrigger* = newValueNotifier[int](0)
+  # Per-URL notifier stub: every URL shares one inert notifier so
+  # NetworkImage widgets mount cleanly; fetches never complete on
+  # JS (a DOM-image-backed implementation is the follow-up).
+  let jsSharedNotifier = newValueNotifier[int](0)
+  proc notifierForUrl*(url: string): ValueNotifier[int] = jsSharedNotifier
 
 # The widget itself. Stateful so it can subscribe to the trigger.
 

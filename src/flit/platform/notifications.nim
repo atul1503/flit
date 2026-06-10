@@ -16,7 +16,12 @@
 ## entitlements and a server backend (APNs / FCM); those are out
 ## of scope for this module.
 
-import std/[osproc, os, strutils, options]
+# osproc / os don't exist on the JS backend; platform bodies are
+# inside when defined(...) blocks that vanish on JS.
+when not defined(js):
+  import std/[osproc, os, strutils, options]
+else:
+  import std/[strutils, options]
 
 type
   NotificationKind* = enum

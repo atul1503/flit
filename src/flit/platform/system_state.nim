@@ -10,7 +10,12 @@
 ## All procs return sensible defaults when no battery / network
 ## exists (desktop without battery returns 100% / charging).
 
-import std/[osproc, strutils, os, options]
+# osproc / os don't exist on the JS backend; platform bodies are
+# inside when defined(...) blocks that vanish on JS.
+when not defined(js):
+  import std/[osproc, strutils, os, options]
+else:
+  import std/[strutils, options]
 
 type
   BatteryState* = enum

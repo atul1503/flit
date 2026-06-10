@@ -13,7 +13,13 @@
 ##
 ## Procs block until the user dismisses the picker.
 
-import std/[osproc, strutils, os]
+# osproc / os don't exist on the JS backend; the platform-specific
+# bodies below are inside `when defined(macosx/linux/windows)` blocks
+# that vanish on JS, so only the imports need guarding.
+when not defined(js):
+  import std/[osproc, strutils, os]
+else:
+  import std/strutils
 
 type
   FileFilter* = object

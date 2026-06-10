@@ -10,9 +10,16 @@
 ## All procs return immediately if the platform helper is missing.
 ## Bytes are PNG-encoded.
 
-import std/[osproc, os, base64, strutils, streams]
+# osproc / os / streams don't exist on the JS backend; the platform
+# bodies are inside when defined(macosx/linux/windows) blocks that
+# vanish on JS, so only the imports need guarding.
+when not defined(js):
+  import std/[osproc, os, base64, strutils, streams]
+else:
+  import std/strutils
 
-proc commandExists(name: string): bool = findExe(name).len > 0
+when not defined(js):
+  proc commandExists(name: string): bool = findExe(name).len > 0
 
 var copyImagePngImpl*: proc(pngBytes: string): bool =
   proc(pngBytes: string): bool = false
