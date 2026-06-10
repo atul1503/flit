@@ -9,6 +9,23 @@
 import ../foundation/[render_object, geometry, color]
 
 type
+  ScrollController* = ref object
+    ## Programmatic scroll handle for a `scrollView`. Create one
+    ## with `newScrollController()`, pass it to
+    ## `scrollView(controller = sc)`, then drive it:
+    ##
+    ## - `sc.jumpTo(120)`: scroll to an absolute offset (clamped).
+    ## - `sc.scrollToEnd()`: scroll to the bottom / right edge.
+    ##   Applied AFTER the next layout pass, so calling it in the
+    ##   same setState that appends content lands on the new end -
+    ##   the chat-app "stick to latest message" pattern.
+    ## - `sc.offset`: current scroll offset in pixels.
+    ## - `sc.atEnd`: true when scrolled to (or past) the end.
+    viewport*:      RenderViewport
+    pendingOffset:  float32
+    hasPending:     bool
+    pendingEnd:     bool
+
   RenderViewport* = ref object of RenderObject
     ## A clipping, translating render object that backs `ScrollView`.
     ## Fields:
@@ -20,10 +37,49 @@ type
     ##   `child.mainExtent - viewport.mainExtent` (zero when the
     ##   child fits).
     ## - `direction`: scroll axis. `axVertical` or `axHorizontal`.
+    ## - `controller`: optional programmatic scroll handle.
     child*: RenderObject
     scrollOffset*: float32
     maxScroll*:    float32
     direction*:    Axis
+    controller*:   ScrollController
+
+proc newScrollController*(): ScrollController =
+  ## Builds an unattached scroll controller. It attaches to a
+  ## viewport when passed to `scrollView(controller = ...)` and that
+  ## widget's render object is created or updated.
+  ScrollController()
+
+proc jumpTo*(sc: ScrollController, offset: float32) =
+  ## Scrolls to `offset` pixels. Clamped to the scrollable range on
+  ## the next layout pass; if the viewport is already attached and
+  ## laid out, applies immediately too.
+  sc.pendingOffset = offset
+  sc.hasPending = true
+  sc.pendingEnd = false
+  if not sc.viewport.isNil:
+    sc.viewport.scrollOffset = clamp(offset, 0.0'f32, sc.viewport.maxScroll)
+
+proc scrollToEnd*(sc: ScrollController) =
+  ## Scrolls to the end of the content (bottom for vertical, right
+  ## edge for horizontal). The request is applied AFTER the next
+  ## layout pass so content appended in the same frame is included
+  ## in the new end position.
+  sc.hasPending = true
+  sc.pendingEnd = true
+  if not sc.viewport.isNil:
+    sc.viewport.scrollOffset = sc.viewport.maxScroll
+
+proc offset*(sc: ScrollController): float32 =
+  ## Current scroll offset in pixels (0 when not yet attached).
+  if sc.viewport.isNil: 0.0'f32 else: sc.viewport.scrollOffset
+
+proc atEnd*(sc: ScrollController): bool =
+  ## True when the viewport is scrolled to (or within 1px of) the
+  ## end of its content. Useful for "only auto-scroll when the user
+  ## was already at the bottom" chat behavior.
+  if sc.viewport.isNil: return true
+  sc.viewport.scrollOffset >= sc.viewport.maxScroll - 1.0'f32
 
 proc clampScroll*(r: RenderViewport) =
   ## Clamps `r.scrollOffset` to `[0, r.maxScroll]`. Called after the
@@ -55,6 +111,16 @@ method performLayout*(r: RenderViewport) =
   r.maxScroll =
     if r.direction == axVertical:   max(0.0'f32, r.child.size.height - r.size.height)
     else:                            max(0.0'f32, r.child.size.width  - r.size.width)
+  # Apply any pending controller request now that maxScroll reflects
+  # the freshly laid-out content. This is what makes
+  # `sc.scrollToEnd()` land on content appended in the same frame.
+  if not r.controller.isNil and r.controller.hasPending:
+    if r.controller.pendingEnd:
+      r.scrollOffset = r.maxScroll
+    else:
+      r.scrollOffset = r.controller.pendingOffset
+    r.controller.hasPending = false
+    r.controller.pendingEnd = false
   r.clampScroll()
 
 method paint*(r: RenderViewport, ctx: PaintingContext, offset: Offset) =

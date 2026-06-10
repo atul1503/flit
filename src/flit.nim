@@ -48,6 +48,7 @@ import flit/rendering/proxy_box
 import flit/rendering/flex
 import flit/rendering/stack
 import flit/rendering/sliver_list
+import flit/rendering/viewport
 import flit/widgets/basic
 import flit/widgets/lazy_list
 import flit/widgets/text_field
@@ -86,7 +87,7 @@ import flit/app
 export widget, key, render_object, geometry, color, diagnostics, binding,
        runtime, listenable, layer, focus, semantics, harfbuzz, canvas_gpu,
        canvas_gl, glyph_atlas, raster_pool, text, decoration, proxy_box,
-       flex, stack, sliver_list, basic, lazy_list, text_field, image_widget,
+       flex, stack, sliver_list, viewport, basic, lazy_list, text_field, image_widget,
        transitions, nav_widget, form_widget, directionality,
        drag_drop, menu, pickers, icon_widget, dropdown, network_image,
        detector, multitouch, animation,

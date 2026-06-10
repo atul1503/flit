@@ -166,6 +166,7 @@ app's UI:
 | `dropdown[T](items, value, onChange, displayBuilder, width)` | `widgets/dropdown.nim` | Generic select. Tap to open a panel of `items`; tap an option to fire `onChange(v)`. |
 | `networkImage(url, width, height, fit, placeholderColor)` | `widgets/network_image.nim` | Fetches an image over HTTP in a background worker, caches per URL, blits when bytes arrive. Subscribes only to its own URL's notifier so unrelated images don't rebuild it. |
 | `repaintBoundary(child)` | `widgets/basic.nim` | Caches the rasterized output of `child` in a sub-canvas. Composite on subsequent paints is a single GPU blit. Use on static-shape subtrees inside a scrolling list (product cards, list rows, hero banners) to avoid re-rasterizing on every scroll frame. See `07-performance.md`. |
+| `newScrollController()` + `scrollView(controller = sc)` | `rendering/viewport.nim` | Programmatic scrolling. `sc.scrollToEnd()` applies after the next layout pass, so calling it in the same setState that appends content lands on the new end (the chat stick-to-latest pattern). Also `jumpTo(px)`, `offset`, `atEnd`. |
 
 ### Example: a 3-column product grid
 

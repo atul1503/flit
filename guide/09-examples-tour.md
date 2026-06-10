@@ -147,6 +147,39 @@ bin/amazon
 Then tap "See more" on a category card, the cart icon, "Hello,
 sign in" - every clickable should route instantly.
 
+## Chat
+
+`examples/chat/main.nim`
+
+The messaging-app archetype (~280 lines). Exercises the feature
+combination no other example covers: a list that grows at the
+bottom while the user interacts, a persistent input bar, and timed
+incoming events.
+
+Things to study here:
+
+- `ScrollController` + `scrollToEnd()`: stick-to-latest-message on
+  send AND on receive. The request applies after the next layout
+  pass, so appending a message and scrolling to it works in one
+  frame.
+- A one-shot `AnimationController` used as a reply timer: forward()
+  runs 1.6s, the value listener fires the fake contact's reply at
+  completion.
+- A three-dot typing indicator where each dot's bounce phase is
+  staggered by a third of the controller cycle.
+- Message bubbles aligned left or right by switching the row's
+  `mainAxisAlignment` per message.
+
+Run it:
+
+```
+nim c -r examples/chat/main.nim
+```
+
+Type a message and press Enter (or tap the send button). The
+contact starts "typing..." and replies; the list stays pinned to
+the newest message.
+
 ## Showcase
 
 `examples/showcase/main.nim`

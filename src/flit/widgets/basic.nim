@@ -477,16 +477,26 @@ type
     ## the pointer is over this widget update its offset.
     child*: Widget
     direction*: Axis
+    controller*: ScrollController
 
 method widgetTypeName*(w: ScrollView): string = "ScrollView"
 method createElement*(w: ScrollView): Element = newElement(ekRender, w)
 method createRenderObject*(w: ScrollView, ctx: BuildContext): RenderObject =
-  RenderViewport(direction: w.direction, scrollOffset: 0, maxScroll: 0)
+  let r = RenderViewport(direction: w.direction, scrollOffset: 0, maxScroll: 0)
+  if not w.controller.isNil:
+    r.controller = w.controller
+    w.controller.viewport = r
+  r
 method updateRenderObject*(w: ScrollView, ctx: BuildContext, r: RenderObject) =
-  RenderViewport(r).direction = w.direction
+  let vp = RenderViewport(r)
+  vp.direction = w.direction
+  if not w.controller.isNil:
+    vp.controller = w.controller
+    w.controller.viewport = vp
   r.markNeedsLayout()
 
 proc scrollView*(child: Widget, direction = axVertical,
+                 controller: ScrollController = nil,
                  key: Key = nil): ScrollView =
   ## Builds a scrollable area around `child`.
   ##
@@ -496,13 +506,18 @@ proc scrollView*(child: Widget, direction = axVertical,
   ## - `direction`: `axVertical` for vertical scrolling (the default,
   ##   matches Flutter's `SingleChildScrollView` default) or
   ##   `axHorizontal`.
+  ## - `controller`: optional `ScrollController` for programmatic
+  ##   scrolling. `controller.scrollToEnd()` after appending content
+  ##   sticks to the latest item (the chat pattern); `jumpTo(px)`
+  ##   scrolls to an absolute offset; `offset` / `atEnd` read state.
   ## - `key`: optional reconciliation key.
   ##
   ## Effect: child is laid out with unbounded extent along `direction`
   ## and the parent's tight extent on the cross axis. Painting is
   ## clipped to the viewport bounds. A thin dark scrollbar thumb on the
   ## trailing edge indicates current position when the content overflows.
-  ScrollView(key: key, child: child, direction: direction)
+  ScrollView(key: key, child: child, direction: direction,
+             controller: controller)
 
 # ----- Text -----
 

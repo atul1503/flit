@@ -139,8 +139,12 @@ method drawText*(c: EmbeddedCanvas, text: string, pos: Offset, color: uint32,
     entry = rasterizeText(text, fontSize, opaqued)
     if embeddedTextCache.len < embeddedTextCacheLimit:
       embeddedTextCache[key] = entry
+  # image.draw bypasses the Context's transformation matrix; compose
+  # it explicitly so text inside a `transform` widget (rotation /
+  # scale / slide animations) lands at the transformed position.
+  # Same fix as the SDL canvas in 0.11.9.
   c.image.draw(entry.image,
-               translate(pixie.vec2(pos.dx, pos.dy)))
+               c.ctx.getTransform() * translate(pixie.vec2(pos.dx, pos.dy)))
 
 method save*(c: EmbeddedCanvas)    = c.ctx.save()
 method restore*(c: EmbeddedCanvas) = c.ctx.restore()
