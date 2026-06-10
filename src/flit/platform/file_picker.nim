@@ -258,6 +258,13 @@ when not defined(js):
         path = pickResultPath
         pickResultReady = false
     if ready:
+      # Join the finished worker BEFORE clearing pickInFlight.
+      # Reusing a Thread var with createThread while the previous
+      # thread hasn't been joined is undefined behavior and
+      # SIGSEGVs after a few picker cycles. The worker posted its
+      # result as its final statement, so this join returns almost
+      # immediately.
+      joinThread(pickThread)
       pickInFlight = false
       let cb = pickCb
       pickCb = nil
