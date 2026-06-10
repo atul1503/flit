@@ -293,6 +293,11 @@ proc runDesktop*(rootWidget: Widget,
   # Cache env-var driven debug flags once so the steady-state hot
    # loop doesn't pay a per-frame getEnv syscall.
   let logFrames = (getEnv("FLIT_FRAME_LOG").len > 0)
+  let delayedSnapAt =
+    if getEnv("FLIT_SAVE_FRAME_AFTER").len > 0:
+      parseFloat(getEnv("FLIT_SAVE_FRAME_AFTER"))
+    else: 0.0
+  var delayedSnapDone = false
   var ev: sdl2.Event
   var running = true
   while running:
@@ -470,6 +475,13 @@ proc runDesktop*(rootWidget: Widget,
       else:
         sleep(8)
     inc binding.frameCount
+    # Delayed snapshot: FLIT_SAVE_FRAME_AFTER=<seconds> writes the
+    # canvas to FLIT_SAVE_FRAME's path once, that many seconds
+    # after startup. Lets us capture the app mid-animation.
+    if delayedSnapAt > 0 and not delayedSnapDone and
+       binding.currentTime >= delayedSnapAt:
+      delayedSnapDone = true
+      saveSnapshotIfRequested()
 
   destroy(renderer)
   destroy(window)

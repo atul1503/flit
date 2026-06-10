@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.11.8"
+version       = "0.11.9"
 author        = "Atul Tripathi"
 description   = "Flit: a Flutter-inspired cross-platform UI toolkit for Nim. Declarative widgets, hot reload, single codebase for desktop, mobile, web, and embedded."
 license       = "BSD-3-Clause"
@@ -27,6 +27,7 @@ task examples, "Build all example apps":
   exec "nim c -d:release -o:bin/showcase examples/showcase/main.nim"
   exec "nim c -d:release -o:bin/notes examples/notes/main.nim"
   exec "nim c -d:release -o:bin/amazon examples/amazon/main.nim"
+  exec "nim c -d:release -o:bin/pulse examples/pulse/main.nim"
 
 task web, "Build for web (JS backend)":
   exec "nim js -d:release -o:web/app.js examples/counter/web.nim"

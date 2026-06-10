@@ -218,7 +218,10 @@ when not defined(js):
       if sdlRRectCache.len >= sdlRRectCacheLimit:
         sdlRRectCache.clear()
       sdlRRectCache[key] = entry
-    c.image.draw(entry.image, translate(vec2(r.rect.left, r.rect.top)))
+    # Same transform-composition note as drawText: image.draw
+    # bypasses the Context matrix, so apply it explicitly.
+    c.image.draw(entry.image,
+                 c.ctx.getTransform() * translate(vec2(r.rect.left, r.rect.top)))
 
   method drawCircle*(c: SdlCanvas, center: geom.Offset, radius: float32, fill: uint32) =
     c.ctx.fillStyle = argbToPaint(c, fill)
@@ -284,7 +287,13 @@ when not defined(js):
     # Blit the cached bitmap at `pos`. Pixie places typeset text at
     # the top-left of the translate point, NOT the baseline; the
     # cache image preserves that, so just translate directly.
-    c.image.draw(entry.image, translate(vec2(pos.dx, pos.dy)))
+    #
+    # IMPORTANT: image.draw bypasses the Context's transformation
+    # matrix, so we must compose with getTransform() ourselves or
+    # text inside a `transform` widget (rotation / scale / slide
+    # animations) paints at untransformed coordinates.
+    c.image.draw(entry.image,
+                 c.ctx.getTransform() * translate(vec2(pos.dx, pos.dy)))
 
   method save*(c: SdlCanvas) = c.ctx.save()
   method restore*(c: SdlCanvas) = c.ctx.restore()
@@ -479,7 +488,11 @@ when not defined(js):
     # upload for the whole frame. This is the source of truth for
     # what the user sees; we no longer keep a separate GPU texture
     # per sub-canvas.
-    c.image.draw(s.image, translate(vec2(offset.dx, offset.dy)))
+    # Compose with the Context's transform so a RepaintBoundary
+    # inside a `transform` widget (scaled / rotated / translated
+    # animation) composites at the transformed position.
+    c.image.draw(s.image,
+                 c.ctx.getTransform() * translate(vec2(offset.dx, offset.dy)))
 
   proc present*(c: SdlCanvas) =
     ## Push the Pixie image into the SDL streaming texture, copy the
