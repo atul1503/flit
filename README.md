@@ -6,7 +6,7 @@ Linux.
 
 [![ci](https://github.com/atul1503/flit/actions/workflows/ci.yml/badge.svg)](https://github.com/atul1503/flit/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-atul1503.github.io%2Fflit-blue)](https://atul1503.github.io/flit/)
-[![version](https://img.shields.io/badge/version-0.13.3-orange)](#)
+[![version](https://img.shields.io/badge/version-0.13.4-orange)](#)
 [![license](https://img.shields.io/badge/license-BSD--3--Clause-green)](#license)
 
 ## Status

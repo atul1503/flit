@@ -113,12 +113,45 @@ the gap would be even larger.
   `markNeedsPaint()` on every render object, then flushLayout +
   flushPaint
 
+## Per-feature suite
+
+`flit/features.nim` benchmarks every feature category in isolation
+(run via `nimble benchFeatures`). Numbers from 2026-06-10 on Apple
+Silicon, 800x600 surface, 100 iterations each, bundled Roboto:
+
+| Scenario | Mean | Note |
+|---|---|---|
+| 6MP image first paint | 5.87 ms | one-time downscale resize |
+| icons x200 (fillPolygon) | 1.91 ms | uncached path fills |
+| mount card list x100 (cold) | 1.58 ms | fresh tree per iter |
+| mount text x200 (cold) | 0.67 ms | |
+| text x200 (warm, cached bitmaps) | 0.59 ms | |
+| card list x100 (mixed primitives) | 0.49 ms | |
+| setState rebuild (30-card subtree) | 0.49 ms | full event-to-paint cycle |
+| 30 transformed (rotate+scale) widgets | 0.44 ms | |
+| TextField keystroke | 0.37 ms | event -> rebuild -> paint |
+| card list x100 in repaint boundaries | 0.35 ms | composite-only steady state |
+| scroll frame, 500-card scrollView | 0.28 ms | cull rect active |
+| gridView 300 cells / 10 cols | 0.23 ms | |
+| rounded rects x200 (cached bitmaps) | 0.20 ms | |
+| 6MP image steady paint | 0.03 ms | cached downscale blit |
+| deep nesting x200 levels | 0.03 ms | |
+
+Every scenario is within the 6.9 ms budget for 144 fps. The only
+multi-millisecond entries are one-time costs (image resize, cold
+mount). The slowest recurring path is icons (uncached `fillPolygon`
+per glyph) - a bitmap cache like text/rrect would cut it if icon-
+dense UIs ever need it.
+
 ## Reproducing
 
 ```
 # flit
 cd /Users/attripathi/flit
 nim c -r -d:release --opt:speed -d:flitEmbedded benchmarks/flit/bench.nim
+
+# per-feature suite
+nimble benchFeatures
 
 # Flutter
 cd /Users/attripathi/flit/benchmarks/flutter
