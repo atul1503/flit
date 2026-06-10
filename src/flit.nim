@@ -42,6 +42,8 @@ import flit/rendering/glyph_atlas
 import flit/rendering/raster_pool
 import flit/rendering/text
 import flit/rendering/decoration
+when not defined(js):
+  import flit/rendering/bundled_font
 import flit/rendering/proxy_box
 import flit/rendering/flex
 import flit/rendering/stack
@@ -94,4 +96,4 @@ export widget, key, render_object, geometry, color, diagnostics, binding,
        material, theme, cupertino, app
 
 when not defined(js):
-  export window_decorations, multi_window
+  export window_decorations, multi_window, bundled_font

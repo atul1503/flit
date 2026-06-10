@@ -9,7 +9,7 @@ when defined(js):
   {.error: "desktop runner is not available on the JS backend".}
 
 import sdl2
-import std/[times, os, strutils]
+import std/[times, os, strutils, tables]
 import ../../foundation/[widget, render_object, binding, geometry,
                           runtime, diagnostics, focus]
 import ../../rendering/canvas_sdl
@@ -17,6 +17,7 @@ import ../../widgets/text_field
 import ../../widgets/drag_drop
 import ../../widgets/network_image
 import ../../rendering/text as flitText
+import ../../rendering/bundled_font
 import ../../gestures/detector
 import pixie except Rect, rect
 
@@ -118,11 +119,24 @@ proc runDesktop*(rootWidget: Widget,
         break
     if fontPath.len > 0:
       flogi("flit using font: ", fontPath)
+    elif hasBundledFont():
+      flogi("flit using bundled font: Roboto Regular")
     else:
       flogw("flit found no system font; text will not render")
   let canvas = newSdlCanvas(window, renderer,
                             config.width, config.height,
                             fontPath)
+  # When no system font was discovered, fall back to the bundled
+  # Roboto (compiled into the binary). Containers, minimal Linux
+  # images, and kiosks get working text out of the box.
+  if canvas.defaultFont.isNil and hasBundledFont():
+    let bf = bundledFont(14)
+    if not bf.isNil:
+      canvas.defaultFont = bf
+      canvas.fonts["system"] = bf
+      let bb = bundledBoldFont(14)
+      if not bb.isNil:
+        canvas.fonts["bold"] = bb
   # Install a Pixie-backed measureText that uses the canvas's font
   # so layout knows real glyph widths. Wrap in the global memoizer
   # so repeated strings (every list item label, every button

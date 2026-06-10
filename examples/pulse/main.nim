@@ -287,8 +287,13 @@ method build(s: ProgressBarState, ctx: BuildContext): Widget =
     ]),
   ])
 
-proc progressBar(duration: int): ProgressBar =
-  ProgressBar(duration: duration)
+proc progressBar(duration: int, trackId: int = 0): ProgressBar =
+  ## Key by track id so navigating to a different song mounts a
+  ## FRESH state (a fresh AnimationController starting at 0).
+  ## Without the key, reconciliation matches the new ProgressBar
+  ## to the old element by type + position and the previous
+  ## track's controller (old progress, old duration) survives.
+  ProgressBar(duration: duration, key: newValueKey("progress-" & $trackId))
 
 # Like button: pops with bounce-out when toggled on.
 type
@@ -643,7 +648,7 @@ proc nowPlayingScreen*(trackId: int): Widget =
       sizedBox(height = 22),
       # Progress.
       padding(padding = edgeInsetsSymmetric(horizontal = 28, vertical = 0),
-        child = progressBar(tk.duration)),
+        child = progressBar(tk.duration, trackId = tk.id)),
       sizedBox(height = 16),
       # Transport row: prev | play | next.
       container(height = 96,
