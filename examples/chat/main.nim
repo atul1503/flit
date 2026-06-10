@@ -16,7 +16,7 @@
 ## All fake data. Run:
 ##   nim c -r examples/chat/main.nim
 
-import std/[strutils, math]
+import std/[strutils, math, os]
 import ../../src/flit
 
 # Palette.
@@ -33,6 +33,7 @@ type
     mine: bool
     body: string
     time: string
+    imagePath: string   # non-empty = an attached image to render
 
 # Conversation state.
 let messages = newValueNotifier[seq[Message]](@[
@@ -56,19 +57,41 @@ var replyIdx = 0
 
 let chatScroll = newScrollController()
 
+# Dev hook: FLIT_CHAT_SEED_IMAGE=<path> appends an image message at
+# startup so the image-bubble path can be verified headlessly (the
+# native picker can't be driven by automated tests).
+if getEnv("FLIT_CHAT_SEED_IMAGE").len > 0:
+  var seeded = messages.value
+  seeded.add(Message(mine: true, body: "check this out",
+    time: "09:15", imagePath: getEnv("FLIT_CHAT_SEED_IMAGE")))
+  messages.value = seeded
+
 proc nowStamp(): string =
   # Fake clock that just advances by message count.
   let n = messages.value.len
   "09:" & $(14 + n)
 
-proc sendMessage(body: string) =
-  if body.strip.len == 0: return
+proc sendMessage(body: string, imagePath: string = "") =
+  if body.strip.len == 0 and imagePath.len == 0: return
   var list = messages.value
-  list.add(Message(mine: true, body: body, time: nowStamp()))
+  list.add(Message(mine: true, body: body.strip, time: nowStamp(),
+                   imagePath: imagePath))
   messages.value = list
   chatScroll.scrollToEnd()
   # Fake contact starts "typing" and replies after a delay.
   isTyping.value = true
+
+proc attachImage(caption: string) =
+  ## Opens the native file picker filtered to images. Sends the
+  ## chosen file as an image message (with the current input text
+  ## as its caption). The picker blocks until dismissed; cancelling
+  ## returns "" and nothing is sent.
+  let path = openFile(
+    title = "Send an image",
+    filters = @[FileFilter(name: "Images",
+                           exts: @["png", "jpg", "jpeg", "bmp", "gif"])])
+  if path.len > 0:
+    sendMessage(caption, imagePath = path)
 
 # Reply timer: a one-shot AnimationController. When it completes,
 # the contact's reply lands and the typing indicator clears.
@@ -148,9 +171,22 @@ method build(s: TypingDotsState, ctx: BuildContext): Widget =
 
 proc bubble(m: Message): Widget =
   ## One message bubble. Mine = right-aligned green; theirs =
-  ## left-aligned grey.
+  ## left-aligned grey. With an imagePath set, the image renders
+  ## above the (optional) caption inside the same bubble.
   let bg = if m.mine: bubbleMine else: bubbleThem
   let align = if m.mine: maEnd else: maStart
+  var inner: seq[Widget]
+  if m.imagePath.len > 0:
+    inner.add(clipRRect(radius = 8, child = image(
+      m.imagePath, width = 240, height = 180, fit = ifCover)))
+    if m.body.len > 0:
+      inner.add(sizedBox(height = 6))
+  if m.body.len > 0:
+    inner.add(text(m.body,
+      style = textStyle(fontSize = 14, color = textHi)))
+  inner.add(sizedBox(height = 2))
+  inner.add(text(m.time,
+    style = textStyle(fontSize = 10, color = textLo)))
   row(mainAxisAlignment = align, children = @[
     Widget(container(
       margin = edgeInsetsSymmetric(horizontal = 12, vertical = 3),
@@ -158,13 +194,7 @@ proc bubble(m: Message): Widget =
       hasDecoration = true,
       decoration = boxDecoration(color = bg, borderRadius = 12),
       child = column(crossAxisAlignment = caEnd, mainAxisSize = msMin,
-                     children = @[
-        Widget(text(m.body,
-          style = textStyle(fontSize = 14, color = textHi))),
-        sizedBox(height = 2),
-        text(m.time,
-          style = textStyle(fontSize = 10, color = textLo)),
-      ]))),
+                     children = inner))),
   ])
 
 proc chatScreen*(): Widget =
@@ -225,7 +255,19 @@ proc chatScreen*(): Widget =
         hasColor = true, color = bgBar,
         padding = edgeInsetsSymmetric(horizontal = 12, vertical = 12),
         child = row(crossAxisAlignment = caCenter, children = @[
-          Widget(expanded(child = container(
+          # Attach image: opens the native picker filtered to images,
+          # sends the chosen file with the current input as caption.
+          Widget(gestureDetector(behavior = htOpaque,
+            onTap = proc() =
+              attachImage(inputCtrl.value)
+              inputCtrl.value = "",
+            child = container(width = 40, height = 40,
+              hasDecoration = true,
+              decoration = boxDecoration(color = bgChat, borderRadius = 20),
+              child = center(child = icon("plus", size = 18,
+                color = textLo))))),
+          sizedBox(width = 10),
+          expanded(child = container(
             hasDecoration = true,
             decoration = boxDecoration(color = bgChat, borderRadius = 20),
             child = padding(
@@ -236,7 +278,7 @@ proc chatScreen*(): Widget =
                 onSubmitted = proc(v: string) =
                   sendMessage(v)
                   inputCtrl.value = "",
-                style = textStyle(fontSize = 14, color = textHi)))))),
+                style = textStyle(fontSize = 14, color = textHi))))),
           sizedBox(width = 10),
           gestureDetector(behavior = htOpaque,
             onTap = proc() =
