@@ -43,6 +43,14 @@ type
     requestedH*:  float32
     when not defined(js):
       decoded*:   pixie.Image
+      # Downscale cache: when the destination is meaningfully
+      # smaller than the source (a 12MP photo in a 240px chat
+      # bubble), resampling the full-resolution bitmap on EVERY
+      # paint stalls the main thread. We resize once to the draw
+      # size and blit the small copy thereafter.
+      scaled*:    pixie.Image
+      scaledW*:   int
+      scaledH*:   int
 
 # Cache of decoded images keyed by source identity. Path-keyed for
 # disk images, byte-hash-keyed for in-memory. Cache is unbounded
@@ -99,6 +107,7 @@ method updateRenderObject*(w: ImageWidget, ctx: BuildContext, r: RenderObject) =
     ri.bytes = w.bytes
     when not defined(js):
       ri.decoded = loadImage(w.path, w.bytes)
+      ri.scaled = nil   # source changed; drop the downscale cache
   ri.fit = w.fit
   ri.requestedW = w.width
   ri.requestedH = w.height
@@ -179,10 +188,28 @@ method paint*(r: RenderImage, ctx: PaintingContext, offset: Offset) =
         dstH = dh; dstW = dh * arSrc
       dstX = offset.dx + (dw - dstW) * 0.5'f32
       dstY = offset.dy + (dh - dstH) * 0.5'f32
-    ctx.canvas.drawImage(cast[pointer](img),
-                         Rect(left: 0, top: 0, right: sw, bottom: sh),
-                         Rect(left: dstX, top: dstY,
-                              right: dstX + dstW, bottom: dstY + dstH))
+    # Downscale once if the source is meaningfully larger than the
+    # destination. Resampling a multi-megapixel photo per paint is
+    # the main-thread stall users perceive as a beachball; resizing
+    # once and blitting the small copy makes subsequent paints
+    # proportional to on-screen pixels instead of source pixels.
+    let wantW = max(1, int(dstW + 0.5'f32))
+    let wantH = max(1, int(dstH + 0.5'f32))
+    if sw > float32(wantW) * 1.5'f32 or sh > float32(wantH) * 1.5'f32:
+      if r.scaled.isNil or r.scaledW != wantW or r.scaledH != wantH:
+        r.scaled = img.resize(wantW, wantH)
+        r.scaledW = wantW
+        r.scaledH = wantH
+      ctx.canvas.drawImage(cast[pointer](r.scaled),
+                           Rect(left: 0, top: 0,
+                                right: float32(wantW), bottom: float32(wantH)),
+                           Rect(left: dstX, top: dstY,
+                                right: dstX + dstW, bottom: dstY + dstH))
+    else:
+      ctx.canvas.drawImage(cast[pointer](img),
+                           Rect(left: 0, top: 0, right: sw, bottom: sh),
+                           Rect(left: dstX, top: dstY,
+                                right: dstX + dstW, bottom: dstY + dstH))
 
 method hitTest*(r: RenderImage, htResult: HitTestResult, position: Offset): bool =
   htResult.path.add(HitTestEntry(target: r, local: position))

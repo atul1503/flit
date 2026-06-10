@@ -16,6 +16,7 @@ import ../../rendering/canvas_sdl
 import ../../widgets/text_field
 import ../../widgets/drag_drop
 import ../../widgets/network_image
+import ../../platform/file_picker
 import ../../rendering/text as flitText
 import ../../rendering/bundled_font
 import ../../gestures/detector
@@ -421,6 +422,9 @@ proc runDesktop*(rootWidget: Widget,
     # fetch since the last frame, this bumps the trigger ValueNotifier
     # so subscribed widgets rebuild.
     pumpNetworkImageEvents()
+    # Pump async file-picker results (openFileAsync callbacks fire on
+    # this thread).
+    pumpFilePickerEvents()
 
     # Rebuild dirty subtrees. Snapshot and clear FIRST because
     # rebuildElement can add to dirtyRoots (via InheritedWidget

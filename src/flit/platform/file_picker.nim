@@ -194,3 +194,77 @@ proc pickFolder*(title: string = "Choose folder"): string =
   ## Opens a native folder-picker dialog. Returns the chosen
   ## directory path, or empty string if cancelled.
   pickFolderImpl(title)
+
+# --- Async variant ---
+#
+# The blocking procs above stall the SDL event loop while the
+# native dialog is up, so macOS shows the spinning beachball over
+# the app window. `openFileAsync` runs the picker on a worker
+# thread and delivers the result back on the UI thread via
+# `pumpFilePickerEvents` (called by the desktop runner each frame).
+
+when not defined(js):
+  import std/locks
+
+  type PickArgs = object
+    title:   string
+    filters: seq[FileFilter]
+
+  var
+    pickLock: Lock
+    pickThread: Thread[PickArgs]
+    pickInFlight: bool
+    pickResultReady: bool
+    pickResultPath: string
+    pickCb: proc(path: string) {.closure.}
+      ## Held on the UI side only; the worker never touches it.
+
+  initLock(pickLock)
+
+  proc pickWorker(args: PickArgs) {.thread.} =
+    {.cast(gcsafe).}:
+      let res = openFileImpl(args.title, args.filters)
+      withLock pickLock:
+        pickResultPath = res
+        pickResultReady = true
+
+  proc openFileAsync*(cb: proc(path: string),
+                      title: string = "Open file",
+                      filters: seq[FileFilter] = @[]): bool =
+    ## Non-blocking variant of `openFile`. Spawns the native picker
+    ## on a worker thread; `cb` fires ON THE UI THREAD (via the
+    ## runner's per-frame pump) with the chosen path, or "" when the
+    ## user cancelled. The app keeps animating and repainting while
+    ## the dialog is up - no beachball.
+    ##
+    ## One request at a time: returns false (and does nothing) if a
+    ## pick is already in flight.
+    if pickInFlight: return false
+    pickInFlight = true
+    pickCb = cb
+    createThread(pickThread, pickWorker,
+                 PickArgs(title: title, filters: filters))
+    true
+
+  proc pumpFilePickerEvents*() =
+    ## Called by the runtime once per frame. When the worker has a
+    ## result waiting, fires the stored callback on this (UI)
+    ## thread and clears the in-flight state.
+    var path = ""
+    var ready = false
+    withLock pickLock:
+      if pickResultReady:
+        ready = true
+        path = pickResultPath
+        pickResultReady = false
+    if ready:
+      pickInFlight = false
+      let cb = pickCb
+      pickCb = nil
+      if not cb.isNil:
+        try: cb(path) except CatchableError: discard
+else:
+  proc openFileAsync*(cb: proc(path: string),
+                      title: string = "Open file",
+                      filters: seq[FileFilter] = @[]): bool = false
+  proc pumpFilePickerEvents*() = discard

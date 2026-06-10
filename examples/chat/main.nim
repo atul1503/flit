@@ -82,16 +82,19 @@ proc sendMessage(body: string, imagePath: string = "") =
   isTyping.value = true
 
 proc attachImage(caption: string) =
-  ## Opens the native file picker filtered to images. Sends the
-  ## chosen file as an image message (with the current input text
-  ## as its caption). The picker blocks until dismissed; cancelling
-  ## returns "" and nothing is sent.
-  let path = openFile(
+  ## Opens the native file picker filtered to images, WITHOUT
+  ## blocking the event loop: the picker runs on a worker thread
+  ## and the callback fires on the UI thread when the user picks
+  ## (or cancels - empty path, nothing sent). The app keeps
+  ## animating while the dialog is up; no beachball cursor.
+  let cap = caption
+  discard openFileAsync(
+    cb = proc(path: string) =
+      if path.len > 0:
+        sendMessage(cap, imagePath = path),
     title = "Send an image",
     filters = @[FileFilter(name: "Images",
                            exts: @["png", "jpg", "jpeg", "bmp", "gif"])])
-  if path.len > 0:
-    sendMessage(caption, imagePath = path)
 
 # Reply timer: a one-shot AnimationController. When it completes,
 # the contact's reply lands and the typing indicator clears.
