@@ -82,6 +82,9 @@ proc runDesktop*(rootWidget: Widget,
     {.gcsafe.}:
       discard sdl2.setClipboardText(text.cstring)
 
+  # If something does slip through at low resolution, at least
+  # tell SDL to use the best stretch filter it has.
+  discard sdl2.setHint(HINT_RENDER_SCALE_QUALITY, "best")
   var flags: uint32 = SDL_WINDOW_SHOWN
   if config.resizable: flags = flags or SDL_WINDOW_RESIZABLE
   if config.highDpi:   flags = flags or SDL_WINDOW_ALLOW_HIGHDPI
@@ -124,9 +127,40 @@ proc runDesktop*(rootWidget: Widget,
       flogi("flit using bundled font: Roboto Regular")
     else:
       flogw("flit found no system font; text will not render")
+  # Probe the renderer's actual drawable size and pass the
+  # logical-to-physical ratio to the canvas. On retina the
+  # drawable is 2x the window size; without this the Pixie image
+  # is logical-sized and SDL bilinear-stretches it to the
+  # drawable, which is what makes retina text look pixelated.
+  var drawableW, drawableH: cint
+  discard getRendererOutputSize(renderer, addr drawableW, addr drawableH)
+  # On macOS with ALLOW_HIGHDPI, the renderer-output query sometimes
+  # reports logical size; SDL_GL_GetDrawableSize is the canonical
+  # call. Try both and take the larger ratio.
+  var glW, glH: cint
+  glGetDrawableSize(window, glW, glH)
+  let effW = max(drawableW, glW)
+  var dpr =
+    if effW > cint(config.width):
+      float32(effW) / float32(config.width)
+    else:
+      1.0'f32
+  # SDL2 2.0.5's binding doesn't reliably surface the retina drawable
+  # size on every macOS configuration. Most Macs sold since 2014 are
+  # retina, so default to 2.0 on macOS when probing failed. Users on
+  # non-retina hardware can pass FLIT_DPR=1 to override.
+  when defined(macosx):
+    if dpr == 1.0'f32: dpr = 2.0'f32
+  # Some SDL2 / macOS combinations don't surface the retina drawable
+  # size through getRendererOutputSize even with ALLOW_HIGHDPI set.
+  # FLIT_DPR=2 overrides for those cases.
+  if getEnv("FLIT_DPR").len > 0:
+    try: dpr = parseFloat(getEnv("FLIT_DPR")) except CatchableError: discard
+  flogi("flit dpr=", dpr, " (window ", config.width, "x", config.height,
+        " drawable ", drawableW, "x", drawableH, ")")
   let canvas = newSdlCanvas(window, renderer,
                             config.width, config.height,
-                            fontPath)
+                            fontPath, dpr = dpr)
   # When no system font was discovered, fall back to the bundled
   # Roboto (compiled into the binary). Containers, minimal Linux
   # images, and kiosks get working text out of the box.

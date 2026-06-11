@@ -111,6 +111,13 @@ when not defined(js):
       ## SDL2 + Pixie canvas. Drawing operations go through Pixie
       ## into `image`; once per frame `present()` swizzles the buffer
       ## into the streaming `texture` and copies it to the window.
+      ##
+      ## HiDPI: on retina displays SDL allocates a 2x drawable
+      ## buffer when `SDL_WINDOW_ALLOW_HIGHDPI` is set. We size the
+      ## Pixie image at the PHYSICAL drawable size and pre-apply
+      ## `scale(dpr)` to the Context, so render-object paint methods
+      ## can keep using LOGICAL coordinates while text and shapes
+      ## rasterize at full native pixel density (sharp on retina).
       image*:    Image
       ctx*:      Context
       window*:   WindowPtr
@@ -118,22 +125,38 @@ when not defined(js):
       texture*:  TexturePtr
       fonts*:    Table[string, Font]
       defaultFont*: Font
+      dpr*:      float32       ## device pixel ratio (1.0 on non-retina; 2.0 on retina)
+
+  proc applyDprBaseTransform(c: SdlCanvas) =
+    ## Re-applies the dpr scale to the context. Pixie's Context
+    ## resets its transform on every `save()` / `restore()` pair, so
+    ## we call this after each top-level clear so the per-frame
+    ## paint pass starts in the correct coordinate space.
+    c.ctx.resetTransform()
+    if c.dpr != 1.0'f32:
+      c.ctx.scale(c.dpr, c.dpr)
 
   proc newSdlCanvas*(window: WindowPtr, renderer: RendererPtr,
-                     w, h: int, defaultFontPath: string = ""): SdlCanvas =
+                     w, h: int, defaultFontPath: string = "",
+                     dpr: float32 = 1.0'f32): SdlCanvas =
     ## Constructs an `SdlCanvas`.
     ##
     ## Inputs:
     ## - `window`, `renderer`: live SDL2 handles obtained via
     ##   `createWindow` / `createRenderer`.
-    ## - `w`, `h`: surface size in pixels.
+    ## - `w`, `h`: LOGICAL surface size in pixels (what layout sees).
     ## - `defaultFontPath`: absolute path to a TTF to load and
     ##   register under the "system" family. Empty leaves the font
     ##   table empty; `drawText` becomes a no-op.
+    ## - `dpr`: device pixel ratio. Pass the renderer's drawable
+    ##   width divided by `w` (use `getRendererOutputSize`). Default
+    ##   1.0 keeps the legacy non-HiDPI behavior.
     ##
     ## Output: a ready-to-use canvas. Pair with `present(canvas)`
     ## once per frame to ship pixels to the SDL window.
-    var img = newImage(w, h)
+    let pw = max(1, int(float32(w) * dpr + 0.5'f32))
+    let ph = max(1, int(float32(h) * dpr + 0.5'f32))
+    var img = newImage(pw, ph)
     var c = newContext(img)
     var defaultFont: Font
     var fonts = initTable[string, Font]()
@@ -146,21 +169,26 @@ when not defined(js):
       except CatchableError:
         defaultFont = nil
     let tex = createTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-                             SDL_TEXTUREACCESS_STREAMING, cint(w), cint(h))
-    SdlCanvas(image: img, ctx: c, window: window, renderer: renderer,
+                             SDL_TEXTUREACCESS_STREAMING, cint(pw), cint(ph))
+    result = SdlCanvas(image: img, ctx: c, window: window, renderer: renderer,
               texture: tex, fonts: fonts, defaultFont: defaultFont,
+              dpr: dpr,
               size: Size(width: float32(w), height: float32(h)))
+    applyDprBaseTransform(result)
 
   proc resize*(c: SdlCanvas, w, h: int) =
-    ## Resizes the canvas to `w x h` pixels. Allocates a new Pixie
-    ## image and a new SDL streaming texture. Call when the window
-    ## resize event arrives.
-    c.image = newImage(w, h)
+    ## Resizes the canvas to `w x h` LOGICAL pixels. Reallocates the
+    ## Pixie image at the physical size implied by `dpr`. Call when
+    ## the window resize event arrives.
+    let pw = max(1, int(float32(w) * c.dpr + 0.5'f32))
+    let ph = max(1, int(float32(h) * c.dpr + 0.5'f32))
+    c.image = newImage(pw, ph)
     c.ctx  = newContext(c.image)
     c.size = Size(width: float32(w), height: float32(h))
     destroyTexture(c.texture)
     c.texture = createTexture(c.renderer, SDL_PIXELFORMAT_ARGB8888,
-                              SDL_TEXTUREACCESS_STREAMING, cint(w), cint(h))
+                              SDL_TEXTUREACCESS_STREAMING, cint(pw), cint(ph))
+    applyDprBaseTransform(c)
 
   proc argbToPaint(c: SdlCanvas, v: uint32): Paint =
     let opaqued = c.applyOpacity(v)
@@ -190,10 +218,16 @@ when not defined(js):
       c.ctx.fillStyle = argbToPaint(c, fill)
       c.ctx.fillRect(pixie.rect(r.rect.left, r.rect.top, r.rect.width, r.rect.height))
       return
+    # Cache at PHYSICAL resolution so retina displays get sharp
+    # rounded corners. Key includes dpr because the same logical
+    # shape needs distinct bitmaps at different densities.
+    let dpr = c.dpr
+    let pw = max(1, int(float32(w) * dpr + 0.5'f32))
+    let ph = max(1, int(float32(h) * dpr + 0.5'f32))
     let key = SdlRRectKey(
-      w: uint16(w), h: uint16(h),
-      tl: uint16(r.tl.x + 0.5'f32), tr: uint16(r.tr.x + 0.5'f32),
-      br: uint16(r.br.x + 0.5'f32), bl: uint16(r.bl.x + 0.5'f32),
+      w: uint16(pw), h: uint16(ph),
+      tl: uint16(r.tl.x * dpr + 0.5'f32), tr: uint16(r.tr.x * dpr + 0.5'f32),
+      br: uint16(r.br.x * dpr + 0.5'f32), bl: uint16(r.bl.x * dpr + 0.5'f32),
       color: opaqued)
     var entry: SdlRRectEntry
     if sdlRRectCache.hasKey(key):
@@ -201,7 +235,7 @@ when not defined(js):
       inc sdlRRectCacheHits
     else:
       inc sdlRRectCacheMisses
-      let img = pixie.newImage(w, h)
+      let img = pixie.newImage(pw, ph)
       var ctx = newContext(img)
       let a = uint8((opaqued shr 24) and 0xFF)
       let red = uint8((opaqued shr 16) and 0xFF)
@@ -211,17 +245,24 @@ when not defined(js):
       pt.color = rgba(red, g, b, a).color
       ctx.fillStyle = pt
       var path = newPath()
-      path.roundedRect(pixie.rect(0.0'f32, 0.0'f32, float32(w), float32(h)),
-                       r.tl.x, r.tr.x, r.br.x, r.bl.x)
+      path.roundedRect(pixie.rect(0.0'f32, 0.0'f32, float32(pw), float32(ph)),
+                       r.tl.x * dpr, r.tr.x * dpr,
+                       r.br.x * dpr, r.bl.x * dpr)
       ctx.fill(path)
       entry = SdlRRectEntry(image: img)
       if sdlRRectCache.len >= sdlRRectCacheLimit:
         sdlRRectCache.clear()
       sdlRRectCache[key] = entry
-    # Same transform-composition note as drawText: image.draw
-    # bypasses the Context matrix, so apply it explicitly.
-    c.image.draw(entry.image,
-                 c.ctx.getTransform() * translate(vec2(r.rect.left, r.rect.top)))
+    # The cached image is at physical scale. ctx.getTransform()
+    # contains scale(dpr); composing with scale(1/dpr) undoes that
+    # for the pre-scaled bitmap so it lands at logical size.
+    let m =
+      if dpr == 1.0'f32:
+        c.ctx.getTransform() * translate(vec2(r.rect.left, r.rect.top))
+      else:
+        c.ctx.getTransform() * translate(vec2(r.rect.left, r.rect.top)) *
+          pixie.scale(vec2(1.0'f32 / dpr, 1.0'f32 / dpr))
+    c.image.draw(entry.image, m)
 
   method drawCircle*(c: SdlCanvas, center: geom.Offset, radius: float32, fill: uint32) =
     c.ctx.fillStyle = argbToPaint(c, fill)
@@ -255,23 +296,26 @@ when not defined(js):
     # Bake opacity into the cache key so semi-transparent and opaque
     # variants of the same string keep separate bitmaps.
     let opaqued = c.applyOpacity(color)
+    let dpr = c.dpr
+    # Rasterize the glyph image at the PHYSICAL font size so retina
+    # text is sharp. Cache key includes dpr so the same logical size
+    # cached at 1x doesn't get reused at 2x.
+    let physSize = fontSize * dpr
     let key = SdlTextCacheKey(
       text: text, family: fontFamily,
-      size: uint16(fontSize), color: opaqued)
+      size: uint16(physSize + 0.5'f32), color: opaqued)
     var entry: SdlTextCacheEntry
     if sdlTextCache.hasKey(key):
       entry = sdlTextCache[key]
       inc sdlTextCacheHits
     else:
       inc sdlTextCacheMisses
-      # cache miss; build the cached image.
-      f.size = fontSize
+      # cache miss; build the cached image at physical scale.
+      f.size = physSize
       let bounds = pixie.typeset(f, text).computeBounds()
       let tw = max(int(bounds.w) + 2, 1)
-      let th = max(int(max(bounds.h, fontSize)) + 2, 1)
+      let th = max(int(max(bounds.h, physSize)) + 2, 1)
       let img = pixie.newImage(tw, th)
-      # Render with full alpha; we will redraw with the current
-      # opacity stack via the cached image's `draw` call below.
       let a = uint8((opaqued shr 24) and 0xFF)
       let r = uint8((opaqued shr 16) and 0xFF)
       let g = uint8((opaqued shr  8) and 0xFF)
@@ -292,8 +336,19 @@ when not defined(js):
     # matrix, so we must compose with getTransform() ourselves or
     # text inside a `transform` widget (rotation / scale / slide
     # animations) paints at untransformed coordinates.
-    c.image.draw(entry.image,
-                 c.ctx.getTransform() * translate(vec2(pos.dx, pos.dy)))
+    #
+    # The cached image is rasterized at physical scale (fontSize *
+    # dpr); ctx.getTransform() also has scale(dpr) baked in. Without
+    # a counter-scale of 1/dpr the high-res bitmap would draw dpr^2
+    # too large. With it, the bitmap lands at the correct logical
+    # size with full native pixel density. dpr == 1 short-circuits.
+    let m =
+      if dpr == 1.0'f32:
+        c.ctx.getTransform() * translate(vec2(pos.dx, pos.dy))
+      else:
+        c.ctx.getTransform() * translate(vec2(pos.dx, pos.dy)) *
+          pixie.scale(vec2(1.0'f32 / dpr, 1.0'f32 / dpr))
+    c.image.draw(entry.image, m)
 
   method save*(c: SdlCanvas) = c.ctx.save()
   method restore*(c: SdlCanvas) = c.ctx.restore()
@@ -350,10 +405,16 @@ when not defined(js):
       ## the result onto its parent canvas. The parent's
       ## `compositeSubCanvas` does the upload-and-blit so the per-
       ## frame cost of a clean boundary is a single GPU operation.
+      ##
+      ## HiDPI: inherits its parent's `dpr` so the cached bitmap is
+      ## rasterized at full native pixel density just like the main
+      ## canvas. `compositeSubCanvas` composes the inverse scale so
+      ## the physical-sized bitmap blits at the right logical size.
       image*:        Image
       ctx*:          Context
       fonts*:        Table[string, Font]
       defaultFont*:  Font
+      dpr*:          float32
       # A persistent GPU texture cache. When the sub-canvas is clean
       # (i.e. its pixels match what's in `texture`) we can skip the
       # CPU-to-GPU upload entirely.
@@ -376,10 +437,20 @@ when not defined(js):
     ## texture is created lazily on first composite. Fonts are
     ## shared from `parent` so text inside the boundary renders
     ## without each layer carrying its own font table.
-    var img = newImage(w, h)
+    ##
+    ## Pixie image is sized at PHYSICAL resolution (w * parent.dpr)
+    ## so the cached bitmap is sharp on retina; the context applies
+    ## scale(dpr) so drawing into the sub-canvas uses logical
+    ## coordinates the same as the main canvas.
+    let dpr = parent.dpr
+    let pw = max(1, int(float32(w) * dpr + 0.5'f32))
+    let ph = max(1, int(float32(h) * dpr + 0.5'f32))
+    var img = newImage(pw, ph)
     var c = newContext(img)
+    if dpr != 1.0'f32: c.scale(dpr, dpr)
     SdlSubCanvas(image: img, ctx: c,
                  fonts: parent.fonts, defaultFont: parent.defaultFont,
+                 dpr: dpr,
                  textureDirty: true,
                  size: Size(width: float32(w), height: float32(h)))
 
@@ -490,9 +561,18 @@ when not defined(js):
     # per sub-canvas.
     # Compose with the Context's transform so a RepaintBoundary
     # inside a `transform` widget (scaled / rotated / translated
-    # animation) composites at the transformed position.
-    c.image.draw(s.image,
-                 c.ctx.getTransform() * translate(vec2(offset.dx, offset.dy)))
+    # animation) composites at the transformed position. The
+    # sub-canvas image is at physical scale; getTransform() has
+    # scale(dpr); a counter-scale of 1/dpr lands the bitmap at its
+    # natural logical size with full pixel density preserved.
+    let dpr = c.dpr
+    let m =
+      if dpr == 1.0'f32:
+        c.ctx.getTransform() * translate(vec2(offset.dx, offset.dy))
+      else:
+        c.ctx.getTransform() * translate(vec2(offset.dx, offset.dy)) *
+          pixie.scale(vec2(1.0'f32 / dpr, 1.0'f32 / dpr))
+    c.image.draw(s.image, m)
 
   proc present*(c: SdlCanvas) =
     ## Push the Pixie image into the SDL streaming texture, copy the
