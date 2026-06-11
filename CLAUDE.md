@@ -19,6 +19,44 @@ A Flutter-inspired UI toolkit for Nim. Single codebase targets macOS, Linux, Win
 3. If the widget has children, teach `childrenOf` in `foundation/runtime.nim` how to extract them.
 4. If the child needs special parent data (like Flexible's `flex`), extend `attachChildRenders`.
 
+## Feature development flow (read this before starting a new feature)
+
+This is for you, future Claude. Every bullet here exists because the loop already burned us. Skipping a step means re-finding the same class of bug.
+
+**Before writing code**
+
+1. List the **touched surfaces**: widgets, render-object methods, platform modules, canvases (SDL, embedded, GL). This is the blast-radius set you regression-test at the end.
+2. List the **pairwise interactions** the feature creates. `transform x text cache`, `repaintBoundary x dirty-marking`, `navigation x controller state`, `worker thread x main-thread state`. Every framework bug in the 0.11.x series lived in one of these intersections, not in a feature alone. Add a matrix test for each pair.
+3. Pick a **debug env var name** (`FLIT_<FEATURE>_LOG=1`) and decide what each log line proves. If the feature later "feels off," one env var should tell you exactly which step failed. `FLIT_FRAME_LOG`, `FLIT_INPUT_LOG`, `FLIT_TAP_PROBE`, `FLIT_PAINT_PROBE`, `FLIT_SAVE_FRAME[_AFTER]` already exist; reuse before inventing.
+
+**While implementing**
+
+4. **Land the debug logs first**, even before the feature compiles cleanly. They are the diagnostic for everything that follows.
+5. **Write the interaction test through the REAL code path**, not a synthetic one. Drive `binding.dispatchPointer` + `focusManager.handleKeyEvent` + drain `b.dirtyRoots`. Rebuilding from the root via `rebuildElement(root)` hits the identity short-circuit and silently passes (this is what hid the 0.11.5 typing bug). See `tests/test_feature_matrix.nim` for the pattern.
+6. **Write matrix tests for each pair from step 2.** One assertion per pair is enough. The point is mechanical coverage of the interaction zone.
+
+**Before declaring it done**
+
+7. **Test on the real SDL binary**, not just the embedded canvas. The embedded bench lied to us about SDL paint cost three separate times in 0.11.x. Run with `FLIT_FRAME_LOG=1` and `FLIT_PAINT_PROBE=10`. If the binary's steady-state frame is over ~5 ms for a non-trivial workload, find out why before shipping.
+8. **Cycle-stress async / threaded code.** Do the action 10 times in a row, not once. The picker SIGSEGV survived rounds 1-2 and crashed on round 5. `tests/test_async_picker.nim` shows the loop pattern.
+9. **Add a golden screenshot for any visible change**, in `tests/test_golden.nim`. Render with the bundled font so the golden is deterministic. The 0.11.1 blank-window regression would have been caught immediately.
+10. **Cross-platform compile**, all targets. For each example or umbrella module: `nim c --os:linux --cpu:amd64 -c`, `--os:windows --cpu:amd64 -c`, `--os:ios --cpu:arm64 -c`, `--os:android --cpu:arm64 -c`, and `nim js -c`. Platform-specific imports (`osproc`, `os`, `findExe`) need `when not defined(js):` guards; the 0.13.5 audit found four modules that had drifted.
+
+**Regression check on the blast-radius set**
+
+11. Re-run tests for every widget / module from step 1's touched-surfaces list. If you touched `RenderTextField.performLayout`, re-eye every example that has a TextField visible (amazon search, chat input, notes editor, sign-in form).
+12. `nimble test` (all 400+ pass) + `nimble benchFeatures` (no scenario should silently slip). A feature shouldn't quietly regress an unrelated bench scenario; if it does, that's a tell.
+
+**Then commit, bump version, push.** Never push without running steps 11-12.
+
+**App-level traps to remember (not framework bugs, just gotchas you will hit again)**
+
+- `center()` expands to fill bounded constraints. A `center` inside an unbounded row/column cell eats vertical space - wrap it in a fixed-height `container` if you need it compact. Bit us in pulse and sign-in.
+- Navigating pop+push to the same widget type at the same tree position **reuses the element and its state**. The progress bar didn't reset across track changes until I added `key = newValueKey(trackId)`. Any State that should reset on navigation needs a key.
+- `setState` is async-ish: it marks dirty, the rebuild happens on the next frame. Don't read `s.controller.text` right after `setState` and expect the new value to be painted yet.
+- `currentNavigator().push(route)` defaults to `trSlideLeft` over 250 ms. If the destination needs to appear instantly (or you want to test it deterministically), pass `transition = trNone`.
+- Big images: the downscale cache handles repaint cost, but the FIRST paint still resizes once on the main thread (~5 ms for 6MP). Decode + resize off the main thread is the next improvement if this becomes visible.
+
 ## Versioning
 
 Semver. Bump before publishing user-facing changes. `flitVersion` lives in `cli/src/flit_cli.nim`; `version` lives in `flit.nimble`. Keep them in lockstep. Version history below.
